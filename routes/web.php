@@ -179,6 +179,8 @@ Route::get('/display/budget', function () {
 
 Route::get('/display/pending', [ManagerController::class, 'managerDashboard'])->name('display.pending');
 Route::get('/display/admin', [DashboardController::class, 'displayAdmins'])->name('display.admin');
+Route::get('/display/users', [DashboardController::class, 'displayUsers'])->name('display.users');
+
 // Budget Forecasting Routes
 Route::prefix('finance/budgets')->name('finance.budgets.')->group(function () {
     Route::get('/', [FinanceController::class, 'indexBudget'])->name('index');

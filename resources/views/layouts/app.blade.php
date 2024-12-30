@@ -139,101 +139,116 @@
         @yield('content')
     </div>
 
-    <!-- Profile Modal -->
-    <div class="modal fade" id="profileModal" tabindex="-1" aria-labelledby="profileModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="profileModalLabel">Profile Information</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <table class="table table-striped">
-                        <tbody>
-                            <tr>
-                                <th scope="row">Username</th>
-                                <td>{{ Auth::user()->username }}</td>
-                            </tr>
-                            <tr>
-                                <th scope="row">Full Name</th>
-                                <td>{{ Auth::user()->full_name }}</td>
-                            </tr>
-                            <tr>
-                                <th scope="row">Email</th>
-                                <td>{{ Auth::user()->email }}</td>
-                            </tr>
-                            <tr>
-                                <th scope="row">Role</th>
-                                <td>{{ ucfirst(Auth::user()->role) }}</td>
-                            </tr>
-                            @if(Auth::user()->role === 'superadmin')
-                            <tr>
-                                <th scope="row">Access Level</th>
-                                <td>Companies and Their Admins</td>
-                            </tr>
-                            @else
-                            <tr>
-                                <th scope="row">Company ID</th>
-                                <td>{{ Auth::user()->company_id ?? 'N/A' }}</td>
-                            </tr>
-                            @endif
-                        </tbody>
-                    </table>
-                    <hr>
-                    <h6>Edit Profile</h6>
-                    <form action="{{ route('users.update', Auth::user()->user_id) }}" method="POST">
-                        @csrf
-                        @method('PUT')
-                        <div class="mb-3">
-                            <label for="username" class="form-label">Username</label>
-                            <input type="text" class="form-control" id="username" name="username" value="{{ Auth::user()->username }}" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="full_name" class="form-label">Full Name</label>
-                            <input type="text" class="form-control" id="full_name" name="full_name" value="{{ Auth::user()->full_name }}" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="email" class="form-label">Email</label>
-                            <input type="email" class="form-control" id="email" name="email" value="{{ Auth::user()->email }}" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="password" class="form-label">Password (leave blank to keep current)</label>
-                            <input type="password" class="form-control" id="password" name="password">
-                        </div>
-                        <div class="mb-3">
-                            <label for="password_confirmation" class="form-label">Confirm Password</label>
-                            <input type="password" class="form-control" id="password_confirmation" name="password_confirmation">
-                        </div>
-                        <div class="mb-3">
-                            <label for="company_id" class="form-label">Company ID</label>
-                            <input type="number" class="form-control" id="company_id" name="company_id" value="{{ Auth::user()->company_id }}" readonly>
-                        </div>
-                        <button type="submit" class="btn btn-primary">Update Profile</button>
-                    </form>
-                    <hr>
-                    <h6>Upload Avatar</h6>
-                    <form action="{{ route('avatar.upload') }}" method="POST" enctype="multipart/form-data">
-                        @csrf
-                        <div class="mb-3">
-                            <label for="avatar" class="form-label">Choose Avatar</label>
-                            <input type="file" class="form-control" id="avatar" name="avatar" accept="image/*" required>
-                        </div>
-                        <button type="submit" class="btn btn-primary">Upload Avatar</button>
-                    </form>
-                    <hr>
-                    <!-- Logout Button -->
-                    <form action="{{ route('logout') }}" method="POST">
-                        @csrf
-                        <button type="submit" class="btn btn-danger w-100">Logout</button>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                </div>
+   <!-- Profile Modal -->
+<div class="modal fade" id="profileModal" tabindex="-1" aria-labelledby="profileModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="profileModalLabel">Profile Information</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <table class="table table-striped">
+                    <tbody>
+                        <tr>
+                            <th scope="row">Username</th>
+                            <td>{{ Auth::user()->username }}</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Full Name</th>
+                            <td>{{ Auth::user()->full_name }}</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Email</th>
+                            <td>{{ Auth::user()->email }}</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Role</th>
+                            <td>{{ ucfirst(Auth::user()->role) }}</td>
+                        </tr>
+                        @if(Auth::user()->role === 'superadmin')
+                        <tr>
+                            <th scope="row">Access Level</th>
+                            <td>Companies and Their Admins</td>
+                        </tr>
+                        @else
+                        <tr>
+                            <th scope="row">Company ID</th>
+                            <td>{{ Auth::user()->company_id ?? 'N/A' }}</td>
+                        </tr>
+                        @endif
+                    </tbody>
+                </table>
+                <hr>
+                @if(Auth::user()->role !== 'superadmin') <!-- Hide Edit Profile section for superadmin -->
+                <h6>Edit Profile <i class="fas fa-user-edit"></i></h6>
+                <form action="{{ route('users.update', Auth::user()->user_id) }}" method="POST">
+                    @csrf
+                    @method('PUT')
+                    
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Username</label>
+                        <input type="text" class="form-control" id="username" name="username" value="{{ Auth::user()->username }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="full_name" class="form-label">Full Name</label>
+                        <input type="text" class="form-control" id="full_name" name="full_name" value="{{ Auth::user()->full_name }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" name="email" value="{{ Auth::user()->email }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password (leave blank to keep current password)</label>
+                        <input type="password" class="form-control" id="password" name="password">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="password_confirmation" class="form-label">Confirm Password</label>
+                        <input type="password" class="form-control" id="password_confirmation" name="password_confirmation">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="role" class="form-label">Role</label>
+                        <select class="form-select" id="role" name="role" required>
+                            <option value="{{ Auth::user()->role }}" selected>{{ ucfirst(Auth::user()->role) }}</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="company_id" class="form-label">Company ID</label>
+                        <input type="number" class="form-control" id="company_id" name="company_id" value="{{ Auth::user()->company_id }}" readonly>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">Update Profile</button>
+                </form>
+                @endif
+                <hr>
+                <h6>Upload Avatar <i class="fas fa-upload"></i></h6>
+                <form action="{{ route('avatar.upload') }}" method="POST" enctype="multipart/form-data">
+                    @csrf
+                    <div class="mb-3">
+                        <label for="avatar" class="form-label">Choose Avatar</label>
+                        <input type="file" class="form-control" id="avatar" name="avatar" accept="image/*" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Upload Avatar</button>
+                </form>
+                <hr>
+                <!-- Logout Button -->
+                <form action="{{ route('logout') }}" method="POST">
+                    @csrf
+                    <button type="submit" class="btn btn-danger w-100">Logout <i class="fas fa-sign-out-alt"></i></button>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
-
+</div>
     <!-- Scripts -->
     <script src="{{ mix('js/app.js') }}" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>

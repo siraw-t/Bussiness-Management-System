@@ -85,12 +85,17 @@ public function update(Request $request, User $user)
     // Check if the role can be edited by the user
     if (Auth::user()->role === 'admin' || Auth::user()->role === 'superadmin') {
         $user->role = $request->role;
+        $user->company_id = $request->company_id;
+        $user->save();
+
+        return redirect()->route('users.index')->with('success', 'User updated successfully.');
+    } else {
+        // Non-admin users can update their info but not roles
+        $user->company_id = $request->company_id; // Allow updating company_id
+        $user->save();
+        
+        return redirect()->back()->with('success', 'User updated successfully.');
     }
-
-    $user->company_id = $request->company_id;
-    $user->save();
-
-    return redirect()->route('users.index')->with('success', 'User updated successfully.');
 }
 
     public function destroy(User $user)

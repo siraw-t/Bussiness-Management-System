@@ -3,8 +3,8 @@
 @section('content')
 <div class="container-fluid">
     <div class="row mb-4">
-        <div class="col-md-12">
-            <h1 class="text-center">Welcome to {{ Auth::user()->company->company_name }}</h1>
+        <div class="col-md-12 mt-5"> <!-- Added mt-5 for top margin -->
+            <h1 class="text-center text-primary">Welcome to {{ Auth::user()->company->company_name }}</h1>
         </div>
     </div>
 
@@ -13,36 +13,18 @@
             <div class="card text-bg-success shadow-sm">
                 <div class="card-body">
                     <h5 class="card-title">Total Users</h5>
-                    <p class="card-text">{{ $totalUsers }}</p>
+                    <p class="card-text fs-1">{{ $totalUsers }}</p>
                 </div>
             </div>
         </div>
-
-        {{-- <div class="col-md-6 col-lg-4">
-            <div class="card text-bg-info shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title">Active Users</h5>
-                    <p class="card-text">{{ $activeUsers }}</p>
-                </div>
-            </div>
-        </div> --}}
-
-        {{-- <div class="col-md-6 col-lg-4">
-            <div class="card text-bg-warning shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title">Inactive Users</h5>
-                    <p class="card-text">{{ $inactiveUsers }}</p>
-                </div>
-            </div>
-        </div>
-    </div> --}}
+    </div> 
 
     <div class="mt-4">
-        <h2>{{ Auth::user()->full_name }} Manage Users</h2>
+        <h2 class="text-secondary">{{ Auth::user()->full_name }} Manage Users</h2>
         <a href="{{ route('users.create') }}" class="btn btn-primary mb-3">Create User</a>
         <div class="table-responsive">
-            <table class="table table-striped table-hover">
-                <thead>
+            <table class="table table-bordered table-hover table-striped">
+                <thead class="table-dark">
                     <tr>
                         <th>Username</th>
                         <th>Full Name</th>

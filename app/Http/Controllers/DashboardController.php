@@ -55,21 +55,42 @@ class DashboardController extends Controller
 }
 
 
-    public function adminDashboard()
-    {
-        if (!Auth::check() || Auth::user()->role !== 'admin') {
-            return redirect('/login');
-        }
-
-        $companyId = Auth::user()->company_id;
-        $totalUsers = User::where('company_id', $companyId)->count();
-        $activeUsers = User::where('company_id', $companyId)
-            ->where('created_at', '>=', now()->subDays(30))
-            ->count();
-        $users = User::where('company_id', $companyId)->get();
-
-        return view('dashboards.admin', compact('totalUsers', 'users', 'activeUsers'));
+public function adminDashboard()
+{
+    if (!Auth::check() || Auth::user()->role !== 'admin') {
+        return redirect('/login');
     }
+
+    $companyId = Auth::user()->company_id;
+    $totalUsers = User::where('company_id', $companyId)
+        ->whereIn('role', ['admin', 'employee','finance','manager','storekeeper']) // Only count admin and user roles
+        ->count();
+        
+    $users = User::where('company_id', $companyId)
+        ->whereIn('role', ['admin', 'employee','finance','manager','storekeeper']) // Retrieve only admin and user roles
+        ->get();
+
+    return view('dashboards.admin', compact('totalUsers', 'users'));
+}
+
+public function displayUsers()
+{
+    if (!Auth::check() || Auth::user()->role !== 'admin') {
+        return redirect('/login');
+    }
+
+    $companyId = Auth::user()->company_id; // Get the company ID of the logged-in admin
+
+    // Fetch all users for the company, regardless of their role
+    $users = User::where('company_id', $companyId)->get();
+
+    $totalUsers = User::where('company_id', $companyId)
+        ->whereIn('role', ['admin', 'employee','finance','manager','storekeeper']) // Only count admin and user roles
+        ->count();
+
+
+    return view('display.users', compact('users','totalUsers')); // Return the view for company users
+}
 
     public function employeeDashboard()
 {
