@@ -8,10 +8,8 @@
     <div class="position-sticky">
         <div class="scrollable-links" style="max-height: calc(100vh - 130px); overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none;">
             <ul class="nav flex-column">
-                <h5 class="sidebar-title text-center mt-4 mb-4" style="font-size: 1.5rem; color: #ffffff; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);">Finance Menu</h5>
-                <li class="nav-item">
-                    <h5 class="sidebar-title text-center mt-4 mb-4" style="font-size: 1.5rem; color: #ffffff; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);">Finance Menu</h5>
-
+                <li class="nav-item mt-5">
+                    <h5 class="sidebar-title text-center mt-5 mb-4" style="font-size: 1.5rem; color: #ffffff; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);">Finance Menu</h5>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link text-white" href="{{ route('leave-requests.index') }}">
@@ -163,7 +161,42 @@
     h1 {
         text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
     }
-</style>
+    /* Sidebar Toggle Button */
+    .sidebar-toggle {
+        display: none; /* Hide by default */
+        position: fixed;
+        top: 5px; /* Adjust vertical position */
+        left: 300px; /* Adjust horizontal position */
+       
+        z-index: 1100; /* Ensure it's above other elements */
+    }
+
+    /* Mobile Styles */
+    @media (max-width: 768px) {
+        .sidebar-toggle {
+            display: block; /* Show toggle button on mobile */
+        }
+        .sidebar {
+            position: absolute;
+            width: 250px;
+            height: 100vh;
+            left: -250px; /* Hide off-screen */
+            transition: left 0.3s ease;
+            z-index: 1000;
+        }
+        .sidebar.show {
+            left: 0; /* Show sidebar */
+        }
+        main {
+            margin-left: 0; /* No margin on mobile */
+        }
+    }
+            </style>
+
+            <!-- Sidebar Toggle Button -->
+            <button class="btn btn-primary sidebar-toggle" onclick="toggleSidebar()">
+                <i class="bi bi-list"></i>
+            </button>
 
     <!-- Analytics Section -->
     <div class="row mb-4">
@@ -289,22 +322,22 @@
         };
 
         const inventoryData = {
-    labels: @json($inventories->pluck('item_name')),
-    datasets: [{
-        label: 'Inventory Quantity',
-        data: @json($inventories->pluck('quantity')),
-        backgroundColor: [
-            'rgba(54, 162, 235, 0.8)', // Example color for each item
-            'rgba(255, 206, 86, 0.8)',
-            'rgba(255, 99, 132, 0.8)',
-            'rgba(75, 192, 192, 0.8)',
-            'rgba(153, 102, 255, 0.8)',
-            'rgba(255, 159, 64, 0.8)'
-        ],
-        borderColor: 'rgba(0, 0, 0, 0.2)',
-        borderWidth: 1,
-    }]
-};
+            labels: @json($inventories->pluck('item_name')),
+            datasets: [{
+                label: 'Inventory Quantity',
+                data: @json($inventories->pluck('quantity')),
+                backgroundColor: [
+                    'rgba(54, 162, 235, 0.8)', // Example color for each item
+                    'rgba(255, 206, 86, 0.8)',
+                    'rgba(255, 99, 132, 0.8)',
+                    'rgba(75, 192, 192, 0.8)',
+                    'rgba(153, 102, 255, 0.8)',
+                    'rgba(255, 159, 64, 0.8)'
+                ],
+                borderColor: 'rgba(0, 0, 0, 0.2)',
+                borderWidth: 1,
+            }]
+        };
 
         // Create Leave Requests Chart
         const ctxLeave = document.getElementById('leaveRequestsChart').getContext('2d');
@@ -356,6 +389,12 @@ new Chart(ctxInventory, {
         }
     }
 });
+
+  // Toggle sidebar function
+  function toggleSidebar() {
+                    const sidebar = document.querySelector('.sidebar');
+                    sidebar.classList.toggle('show');
+                }
     </script>
 
     <style>

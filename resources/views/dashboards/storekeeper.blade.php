@@ -268,19 +268,70 @@
         }
     }
 
-    /* Button Hover Effect */
-    .btn-light:hover {
-        background-color: #f8f9fa;
-        color: #343a40;
-        transform: scale(1.05);
-        transition: transform 0.2s;
+    .nav-link {
+                display: flex;
+                align-items: center;
+                padding: 10px 15px;
+                transition: background-color 0.3s ease, transform 0.3s ease;
+            }
+        
+            .nav-link i {
+                margin-right: 10px; /* Space between icon and text */
+                transition: transform 0.3s ease; /* Animation for icon */
+            }
+        
+            .nav-link:hover {
+                background-color: rgba(255, 255, 255, 0.1); /* Highlight on hover */
+                transform: scale(1.02); /* Slightly scale up on hover */
+            }
+        
+            .nav-link:hover i {
+                transform: rotate(360deg); /* Rotate icon on hover */
+            }
+        
+            .link-text {
+                opacity: 1; /* Default visibility */
+                transition: opacity 0.3s ease; /* Fade effect for text */
+            }
+        
+            .nav-link:hover .link-text {
+                opacity: 1; /* Ensure text is visible on hover */
+            }
+/* Sidebar Toggle Button */
+.sidebar-toggle {
+        display: none; /* Hide by default */
+        position: fixed;
+        top: 5px; /* Adjust vertical position */
+        left: 300px; /* Adjust horizontal position */
+        z-index: 1100; /* Ensure it's above other elements */
     }
 
-    /* Responsive Text */
-    h1 {
-        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    /* Mobile Styles */
+    @media (max-width: 768px) {
+        .sidebar-toggle {
+            display: block; /* Show toggle button on mobile */
+        }
+        .sidebar {
+            position: absolute;
+            width: 250px;
+            height: 100vh;
+            left: -250px; /* Hide off-screen */
+            transition: left 0.3s ease;
+            z-index: 1000;
+        }
+        .sidebar.show {
+            left: 0; /* Show sidebar */
+        }
+        main {
+            margin-left: 0; /* No margin on mobile */
+        }
     }
-</style>
+            </style>
+
+            <!-- Sidebar Toggle Button -->
+            <button class="btn btn-primary sidebar-toggle" onclick="toggleSidebar()">
+                <i class="bi bi-list"></i>
+            </button>
 
     <!-- Analytics Section -->
     <div class="row mb-4">
@@ -473,6 +524,12 @@ new Chart(ctxInventory, {
         }
     }
 });
+
+// Toggle sidebar function
+function toggleSidebar() {
+                    const sidebar = document.querySelector('.sidebar');
+                    sidebar.classList.toggle('show');
+                }
     </script>
 
     <style>

@@ -8,8 +8,6 @@
         font-family: 'Arial', sans-serif;
     }
 
-   
-
     .card {
         transition: transform 0.3s, box-shadow 0.3s;
         margin-bottom: 20px; /* Space between cards */
@@ -30,8 +28,6 @@
         border-radius: 5px; /* Rounded corners */
     }
 
- */
-
     /* Chart Styles */
     #userChart {
         max-height: 300px;
@@ -43,7 +39,68 @@
         .card {
             margin-bottom: 15px; /* Spacing for smaller devices */
         }
+        .sidebar {
+            position: absolute;
+            width: 200px; /* Reduced width */
+            height: 100vh;
+            left: -200px; /* Hide off-screen */
+            transition: left 0.3s ease;
+            z-index: 1000;
+        }
+        .sidebar.show {
+            left: 0; /* Show sidebar */
+        }
+        main {
+            margin-left: 0; /* No margin on mobile */
+        }
+        .sidebar-toggle {
+            display: block; /* Show toggle button on mobile */
+            position: fixed;
+            top: 5px; /* Adjust vertical position */
+            left: 300px; /* Adjust horizontal position */
+            z-index: 1100; /* Ensure it's above other elements */
+            width: 40px; /* Smaller width */
+            height: 40px; /* Smaller height */
+            /* border-radius: 50%;  */
+        }
     }
+
+    /* Hide sidebar toggle button on larger screens */
+    @media (min-width: 769px) {
+        .sidebar-toggle {
+            display: none; /* Hide toggle button on desktop */
+        }
+    }
+
+    .nav-link {
+                display: flex;
+                align-items: center;
+                padding: 10px 15px;
+                transition: background-color 0.3s ease, transform 0.3s ease;
+            }
+        
+            .nav-link i {
+                margin-right: 10px; /* Space between icon and text */
+                transition: transform 0.3s ease; /* Animation for icon */
+            }
+        
+            .nav-link:hover {
+                background-color: rgba(255, 255, 255, 0.1); /* Highlight on hover */
+                transform: scale(1.02); /* Slightly scale up on hover */
+            }
+        
+            .nav-link:hover i {
+                transform: rotate(360deg); /* Rotate icon on hover */
+            }
+        
+            .link-text {
+                opacity: 1; /* Default visibility */
+                transition: opacity 0.3s ease; /* Fade effect for text */
+            }
+        
+            .nav-link:hover .link-text {
+                opacity: 1; /* Ensure text is visible on hover */
+            }
 </style>
 
 <div class="container-fluid">
@@ -52,11 +109,9 @@
         <nav class="col-2 bg-dark text-white sidebar position-fixed" style="height: 100vh;">
             <div class="position-sticky">
                 <h5 class="sidebar-title text-center mt-5">Admin Menu</h5>
-               
-                    <a class="nav-link text-white" href="{{ route('display.users') }}">
-                        <i class="bi bi-person-circle"></i> Users
-                    </a>
-              
+                <a class="nav-link text-white" href="{{ route('display.users') }}">
+                    <i class="bi bi-person-circle"></i> Users
+                </a>
             </div>
         </nav>
 
@@ -74,12 +129,17 @@
                 <div class="col-md-6 col-lg-4">
                     <div class="card text-bg-success shadow-sm">
                         <div class="card-body">
+                            <i class="fas fa-user-shield fa-2x me-3"></i>
                             <h5 class="card-title">Total Users</h5>
                             <p class="card-text">{{ $totalUsers }}</p>
                         </div>
                     </div>
                 </div>
-               
+
+                <!-- Sidebar Toggle Button -->
+                <button class="btn btn-primary sidebar-toggle" onclick="toggleSidebar()">
+                    <i class="bi bi-list" style="font-size: 1.5rem;"></i> <!-- Adjust size as needed -->
+                </button>
 
                 <div class="col-md-6">
                     <h5>Users Overview</h5>
@@ -133,5 +193,11 @@
             }
         }
     });
+
+    // Toggle sidebar function
+    function toggleSidebar() {
+        const sidebar = document.querySelector('.sidebar');
+        sidebar.classList.toggle('show');
+    }
 </script>
 @endsection

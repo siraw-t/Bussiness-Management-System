@@ -120,11 +120,11 @@ public function update(Request $request, User $user)
         // Set the avatar URL (you can customize this path)
         $avatarUrl = '/avatars/' . $filename;
 
-        // Store the avatar URL in the session (or a similar temporary storage)
-        session(['avatar_url' => $avatarUrl]);
+        // Return the URL for the front-end to use
+        return response()->json(['avatarUrl' => $avatarUrl, 'message' => 'Avatar uploaded successfully!']);
     }
 
-    return back()->with('success', 'Avatar uploaded successfully!');
+    return response()->json(['message' => 'Avatar upload failed.'], 400);
 }
     
 }

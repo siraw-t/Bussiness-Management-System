@@ -1,11 +1,12 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container-fluid">
-    <h2 class="mb-4">Employee Plans</h2>
+<div class="container-fluid mt-5">
+    <h2 class="text-center text-info mb-4">{{ Auth::user()->company->company_name }} Employee Plans</h2>
+    
     <div class="table-responsive">
-        <table class="table table-bordered">
-            <thead>
+        <table class="table table-bordered table-striped table-hover">
+            <thead class="thead-dark">
                 <tr>
                     <th>Week</th>
                     <th>Plan</th>
@@ -30,11 +31,11 @@
                     </tr>
                 @else
                     @foreach($filteredEmployeePlans as $plan)
-                    <tr>
+                    <tr class="align-middle" style="transition: background-color 0.3s;">
                         <td>{{ $plan->week }}</td>
                         <td>{{ $plan->plan }}</td>
                         <td>{{ $plan->created_at->format('Y-m-d H:i:s') }}</td>
-                        <td>{{ $plan->comment }}</td>
+                        <td>{{ $plan->comment ?? 'N/A' }}</td>
                     </tr>
                     @endforeach
                 @endif
@@ -42,4 +43,15 @@
         </table>
     </div>
 </div>
+
+<!-- Optional: Add Bootstrap Icons -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
+
+<!-- Custom CSS for hover effects -->
+<style>
+    .table-hover tr:hover {
+        background-color: #f8f9fa; /* Light grey on hover */
+        cursor: pointer; /* Pointer cursor on hover */
+    }
+</style>
 @endsection

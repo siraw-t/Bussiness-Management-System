@@ -23,7 +23,7 @@ class EmployeeReportController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'week' => 'required|string|max:255',
+            'week' => 'required|date_format:Y-m-d', // Ensure week is a date
             'report' => 'required|string',
             'comment' => 'nullable|string',
         ]);
@@ -55,7 +55,7 @@ class EmployeeReportController extends Controller
     public function update(Request $request, EmployeeReport $weeklyReport)
     {
         $request->validate([
-            'week' => 'required|string|max:255',
+            'week' => 'required|date_format:Y-m-d', // Ensure week is a date
             'report' => 'required|string',
             'comment' => 'nullable|string',
         ]);

@@ -59,11 +59,12 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container-fluid">
-    <h2 class="mb-4">Inventory List</h2>
+<div class="container-fluid mt-5">
+    <h2 class="text-center mb-4 text-info">{{ Auth::user()->company->company_name }} Inventory Lists</h2>
+    
     <div class="table-responsive">
-        <table class="table table-bordered">
-            <thead>
+        <table class="table table-bordered table-striped table-hover">
+            <thead class="thead-dark">
                 <tr>
                     <th>Item Name</th>
                     <th>Quantity</th>
@@ -77,7 +78,6 @@
                 </tr>
             </thead>
             <tbody>
-
                 @php
                 $userCompanyId = auth()->user()->company_id;
 
@@ -87,7 +87,7 @@
                         ($inventory->manager && $inventory->manager->company_id == $userCompanyId) || 
                         ($inventory->approver && $inventory->approver->company_id == $userCompanyId);
                 });
-            @endphp
+                @endphp
 
                 @if($filteredInventories->isEmpty())
                     <tr>
@@ -95,7 +95,7 @@
                     </tr>
                 @else
                     @foreach($filteredInventories as $inventory)
-                    <tr>
+                    <tr class="align-middle" style="transition: background-color 0.3s;">
                         <td>{{ $inventory->item_name }}</td>
                         <td>{{ $inventory->quantity }}</td>
                         <td>{{ $inventory->description ?? 'N/A' }}</td>
@@ -109,8 +109,18 @@
                     @endforeach
                 @endif
             </tbody>
-            
         </table>
     </div>
 </div>
+
+<!-- Optional: Add Bootstrap Icons -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
+
+<!-- Custom CSS for hover effects -->
+<style>
+    .table-hover tr:hover {
+        background-color: #f8f9fa; /* Light grey on hover */
+        cursor: pointer; /* Pointer cursor on hover */
+    }
+</style>
 @endsection

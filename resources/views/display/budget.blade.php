@@ -1,11 +1,12 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container-fluid">
-    <h2 class="mb-4">Budget Forecasting</h2>
+<div class="container-fluid mt-5">
+    <h2 class="text-center text-info mb-4">{{ Auth::user()->company->company_name }} Budget Forecasting</h2>
+    
     <div class="table-responsive">
-        <table class="table table-bordered">
-            <thead>
+        <table class="table table-bordered table-striped table-hover">
+            <thead class="thead-dark">
                 <tr>
                     <th>Forecast Period</th>
                     <th>Forecast Amount</th>
@@ -33,10 +34,10 @@
                     </tr>
                 @else
                     @foreach($filteredBudgetForecasts as $forecast)
-                    <tr>
+                    <tr class="align-middle" style="transition: background-color 0.3s;">
                         <td>{{ $forecast->forecast_period }}</td>
-                        <td>{{ $forecast->forecast_amount }}</td>
-                        <td>{{ $forecast->actual_amount }}</td>
+                        <td>${{ number_format($forecast->forecast_amount, 2) }}</td>
+                        <td>${{ number_format($forecast->actual_amount, 2) }}</td>
                         <td>{{ $forecast->description }}</td>
                         <td>{{ $forecast->comment }}</td>
                         <td>{{ $forecast->approver ? $forecast->approver->full_name : 'N/A' }}</td>
@@ -49,4 +50,15 @@
         </table>
     </div>
 </div>
+
+<!-- Optional: Add Bootstrap Icons -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
+
+<!-- Custom CSS for hover effects -->
+<style>
+    .table-hover tr:hover {
+        background-color: #f8f9fa; /* Light grey on hover */
+        cursor: pointer; /* Pointer cursor on hover */
+    }
+</style>
 @endsection

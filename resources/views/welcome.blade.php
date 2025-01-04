@@ -1,299 +1,102 @@
-{{-- <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Integrated Business Mngt System</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+<x-guest-layout>
     <style>
         body {
-            font-family: 'Arial', sans-serif;
-            margin: 0;
-            padding: 0;
             background-color: #f4f4f4;
-            color: #333;
-        }
-        header {
-            background: #007bff;
-            color: #fff;
-            padding: 20px;
-            text-align: center;
-        }
-        nav {
-            background: #0056b3;
-            padding: 10px 20px;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-        }
-        nav ul {
-            list-style: none;
-            padding: 0;
-            margin: 0;
+            font-family: Arial, sans-serif;
             display: flex;
-            justify-content: flex-end;
+            justify-content: center;
             align-items: center;
+            height: 100vh;
+            margin: 0;
         }
-        nav ul li {
-            margin-left: 20px;
-        }
-        nav a {
-            color: #fff;
-            text-decoration: none;
-            padding: 10px 15px;
-            border-radius: 5px;
-            transition: background 0.3s, color 0.3s;
-            font-weight: 500;
-        }
-        nav a:hover {
-            background: rgba(255, 255, 255, 0.3);
-            color: #fff;
-        }
-        .container {
-            max-width: 1200px;
-            margin: 80px auto 20px; /* Add margin-top to account for fixed navbar */
-            padding: 20px;
-            background: #fff;
+        .login-container {
+            background: white;
+            padding: 30px;
             border-radius: 8px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
         }
-        h2 {
+        .login-container h2 {
+            text-align: center;
+            margin-bottom: 20px;
             color: #007bff;
-            margin-bottom: 15px;
-            text-align: center;
         }
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 20px;
+        .form-group {
+            margin-bottom: 20px;
         }
-        .card {
-            background: #e9ecef;
-            border-radius: 8px;
-            padding: 15px;
-            text-align: center;
-            transition: transform 0.3s, box-shadow 0.3s;
-            border: 1px solid transparent;
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
         }
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            border: 1px solid #007bff;
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
         }
-        footer {
-            text-align: center;
-            margin-top: 20px;
-            font-size: 0.9em;
-            color: #666;
+        .form-group input:focus {
+            border-color: #007bff;
+            outline: none;
         }
-        @media (max-width: 600px) {
-            nav ul {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-            nav ul li {
-                margin: 5px 0;
-            }
+        .footer-links {
+            text-align: center; /* Center the link */
+            margin-top: 10px; /* Space above the link */
+            margin-bottom: 20px; /* Space below the link */
+        }
+        .footer-links a {
+            color: #007bff;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .footer-links a:hover {
+            text-decoration: underline;
+        }
+        .login-button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .login-button:hover {
+            background-color: #0056b3;
         }
     </style>
-</head>
-<body>
 
-<header>
-    <h1>Welcome to Integrated Business Management System</h1>
-</header>
+    <!-- Session Status -->
+    <x-auth-session-status class="mb-4" :status="session('status')" />
 
-<nav>
-    <ul>
-        <li><a href="#">Home</a></li>
-        <li><a href="#">About</a></li>
-        <li><a href="#">Contact</a></li>
-        <li><a href="login">Login</a></li>
-    </ul>
-</nav>
+    <div class="login-container">
+        <h2>{{ __('Login') }}</h2>
+        <form method="POST" action="{{ route('login') }}">
+            @csrf
 
-<div class="container">
-    <h2>Modules</h2>
-    <div class="grid">
-        <div class="card"><i class="fas fa-check-circle"></i> Purchase/Payment/Leave Request</div>
-        <div class="card"><i class="fas fa-file-archive"></i> Document Archiving</div>
-        <div class="card"><i class="fas fa-box"></i> Inventory Management</div>
-        <div class="card"><i class="fas fa-chart-line"></i> Budget Forecasting</div>
-        <div class="card"><i class="fas fa-money-check-alt"></i> Payroll Management</div>
-        <div class="card"><i class="fas fa-tasks"></i> Employee Planning & Reporting</div>
+            <!-- Email Address -->
+            <div class="form-group">
+                <x-input-label for="email" :value="__('Email')" />
+                <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autofocus autocomplete="username" />
+                <x-input-error :messages="$errors->get('email')" class="mt-2" />
+            </div>
+
+            <!-- Password -->
+            <div class="form-group">
+                <x-input-label for="password" :value="__('Password')" />
+                <x-text-input id="password" class="block mt-1 w-full" type="password" name="password" required autocomplete="current-password" />
+                <x-input-error :messages="$errors->get('password')" class="mt-2" />
+            </div>
+
+            <div class="footer-links">
+                <a href="{{ route('password.request') }}">{{ __('Forgot your password?') }}</a>
+            </div>
+
+            <button type="submit" class="login-button">
+                {{ __('Log in') }}
+            </button>
+        </form>
     </div>
-
-    <h2>Actors and Their Access</h2>
-    <div class="grid">
-        <div class="card">
-            <strong>Employee:</strong>
-            <ul>
-                <li>Role: Request leave, payment, purchase, and send weekly plan and report.</li>
-                <li>Dashboard: Requests, plan and report.</li>
-            </ul>
-        </div>
-        <div class="card">
-            <strong>Storekeeper:</strong>
-            <ul>
-                <li>Role: Manage inventories (Stock in/out).</li>
-                <li>Dashboard: Requests, plan and report, inventories.</li>
-            </ul>
-        </div>
-        <div class="card">
-            <strong>Finance:</strong>
-            <ul>
-                <li>Role: Review payment requests, send requests and payroll for approval, forecast budget.</li>
-                <li>Dashboard: Requests, plan and report, payroll, inventories (view only), budget forecasting, archived documents.</li>
-            </ul>
-        </div>
-        <div class="card">
-            <strong>Manager:</strong>
-            <ul>
-                <li>Role: Approve purchase, leave, payment, and stock out requests.</li>
-                <li>Dashboard: Requests, plan and report, archived documents, inventories, forecasted budgets.</li>
-            </ul>
-        </div>
-        <div class="card">
-            <strong>Admin:</strong>
-            <ul>
-                <li>Role: Manage user profiles, user creation, password management, role management, manage request form templates.</li>
-                <li>Dashboard: Users, forms.</li>
-            </ul>
-        </div>
-        <div class="card">
-            <strong>Super Admin:</strong>
-            <ul>
-                <li>Role: Register companies and assign admin users.</li>
-                <li>Dashboard: Companies, admin-users (login only).</li>
-            </ul>
-        </div>
-    </div>
-</div>
-
-<footer>
-    &copy; 2024 Management System. All Rights Reserved.
-</footer>
-
-</body>
-</html> --}}
-
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Integrated Business Management System</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-</head>
-<body class="bg-gray-100 text-gray-800">
-
-<header class="bg-blue-600 text-white p-5 text-center">
-    <h1 class="text-2xl font-bold">Welcome to Integrated Business Management System</h1>
-</header>
-
-<nav class="bg-blue-700 p-3 sticky top-0 z-50 shadow">
-    <ul class="flex justify-end space-x-5">
-        <li><a href="#" class="text-white hover:bg-white hover:bg-opacity-30 rounded px-3 py-2 transition">Home</a></li>
-        <li><a href="#" class="text-white hover:bg-white hover:bg-opacity-30 rounded px-3 py-2 transition">About</a></li>
-        <li><a href="#" class="text-white hover:bg-white hover:bg-opacity-30 rounded px-3 py-2 transition">Contact</a></li>
-        <li><a href="login" class="text-white hover:bg-white hover:bg-opacity-30 rounded px-3 py-2 transition">Login</a></li>
-    </ul>
-</nav>
-
-<div class="container mx-auto mt-20 mb-5 p-5 bg-white rounded-lg shadow-lg">
-    <h2 class="text-blue-600 text-xl font-semibold text-center mb-5">Modules</h2>
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-        <div class="bg-gray-300 rounded-lg p-5 text-center transition transform hover:shadow-lg hover:translate-y-1">
-            <i class="fas fa-check-circle"></i> Purchase/Payment/Leave Request
-        </div>
-        <div class="bg-gray-300 rounded-lg p-5 text-center transition transform hover:shadow-lg hover:translate-y-1">
-            <i class="fas fa-file-archive"></i> Document Archiving
-        </div>
-        <div class="bg-gray-300 rounded-lg p-5 text-center transition transform hover:shadow-lg hover:translate-y-1">
-            <i class="fas fa-box"></i> Inventory Management
-        </div>
-        <div class="bg-gray-300 rounded-lg p-5 text-center transition transform hover:shadow-lg hover:translate-y-1">
-            <i class="fas fa-chart-line"></i> Budget Forecasting
-        </div>
-        <div class="bg-gray-300 rounded-lg p-5 text-center transition transform hover:shadow-lg hover:translate-y-1">
-            <i class="fas fa-money-check-alt"></i> Payroll Management
-        </div>
-        <div class="bg-gray-300 rounded-lg p-5 text-center transition transform hover:shadow-lg hover:translate-y-1">
-            <i class="fas fa-tasks"></i> Employee Planning & Reporting
-        </div>
-    </div>
-
-    <h2 class="text-blue-600 text-xl font-semibold text-center mt-10 mb-5">Actors and Their Access</h2>
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-        <div class="bg-gray-300 rounded-lg p-5">
-            <strong>Employee:</strong>
-            <ul>
-                <li>Role: Request leave, payment, purchase, and send weekly plan and report.</li>
-                <li>Dashboard: Requests, plan and report.</li>
-            </ul>
-        </div>
-        <div class="bg-gray-300 rounded-lg p-5">
-            <strong>Storekeeper:</strong>
-            <ul>
-                <li>Role: Manage inventories (Stock in/out).</li>
-                <li>Dashboard: Requests, plan and report, inventories.</li>
-            </ul>
-        </div>
-        <div class="bg-gray-300 rounded-lg p-5">
-            <strong>Finance:</strong>
-            <ul>
-                <li>Role: Review payment requests, send requests and payroll for approval, forecast budget.</li>
-                <li>Dashboard: Requests, plan and report, payroll, inventories (view only), budget forecasting, archived documents.</li>
-            </ul>
-        </div>
-        <div class="bg-gray-300 rounded-lg p-5">
-            <strong>Manager:</strong>
-            <ul>
-                <li>Role: Approve purchase, leave, payment, and stock out requests.</li>
-                <li>Dashboard: Requests, plan and report, archived documents, inventories, forecasted budgets.</li>
-            </ul>
-        </div>
-        <div class="bg-gray-300 rounded-lg p-5">
-            <strong>Admin:</strong>
-            <ul>
-                <li>Role: Manage user profiles, user creation, password management, role management, manage request form templates.</li>
-                <li>Dashboard: Users, forms.</li>
-            </ul>
-        </div>
-        <div class="bg-gray-300 rounded-lg p-5">
-            <strong>Super Admin:</strong>
-            <ul>
-                <li>Role: Register companies and assign admin users.</li>
-                <li>Dashboard: Companies, admin-users (login only).</li>
-            </ul>
-        </div>
-    </div>
-</div>
-
-<footer class="bg-blue-600 text-white py-8 mt-5">
-    <div class="container mx-auto text-center">
-        <h2 class="text-xl font-semibold mb-2">Thank You for Visiting!</h2>
-        <p class="text-sm mb-4">&copy; 2024 RE Technology Solutions PLC. All Rights Reserved.</p>
-        <div class="flex justify-center space-x-4 mb-4">
-            <a href="#" class="hover:text-blue-300 transition">
-                <i class="fab fa-facebook-f"></i>
-            </a>
-            <a href="#" class="hover:text-blue-300 transition">
-                <i class="fab fa-twitter"></i>
-            </a>
-            <a href="#" class="hover:text-blue-300 transition">
-                <i class="fab fa-linkedin-in"></i>
-            </a>
-            <a href="#" class="hover:text-blue-300 transition">
-                <i class="fab fa-instagram"></i>
-            </a>
-        </div>
-        <p class="text-xs">Follow us on social media for updates!</p>
-    </div>
-</footer>
-
-</body>
-</html>
+</x-guest-layout>

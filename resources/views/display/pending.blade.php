@@ -11,10 +11,14 @@
             background-color: #f8f9fa;
         }
         .header {
-            background-color: #007bff; /* Bootstrap primary color */
+            background-color: green; /* Bootstrap primary color */
             color: white;
             padding: 20px;
             text-align: center;
+            border-radius: 0.5rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+            margin-top: 5px;
         }
         .no-requests {
             text-align: center;
@@ -27,22 +31,37 @@
         .table-container {
             margin-bottom: 40px;
         }
+        .table th, .table td {
+            vertical-align: middle;
+        }
+        .btn {
+            padding: 10px;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+        .btn:hover {
+            transform: scale(1.05);
+        }
+        .table-hover tbody tr:hover {
+            background-color: #e9ecef; /* Light grey on hover */
+        }
     </style>
 </head>
 <body>
 
 <div class="container mb-5">
-    <h2 class="header">Pending Requests</h2>
-    <a class="nav-link" href="{{ route('manager.dashboard') }}">Back</a>
+    <h2 class="header text-center">{{ Auth::user()->company->company_name }} Pending Requests</h2>
+    <a class="btn btn-outline-primary" href="{{ route('manager.dashboard') }}">
+        <i class="fas fa-arrow-left"></i> Back to Dashboard
+    </a>
 
     <!-- Pending Leave Requests -->
     <div class="table-container">
-        <h5>Pending Leave Requests</h5>
+        <h5 class="text-primary mt-5">Pending Leave Requests</h5>
         @if ($pendingLeaveRequests->isEmpty())
             <p class="no-requests">No pending leave requests at this time.</p>
         @else
             <table class="table table-striped table-hover">
-                <thead>
+                <thead class="thead-dark">
                     <tr>
                         <th>Reason</th>
                         <th>Requested By</th>
@@ -83,12 +102,12 @@
 
     <!-- Pending Payment Requests -->
     <div class="table-container">
-        <h5>Pending Payment Requests</h5>
+        <h5 class="text-primary">Pending Payment Requests</h5>
         @if ($pendingPaymentRequests->isEmpty())
             <p class="no-requests">No pending payment requests at this time.</p>
         @else
             <table class="table table-striped table-hover">
-                <thead>
+                <thead class="thead-dark">
                     <tr>
                         <th>Description</th>
                         <th>Amount</th>
@@ -127,12 +146,12 @@
 
     <!-- Pending Purchase Requests -->
     <div class="table-container">
-        <h5>Pending Purchase Requests</h5>
+        <h5 class="text-primary">Pending Purchase Requests</h5>
         @if ($pendingPurchaseRequests->isEmpty())
             <p class="no-requests">No pending purchase requests at this time.</p>
         @else
             <table class="table table-striped table-hover">
-                <thead>
+                <thead class="thead-dark">
                     <tr>
                         <th>Item Name</th>
                         <th>Quantity</th>
@@ -173,12 +192,12 @@
 
     <!-- Pending Payrolls -->
     <div class="table-container">
-        <h5>Pending Payrolls</h5>
+        <h5 class="text-primary">Pending Payrolls</h5>
         @if ($pendingPayrolls->isEmpty())
             <p class="no-requests">No pending payrolls at this time.</p>
         @else
             <table class="table table-striped table-hover">
-                <thead>
+                <thead class="thead-dark">
                     <tr>
                         <th>Employee</th>
                         <th>Pay Period</th>
@@ -228,6 +247,5 @@
         $('[data-toggle="tooltip"]').tooltip();
     });
 </script>
-
 </body>
 </html>

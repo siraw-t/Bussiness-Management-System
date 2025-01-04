@@ -34,8 +34,8 @@
                     <td>{{ $request->end_date }}</td>
                     <td>{{ $request->reason }}</td>
                     <td>
-                        <span class="badge {{ $request->status === 'Approved' ? 'bg-success' : ($request->status === 'Pending' ? 'bg-warning' : 'bg-danger') }}">
-                            {{ $request->status }}
+                        <span class="badge {{ $request->status === 'approved' ? 'bg-success' : ($request->status === 'pending' ? 'bg-warning' : 'bg-danger') }}">
+                            {{ ucfirst($request->status) }}
                         </span>
                     </td>
                     <td>{{ $request->approved_by ? \App\Models\User::find($request->approved_by)->full_name : 'N/A' }}</td>
@@ -57,6 +57,8 @@
         </tbody>
     </table>
 </div>
+
+
 
 <!-- Optional: Add Bootstrap Icons -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">

@@ -8,49 +8,10 @@
     <div class="position-sticky">
         <div class="scrollable-links" style="max-height: calc(100vh - 130px); overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none;">
             <ul class="nav flex-column">
-                <h5 class="sidebar-title text-center mt-4 mb-4" style="font-size: 1.5rem; color: #ffffff; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);">Manager Menu</h5>
-                <li class="nav-item">
-                    <h5 class="sidebar-title text-center mt-4 mb-4" style="font-size: 1.5rem; color: #ffffff; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);">Manager Menu</h5>
-
+                <li class="nav-item mt-5">
+                    <h5 class="sidebar-title text-center mt-5 mb-4" style="font-size: 1.5rem; color: #ffffff; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);">Manager Menu</h5>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link text-white" href="{{ route('leave-requests.index') }}">
-                        <i class="bi bi-card-list"></i>
-                        <span class="link-text">Leave Requests</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link text-white" href="{{ route('payment-requests.index') }}">
-                        <i class="bi bi-cash"></i>
-                        <span class="link-text">Payment Requests</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link text-white" href="{{ route('purchase-requests.index') }}">
-                        <i class="bi bi-cart"></i>
-                        <span class="link-text">Purchase Requests</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link text-white" href="{{ route('weekly-plan.index') }}">
-                        <i class="bi bi-calendar-week"></i>
-                        <span class="link-text">Weekly Plans</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link text-white" href="{{ route('weekly-reports.index') }}">
-                        <i class="bi bi-file-earmark-text"></i>
-                        <span class="link-text">Weekly Reports</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link text-white" href="{{ route('documents.index') }}">
-                        <i class="bi bi-file-earmark-text"></i>
-                        <span class="link-text">Archived Documents</span>
-                    </a>
-                </li>
-
-                <h5 class="sidebar-title text-center mt-3">Management View</h5>
+              
                 <ul class="nav flex-column">
                     <li class="nav-item">
                         <a class="nav-link text-white" href="{{ route('display.leave') }}">
@@ -193,7 +154,42 @@
     h1 {
         text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
     }
-</style>
+
+/* Sidebar Toggle Button */
+.sidebar-toggle {
+        display: none; /* Hide by default */
+        position: fixed;
+        top: 5px; /* Adjust vertical position */
+        left: 300px; /* Adjust horizontal position */
+        z-index: 1100; /* Ensure it's above other elements */
+    }
+
+    /* Mobile Styles */
+    @media (max-width: 768px) {
+        .sidebar-toggle {
+            display: block; /* Show toggle button on mobile */
+        }
+        .sidebar {
+            position: absolute;
+            width: 250px;
+            height: 100vh;
+            left: -250px; /* Hide off-screen */
+            transition: left 0.3s ease;
+            z-index: 1000;
+        }
+        .sidebar.show {
+            left: 0; /* Show sidebar */
+        }
+        main {
+            margin-left: 0; /* No margin on mobile */
+        }
+    }
+            </style>
+
+            <!-- Sidebar Toggle Button -->
+            <button class="btn btn-primary sidebar-toggle" onclick="toggleSidebar()">
+                <i class="bi bi-list"></i>
+            </button>
 
     <!-- Analytics Section -->
     <div class="row mb-4">
@@ -386,6 +382,12 @@ new Chart(ctxInventory, {
         }
     }
 });
+
+  // Toggle sidebar function
+  function toggleSidebar() {
+                    const sidebar = document.querySelector('.sidebar');
+                    sidebar.classList.toggle('show');
+                }
     </script>
 
     <style>
