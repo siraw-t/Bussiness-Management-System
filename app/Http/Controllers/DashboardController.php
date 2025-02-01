@@ -15,6 +15,8 @@ use App\Models\EmployeeReport; // Employee report model
 use App\Models\ArchivedDocument; // Archived documents model
 use App\Models\RequestFormTemplate; // Request form templates model
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
+
 
 
 class DashboardController extends Controller
@@ -138,10 +140,20 @@ public function displayUsers()
             ->groupBy('status')
             ->pluck('count', 'status');
         
-      
+           
 
         return view('dashboards.finance', compact('inventories', 'leaveCounts', 'paymentCounts', 'purchaseCounts'));
     }
+
+     public function showPendingRequests()
+            {
+                // Fetch all pending purchase requests
+                $pendingPurchaseRequests = PurchaseRequest::where('status', 'pending')
+                    ->with('user') // Load the user relationship
+                    ->get();
+            
+                return view('display.finance-pending', compact('pendingPurchaseRequests'));
+            }
 
     public function managerDashboard()
     {
@@ -171,39 +183,65 @@ public function displayUsers()
             ->with(['employee', 'preparedBy'])
             ->get();
 
+            // Get pending employee plans approved by this manager
+    $pendingEmployeePlans = EmployeePlan::where('status', 'pending')
+    ->where('approved_by', $managerId)
+    ->with('employee') // Load the employee relationship if needed
+    ->get();
+
+    // Get pending employee plans approved by this manager
+    $pendingEmployeeReports = EmployeeReport::where('status', 'pending')
+    ->where('approved_by', $managerId)
+    ->with('employee') // Load the employee relationship if needed
+    ->get();
+
+
         return view('dashboards.manager', compact(
             'inventories',
             'pendingLeaveRequests', 
             'pendingPaymentRequests', 
             'pendingPurchaseRequests', 
-            'pendingPayrolls'
+            'pendingPayrolls',
+            'pendingEmployeePlans',
+            'pendingEmployeeReports'
+
         ));
     }
 
-    public function approveLeaveRequest($leave_request_id)
+    public function approveLeaveRequest(Request $request, $leave_request_id)
 {
-    $request = LeaveRequest::where('leave_request_id', $leave_request_id) // Use the correct primary key
-        ->where('approved_by', Auth::id()) // Check if the logged-in user is the approver
+    $request->validate([
+        'manager_comments' => 'required|string|max:255',
+    ]);
+
+    $leaveRequest = LeaveRequest::where('leave_request_id', $leave_request_id)
+        ->where('approved_by', Auth::id())
         ->firstOrFail();
 
-    $request->status = 'approved';
-    $request->approved_by = Auth::id(); 
-    $request->save();
+    $leaveRequest->status = 'approved';
+    $leaveRequest->approved_by = Auth::id();
+    $leaveRequest->manager_comments = $request->manager_comments; // Save comments
+    $leaveRequest->save();
 
     return redirect()->back()->with('success', 'Leave request approved successfully.');
 }
 
-public function rejectLeaveRequest($leave_request_id)
+public function rejectLeaveRequest(Request $request, $leave_request_id)
 {
-    $request = LeaveRequest::where('leave_request_id', $leave_request_id) // Use the correct primary key
+    $request->validate([
+        'manager_comments' => 'required|string|max:255',
+    ]);
+
+    $leaveRequest = LeaveRequest::where('leave_request_id', $leave_request_id)
         ->where('approved_by', Auth::id())
         ->firstOrFail();
 
-    $request->status = 'rejected';
-    $request->approved_by = Auth::id(); 
-    $request->save();
+    $leaveRequest->status = 'rejected';
+    $leaveRequest->approved_by = Auth::id();
+    $leaveRequest->manager_comments = $request->manager_comments; // Save comments
+    $leaveRequest->save();
 
-    return redirect()->back()->with('success', 'Leave request rejected.');
+    return redirect()->back()->with('success', 'Leave request rejected successfully.');
 }
 
 // Similar changes for PaymentRequest, PurchaseRequest, and Payroll methods
@@ -233,55 +271,155 @@ public function rejectPaymentRequest($payment_request_id)
     return redirect()->back()->with('success', 'Payment request rejected.');
 }
 
-public function approvePurchaseRequest($purchase_request_id)
+public function approvePurchaseRequest(Request $request, $purchase_request_id)
 {
-    $request = PurchaseRequest::where('purchase_request_id', $purchase_request_id) // Correct primary key
-        ->where('approved_by', Auth::id())
+    $request->validate([
+        'manager_comment' => 'required|string|max:255',
+    ]);
+
+    $purchaseRequest = PurchaseRequest::where('purchase_request_id', $purchase_request_id)
+        ->where('status', 'pending') // Check if status is pending
         ->firstOrFail();
 
-    $request->status = 'approved';
-    $request->approved_by = Auth::id(); 
-    $request->save();
+    $purchaseRequest->status = 'approved';
+    $purchaseRequest->approved_by = Auth::id();
+    $purchaseRequest->manager_comment = $request->manager_comment;
+    $purchaseRequest->save();
 
     return redirect()->back()->with('success', 'Purchase request approved successfully.');
 }
 
-public function rejectPurchaseRequest($purchase_request_id)
+public function rejectPurchaseRequest(Request $request, $purchase_request_id)
 {
-    $request = PurchaseRequest::where('purchase_request_id', $purchase_request_id) // Correct primary key
+    $request->validate([
+        'manager_comments' => 'required|string|max:255',
+    ]);
+
+    $purchaseRequest = PurchaseRequest::where('purchase_request_id', $purchase_request_id)
+        ->where('approved_by', 'pending') // Ensure it hasn't been approved yet
+        ->firstOrFail();
+
+    $purchaseRequest->status = 'rejected';
+    $purchaseRequest->approved_by = Auth::id();
+    $purchaseRequest->manager_comment = $request->manager_comment; // Save comments
+    $purchaseRequest->save();
+
+    return redirect()->back()->with('success', 'Purchase request rejected successfully.');
+}
+
+public function approveEmployeePlan(Request $request, $plan_id)
+{
+    $request->validate([
+        'manager_comments' => 'required|string|max:255',
+    ]);
+
+    // Fetch the employee plan that matches the given ID and is approved by the current manager
+    $employeePlan = EmployeePlan::where('plan_id', $plan_id) // Replace 'plan_id' with the actual primary key if different
         ->where('approved_by', Auth::id())
         ->firstOrFail();
 
-    $request->status = 'rejected';
-    $request->approved_by = Auth::id(); 
-    $request->save();
+    // Update the employee plan status and details
+    $employeePlan->status = 'approved';
+    $employeePlan->approved_by = Auth::id(); // Set the ID of the approving manager
+    $employeePlan->manager_comment = $request->manager_comments; // Save comments
+    $employeePlan->save(); // Save the changes
 
-    return redirect()->back()->with('success', 'Purchase request rejected.');
+    return redirect()->back()->with('success', 'Employee plan approved successfully.');
 }
 
-public function approvePayroll($payroll_id)
+public function rejectEmployeePlan(Request $request, $plan_id)
 {
-    $payroll = Payroll::where('payroll_id', $payroll_id) // Correct primary key
+    $request->validate([
+        'manager_comments' => 'required|string|max:255',
+    ]);
+
+    // Fetch the employee plan that matches the given ID and is approved by the current manager
+    $employeePlan = EmployeePlan::where('plan_id', $plan_id) // Replace 'plan_id' with the actual primary key if different
+        ->where('approved_by', Auth::id())
+        ->firstOrFail();
+
+    // Update the employee plan status and details
+    $employeePlan->status = 'rejected';
+    $employeePlan->approved_by = Auth::id(); // Set the ID of the rejecting manager
+    $employeePlan->manager_comment = $request->manager_comments; // Save comments
+    $employeePlan->save(); // Save the changes
+
+    return redirect()->back()->with('success', 'Employee plan rejected successfully.');
+}
+
+public function approveEmployeeReport(Request $request, $report_id)
+{
+    $request->validate([
+        'manager_comments' => 'required|string|max:255',
+    ]);
+
+    // Fetch the employee report that matches the given ID
+    $employeeReport = EmployeeReport::where('report_id', $report_id) // Replace 'id' with the actual primary key if different
+        ->where('status', 'pending') // Ensure it's in a pending state before approving
+        ->firstOrFail();
+
+    // Update the employee report status and details
+    $employeeReport->status = 'approved';
+    $employeeReport->manager_comment = $request->manager_comments; // Save comments
+    $employeeReport->approved_by = Auth::id(); // Optional: Set the ID of the approving manager
+    $employeeReport->save(); // Save the changes
+
+    return redirect()->back()->with('success', 'Employee report approved successfully.');
+}
+
+public function rejectEmployeeReport(Request $request, $report_id)
+{
+    $request->validate([
+        'manager_comments' => 'required|string|max:255',
+    ]);
+
+    // Fetch the employee report that matches the given ID
+    $employeeReport = EmployeeReport::where('report_id', $report_id) // Replace 'id' with the actual primary key if different
+        ->where('status', 'pending') // Ensure it's in a pending state before rejecting
+        ->firstOrFail();
+
+    // Update the employee report status and details
+    $employeeReport->status = 'rejected';
+    $employeeReport->manager_comment = $request->manager_comments; // Save comments
+    $employeeReport->approved_by = Auth::id(); // Optional: Set the ID of the rejecting manager
+    $employeeReport->save(); // Save the changes
+
+    return redirect()->back()->with('success', 'Employee report rejected successfully.');
+}
+
+public function approvePayroll(Request $request, $payroll_id)
+{
+    $request->validate([
+        'manager_comment' => 'required|string|max:255',
+    ]);
+
+    $payroll = Payroll::where('payroll_id', $payroll_id)
         ->where('approved_by', Auth::id())
         ->firstOrFail();
 
     $payroll->status = 'approved';
-    $payroll->approved_by = Auth::id(); 
+    $payroll->approved_by = Auth::id();
+    $payroll->manager_comment = $request->manager_comment;
     $payroll->save();
 
     return redirect()->back()->with('success', 'Payroll approved successfully.');
 }
 
-public function rejectPayroll($payroll_id)
+public function rejectPayroll(Request $request, $payroll_id)
 {
-    $payroll = Payroll::where('payroll_id', $payroll_id) // Correct primary key
+    $request->validate([
+        'manager_comment' => 'required|string|max:255',
+    ]);
+
+    $payroll = Payroll::where('payroll_id', $payroll_id)
         ->where('approved_by', Auth::id())
         ->firstOrFail();
 
     $payroll->status = 'rejected';
-    $payroll->approved_by = Auth::id(); 
+    $payroll->approved_by = Auth::id();
+    $payroll->manager_comment = $request->manager_comment;
     $payroll->save();
 
-    return redirect()->back()->with('success', 'Payroll rejected.');
+    return redirect()->back()->with('success', 'Payroll rejected successfully.');
 }
 }

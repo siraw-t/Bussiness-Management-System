@@ -21,6 +21,7 @@ return new class extends Migration
             $table->string('contact_email');
             $table->string('contact_phone');
             $table->timestamp('registered_at')->useCurrent();
+            $table->string('logo')->nullable(); // Field for company logo upload
             $table->timestamps();
         });
     }

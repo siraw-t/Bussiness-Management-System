@@ -12,7 +12,10 @@ class Payroll extends Model
     protected $keyType = 'int'; // Assuming you're using integers for IDs
 
     protected $fillable = [
-        'employee_id', 'pay_period', 'basic_salary', 'allowances', 'deductions', 'net_salary', 'status', 'prepared_by', 'approved_by',
+        'employee_id', 'job_title', 'no_of_days', 'basic_salary', 'transport_allowance',
+        'taxable_transport_allowance', 'position_allowance', 'total_taxable_earnings',
+        'income_tax', 'pension_fund_7', 'pension_fund_11', 'salary_advance', 'net_payment',
+        'pay_period', 'status', 'prepared_by', 'approved_by',
     ];
 
     public function employee()
@@ -20,10 +23,7 @@ class Payroll extends Model
         return $this->belongsTo(User::class, 'employee_id', 'user_id'); // Relate to the employee
     }
 
-    // public function preparedBy()
-    // {
-    //     return $this->belongsTo(User::class, 'prepared_by', 'user_id'); // Relate to the preparer
-    // }
+    
 
     public function approver()
     {

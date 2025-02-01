@@ -15,7 +15,7 @@ class User extends Authenticatable
     protected $keyType = 'int'; // Assuming you're using integers for IDs
 
     protected $fillable = [
-        'username', 'full_name', 'email', 'password', 'role', 'company_id',
+        'username', 'full_name', 'email', 'password', 'role', 'company_id','profile_image',
     ];
 
     protected $hidden = [
@@ -51,10 +51,10 @@ class User extends Authenticatable
         return $this->hasMany(User::class, 'company_id', 'company_id')->where('role', 'manager');
     }
 
-    public function user()
-    {
-        return $this->belongsTo(User::class, 'employee_id'); // Adjust 'employee_id' if your foreign key is different
-    }
+    // public function user()
+    // {
+    //     return $this->belongsTo(User::class, 'employee_id'); // Adjust 'employee_id' if your foreign key is different
+    // }
 
     public function budgetForecastings()
     {
@@ -64,6 +64,11 @@ class User extends Authenticatable
     public function inventories()
     {
         return $this->hasMany(Inventory::class, 'managed_by');
+    }
+
+    public function employeePlans()
+    {
+        return $this->hasMany(EmployeePlan::class, 'employee_id', 'user_id'); // Assuming user_id is the primary key in the users table
     }
 
     

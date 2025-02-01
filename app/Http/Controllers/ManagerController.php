@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\LeaveRequest;
+use App\Models\EmployeePlan;
+use App\Models\EmployeeReport;
 use App\Models\PaymentRequest;
 use App\Models\PurchaseRequest;
 use App\Models\Inventory;
@@ -42,12 +44,27 @@ class ManagerController extends Controller
             ->where('approved_by', $managerId)
             ->with(['employee', 'preparedBy'])
             ->get();
+        // Get pending employee plans approved by this manager
+    $pendingEmployeePlans = EmployeePlan::where('status', 'pending')
+    ->where('approved_by', $managerId)
+    ->with('employee') // Load the employee relationship if needed
+    ->get();
+
+    // Get pending employee plans approved by this manager
+    $pendingEmployeeReports = EmployeeReport::where('status', 'pending')
+    ->where('approved_by', $managerId)
+    ->with('employee') // Load the employee relationship if needed
+    ->get();
 
         return view('display.pending', compact(
             'pendingLeaveRequests', 
             'pendingPaymentRequests', 
             'pendingPurchaseRequests', 
-            'pendingPayrolls'
+            'pendingPayrolls',
+            'pendingEmployeePlans',
+            'pendingEmployeeReports'
+
+
         ));
     }
 

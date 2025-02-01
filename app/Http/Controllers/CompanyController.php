@@ -41,7 +41,8 @@ class CompanyController extends Controller
         'admin_full_name' => 'required|string|max:255',
         'admin_email' => 'required|email|max:255|unique:users,email',
         'admin_password' => 'required|string|min:8|confirmed',
-        'role' => 'required|string|in:admin,employee,manager,finance,storekeeper'
+        'role' => 'required|string|in:admin,employee,manager,finance,storekeeper',
+        'logo' => 'nullable|image|mimes:jpg,jpeg,png|max:2048', // Validate logo
     ]);
 
     // Begin transaction
@@ -49,14 +50,22 @@ class CompanyController extends Controller
 
     try {
         // Create the Company
-        $company = Company::create([
+        $companyData = [
             'company_name' => $request->company_name,
             'country' => $request->country,
             'city' => $request->city,
             'contact_email' => $request->contact_email,
             'contact_phone' => $request->contact_phone,
             'created_by' => Auth::id(), // Track who created the company
-        ]);
+        ];
+
+        // Handle logo upload
+        if ($request->hasFile('logo')) {
+            $logoPath = $request->file('logo')->store('logos', 'public');
+            $companyData['logo'] = $logoPath;
+        }
+
+        $company = Company::create($companyData);
 
         // Create the admin user
         $admin = User::create([
@@ -90,21 +99,30 @@ class CompanyController extends Controller
 
     // Update the specified company
     public function update(Request $request, Company $company)
-    {
-        // Validate the incoming request
-        $request->validate([
-            'company_name' => 'required|string|max:255',
-            'country' => 'required|string|max:255',
-            'city' => 'required|string|max:255',
-            'contact_email' => 'required|email|max:255',
-            'contact_phone' => 'required|string|max:15',
-        ]);
+{
+    // Validate the incoming request
+    $request->validate([
+        'company_name' => 'required|string|max:255',
+        'country' => 'required|string|max:255',
+        'city' => 'required|string|max:255',
+        'contact_email' => 'required|email|max:255',
+        'contact_phone' => 'required|string|max:15',
+        'logo' => 'nullable|image|mimes:jpg,jpeg,png|max:2048', // Validate logo
+    ]);
 
-        // Update the company details
-        $company->update($request->all());
+    // Update the company details
+    $companyData = $request->only(['company_name', 'country', 'city', 'contact_email', 'contact_phone']);
 
-        return redirect()->route('companies.index')->with('success', 'Company updated successfully.');
+    // Handle logo upload
+    if ($request->hasFile('logo')) {
+        $logoPath = $request->file('logo')->store('logos', 'public');
+        $companyData['logo'] = $logoPath;
     }
+
+    $company->update($companyData);
+
+    return redirect()->route('companies.index')->with('success', 'Company updated successfully.');
+}
 
     // Remove the specified company
     public function destroy(Company $company)

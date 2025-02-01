@@ -19,12 +19,12 @@
                 </tr>
             </thead>
             <tbody>
-                @if($inventories->isEmpty())
+                @if ($inventories->isEmpty())
                     <tr>
                         <td colspan="9" class="text-center">No inventory items found.</td>
                     </tr>
                 @else
-                    @foreach($inventories as $inventory)
+                    @foreach ($inventories as $inventory)
                     <tr>
                         <td>{{ $inventory->item_name }}</td>
                         <td>{{ $inventory->quantity }}</td>
@@ -59,68 +59,73 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container-fluid mt-5">
-    <h2 class="text-center mb-4 text-info">{{ Auth::user()->company->company_name }} Inventory Lists</h2>
-    
-    <div class="table-responsive">
-        <table class="table table-bordered table-striped table-hover">
-            <thead class="thead-dark">
-                <tr>
-                    <th>Item Name</th>
-                    <th>Quantity</th>
-                    <th>Description</th>
-                    <th>Stock In Date</th>
-                    <th>Stock Out Date</th>
-                    <th>Approved By</th>
-                    <th>Managed By</th>
-                    <th>Created At</th>
-                    <th>Updated At</th>
-                </tr>
-            </thead>
-            <tbody>
-                @php
-                $userCompanyId = auth()->user()->company_id;
+    <div class="container-fluid mt-5">
+        <h2 class="text-center mb-4 text-info">{{ Auth::user()->company->company_name }} Inventory Lists</h2>
 
-                // Filter inventories based on the logged-in user's company
-                $filteredInventories = $inventories->filter(function ($inventory) use ($userCompanyId) {
-                    return 
-                        ($inventory->manager && $inventory->manager->company_id == $userCompanyId) || 
-                        ($inventory->approver && $inventory->approver->company_id == $userCompanyId);
-                });
-                @endphp
-
-                @if($filteredInventories->isEmpty())
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped table-hover">
+                <thead class="thead-dark">
                     <tr>
-                        <td colspan="9" class="text-center">No inventory items found.</td>
+                        <th>Item Name</th>
+                        <th>Quantity</th>
+                        <th>Description</th>
+                        <th>Stock In Date</th>
+                        <th>Stock Out Date</th>
+                        <th>Approved By</th>
+                        <th>Managed By</th>
+                        <th>Created At</th>
+                        <th>Updated At</th>
                     </tr>
-                @else
-                    @foreach($filteredInventories as $inventory)
-                    <tr class="align-middle" style="transition: background-color 0.3s;">
-                        <td>{{ $inventory->item_name }}</td>
-                        <td>{{ $inventory->quantity }}</td>
-                        <td>{{ $inventory->description ?? 'N/A' }}</td>
-                        <td>{{ $inventory->stock_in_date ? \Illuminate\Support\Carbon::parse($inventory->stock_in_date)->format('Y-m-d') : 'N/A' }}</td>
-                        <td>{{ $inventory->stock_out_date ? \Illuminate\Support\Carbon::parse($inventory->stock_out_date)->format('Y-m-d') : 'N/A' }}</td>
-                        <td>{{ $inventory->approver ? $inventory->approver->full_name : 'N/A' }}</td>
-                        <td>{{ $inventory->manager ? $inventory->manager->full_name : 'N/A' }}</td>
-                        <td>{{ $inventory->created_at ? \Illuminate\Support\Carbon::parse($inventory->created_at)->format('Y-m-d H:i:s') : 'N/A' }}</td>
-                        <td>{{ $inventory->updated_at ? \Illuminate\Support\Carbon::parse($inventory->updated_at)->format('Y-m-d H:i:s') : 'N/A' }}</td>
-                    </tr>
-                    @endforeach
-                @endif
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @php
+                        $userCompanyId = auth()->user()->company_id;
+
+                        // Filter inventories based on the logged-in user's company
+                        $filteredInventories = $inventories->filter(function ($inventory) use ($userCompanyId) {
+                            return ($inventory->manager && $inventory->manager->company_id == $userCompanyId) ||
+                                ($inventory->approver && $inventory->approver->company_id == $userCompanyId);
+                        });
+                    @endphp
+
+                    @if ($filteredInventories->isEmpty())
+                        <tr>
+                            <td colspan="9" class="text-center">No inventory items found.</td>
+                        </tr>
+                    @else
+                        @foreach ($filteredInventories as $inventory)
+                            <tr class="align-middle" style="transition: background-color 0.3s;">
+                                <td>{{ $inventory->item_name }}</td>
+                                <td>{{ $inventory->quantity }}</td>
+                                <td>{{ $inventory->description ?? 'N/A' }}</td>
+                                <td>{{ $inventory->stock_in_date ? \Illuminate\Support\Carbon::parse($inventory->stock_in_date)->format('Y-m-d') : 'N/A' }}
+                                </td>
+                                <td>{{ $inventory->stock_out_date ? \Illuminate\Support\Carbon::parse($inventory->stock_out_date)->format('Y-m-d') : 'N/A' }}
+                                </td>
+                                <td>{{ $inventory->approver ? $inventory->approver->full_name : 'N/A' }}</td>
+                                <td>{{ $inventory->manager ? $inventory->manager->full_name : 'N/A' }}</td>
+                                <td>{{ $inventory->created_at ? \Illuminate\Support\Carbon::parse($inventory->created_at)->format('Y-m-d H:i:s') : 'N/A' }}
+                                </td>
+                                <td>{{ $inventory->updated_at ? \Illuminate\Support\Carbon::parse($inventory->updated_at)->format('Y-m-d H:i:s') : 'N/A' }}
+                                </td>
+                            </tr>
+                        @endforeach
+                    @endif
+                </tbody>
+            </table>
+        </div>
     </div>
-</div>
 
-<!-- Optional: Add Bootstrap Icons -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
+    <!-- Optional: Add Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
 
-<!-- Custom CSS for hover effects -->
-<style>
-    .table-hover tr:hover {
-        background-color: #f8f9fa; /* Light grey on hover */
-        cursor: pointer; /* Pointer cursor on hover */
-    }
-</style>
+    <!-- Custom CSS for hover effects -->
+    <style>
+        .table-hover tr:hover {
+            background-color: #f8f9fa;
+            /* Light grey on hover */
+            cursor: pointer;
+            /* Pointer cursor on hover */
+        }
+    </style>
 @endsection

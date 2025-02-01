@@ -23,37 +23,43 @@ class AuthenticatedSessionController extends Controller
      * Handle an incoming authentication request.
      */
     public function store(LoginRequest $request): RedirectResponse
-    {
-        // Authenticate the user without "remember me" functionality
-        if (Auth::attempt($request->only('email', 'password'))) {
-            $request->session()->regenerate();
-
-            // Redirect based on user role
-            $user = Auth::user();
-
-            if ($user->role === 'superadmin') {
-                return redirect()->intended('dashboards/superadmin'); // Redirect to superadmin view
-            } elseif ($user->role === 'admin') {
-                return redirect()->intended('dashboards/admin'); // Redirect to admin view
-            } elseif ($user->role === 'employee') {
-                return redirect()->intended('dashboards/employee'); // Redirect to employee view
-            } elseif ($user->role === 'storekeeper') {
-                return redirect()->intended('dashboards/storekeeper'); // Redirect to storekeeper view
-            } elseif ($user->role === 'finance') {
-                return redirect()->intended('dashboards/finance'); // Redirect to finance view
-            } elseif ($user->role === 'manager') {
-                return redirect()->intended('dashboards/manager'); // Redirect to manager view
-            } else {
-                return redirect()->intended('/login'); // Redirect to a default route or home
-            }
-        }
-
-        // If authentication fails, redirect back with an error
+{
+    // Check if the email exists in the database
+    $user = \App\Models\User::where('email', $request->email)->first();
+    
+    if (!$user) {
         return back()->withErrors([
-            'email' => 'The provided credentials do not match our records.',
+            'email' => 'The provided email does not exist.',
         ]);
     }
 
+    // Authenticate the user
+    if (Auth::attempt($request->only('email', 'password'))) {
+        $request->session()->regenerate();
+
+        // Redirect based on user role
+        if ($user->role === 'superadmin') {
+            return redirect()->intended('dashboards/superadmin'); // Redirect to superadmin view
+        } elseif ($user->role === 'admin') {
+            return redirect()->intended('dashboards/admin'); // Redirect to admin view
+        } elseif ($user->role === 'employee') {
+            return redirect()->intended('dashboards/employee'); // Redirect to employee view
+        } elseif ($user->role === 'storekeeper') {
+            return redirect()->intended('dashboards/storekeeper'); // Redirect to storekeeper view
+        } elseif ($user->role === 'finance') {
+            return redirect()->intended('dashboards/finance'); // Redirect to finance view
+        } elseif ($user->role === 'manager') {
+            return redirect()->intended('dashboards/manager'); // Redirect to manager view
+        } else {
+            return redirect()->intended('/login'); // Redirect to a default route or home
+        }
+    }
+
+    // If authentication fails, redirect back with an error
+    return back()->withErrors([
+        'email' => 'The provided credentials do not match our records.',
+    ]);
+}
     /**
      * Destroy an authenticated session.
      */

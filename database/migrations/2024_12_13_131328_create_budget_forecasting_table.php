@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('budget_forecasting', function (Blueprint $table) {
             $table->bigIncrements('budget_id'); // Primary key
             $table->unsignedBigInteger('created_by'); // Reference to users table
-            $table->string('forecast_period');
+            $table->string('forecast_period');//in dropdawn weekly,monthly,quarterly,annualy
             $table->decimal('forecast_amount', 10, 2);
             $table->decimal('actual_amount', 10, 2);
             $table->text('description')->nullable();

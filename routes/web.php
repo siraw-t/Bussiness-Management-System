@@ -28,6 +28,9 @@ use App\Http\Controllers\ManagerController;
 
 
 
+
+
+
 // Public routes
 Route::get('/', function () {
     return view('welcome');
@@ -91,6 +94,8 @@ Route::prefix('weekly-plan')->group(function () {
     Route::put('/{weeklyPlan}', [EmployeePlanController::class, 'update'])->name('weekly-plan.update'); // Update the plan
     Route::delete('/{weeklyPlan}', [EmployeePlanController::class, 'destroy'])->name('weekly-plan.destroy'); // Delete the plan
 });
+
+Route::get('/employee-plans', [EmployeePlanController::class, 'showEmployeePlans'])->name('employee.plans');
 
 Route::prefix('weekly-reports')->group(function () {
     Route::get('/', [EmployeeReportController::class, 'index'])->name('weekly-reports.index'); // List all weekly reports
@@ -211,12 +216,22 @@ Route::get('/dashboards/manager', [DashboardController::class, 'managerDashboard
 
 Route::post('/manager/leave-request/{leave_request_id}/approve', [DashboardController::class, 'approveLeaveRequest'])->name('manager.leave.approve');
 Route::post('/manager/leave-request/{leave_request_id}/reject', [DashboardController::class, 'rejectLeaveRequest'])->name('manager.leave.reject');
+Route::get('/pending-requests', [LeaveRequestController::class, 'showPendingRequests'])->name('pending.requests');
 
 Route::post('/manager/payment-request/{payment_request_id}/approve', [DashboardController::class, 'approvePaymentRequest'])->name('manager.payment.approve');
 Route::post('/manager/payment-request/{payment_request_id}/reject', [DashboardController::class, 'rejectPaymentRequest'])->name('manager.payment.reject');
 
 Route::post('/manager/purchase-request/{purchase_request_id}/approve', [DashboardController::class, 'approvePurchaseRequest'])->name('manager.purchase.approve');
 Route::post('/manager/purchase-request/{purchase_request_id}/reject', [DashboardController::class, 'rejectPurchaseRequest'])->name('manager.purchase.reject');
+Route::post('/finance/purchase-request/comment/{purchase_request_id}', [PurchaseRequestController::class, 'addFinanceComment'])->name('finance.purchase.comment');
+Route::get('/finance/dashboard', [DashboardController::class, 'financeDashboard'])->name('finance.dashboard');
+Route::get('/finance/purchase-requests/pending', [DashboardController::class, 'showPendingRequests'])->name('display.finance-pending');
+
+Route::post('/manager/weekly-plan/{plan_id}/approve', [DashboardController::class, 'approveEmployeePlan'])->name('manager.plan.approve');
+Route::post('/manager/weekly-plan/{plan_id}/reject', [DashboardController::class, 'rejectEmployeePlan'])->name('manager.plan.reject');
+
+Route::post('/manager/weekly-reports/{report_id}/approve', [DashboardController::class, 'approveEmployeeReport'])->name('manager.report.approve');
+Route::post('/manager/weekly-reports/{report_id}/reject', [DashboardController::class, 'rejectEmployeeReport'])->name('manager.report.reject');
 
 Route::post('/manager/payroll/{payroll_id}/approve', [DashboardController::class, 'approvePayroll'])->name('manager.payroll.approve');
 Route::post('/manager/payroll/{payroll_id}/reject', [DashboardController::class, 'rejectPayroll'])->name('manager.payroll.reject');
@@ -331,4 +346,10 @@ Route::delete('/users/{user}', function (User $user) {
     return app(UserController::class)->destroy($user);
 })->name('users.destroy');
 
-Route::post('/avatar/upload', [UserController::class, 'uploadAvatar'])->name('avatar.upload');
+
+Route::post('/user/upload-profile-image', [UserController::class, 'uploadProfileImage']);// downloading functions
+Route::get('/leave-requests/{request}/download-pdf', [LeaveRequestController::class, 'downloadPdf'])->name('leave-requests.downloadPdf');
+Route::get('/purchase-requests/{request}/download-pdf', [PurchaseRequestController::class, 'downloadPdf'])->name('purchase-requests.downloadPdf');
+Route::get('/weekly-plan/{plan}/download-pdf', [EmployeePlanController::class, 'downloadPdf'])->name('weekly-plan.downloadPdf');
+Route::get('/weekly-reports/{report}/download-pdf', [EmployeeReportController::class, 'downloadPdf'])->name('weekly-reports.downloadPdf');
+Route::get('/finance/payrolls/{payroll}/download-pdf', [FinanceController::class, 'downloadPdf'])->name('finance.payrolls.downloadPdf');

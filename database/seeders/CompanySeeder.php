@@ -15,9 +15,10 @@ class CompanySeeder extends Seeder
             'company_name' => 'Re Technology Solutions PLC',
             'country' => 'Ethiopia',
             'city' => 'Addis Ababa',
-            'contact_email' => 'retech@gmail.com',
+            'contact_email' => 'sershotadesse@gmail.com',
             'contact_phone' => '0919901362',
             'created_by' => 1, // Assuming the superadmin ID is 1
+            'logo' => null, // You can assign a logo URL/path here if available
         ]);
 
         // Assign the admin to the company

@@ -7,6 +7,8 @@ use App\Models\Payroll;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
+use PDF;
+
 
 class FinanceController extends Controller
 {
@@ -84,7 +86,6 @@ class FinanceController extends Controller
 
     public function indexPayroll()
     {
-        // Fetch payrolls with employee and approver relationships
         $payrolls = Payroll::with(['employee', 'preparedBy', 'approver'])
             ->where('prepared_by', Auth::id())
             ->get();
@@ -94,73 +95,214 @@ class FinanceController extends Controller
 
     public function createPayroll()
     {
-        $companyId = Auth::user()->company_id;
-        $employees = User::where('company_id', $companyId)->get();
+        $employees = User::where('company_id', Auth::user()->company_id)->get();
         return view('finance.payrolls.create', compact('employees'));
     }
 
     public function storePayroll(Request $request)
-    {
-        $request->validate([
-            'employee_id' => 'required|exists:users,user_id',
-            'pay_period' => 'required|string|max:255',
-            'basic_salary' => 'required|numeric',
-            'allowances' => 'nullable|numeric',
-            'deductions' => 'nullable|numeric',
-            'net_salary' => 'required|numeric',
-            'status' => 'nullable|string',
-        ]);
+{
+    $request->validate([
+        'employee_id' => 'required|exists:users,user_id',
+        'pay_period' => 'required|string|max:255',
+        'basic_salary' => 'required|numeric',
+        'no_of_days' => 'required|integer|min:0|max:26', // Allow 0 to 26
+        'position_allowance' => 'nullable|numeric',
+        'salary_advance' => 'nullable|numeric',
+        'status' => 'nullable|string',
+        'transport_allowance' => 'nullable|numeric',
+        'taxable_transport_allowance' => 'nullable|numeric',
+    ]);
 
-        // Get the currently logged-in user
-        $employee = Auth::user();
+    // Calculate adjusted basic salary based on days worked
+    $basicSalary = $request->basic_salary;
+    $daysWorked = $request->no_of_days; // Directly use days worked
+    $dailyRate = $basicSalary / 26;
+    
+    // If the employee worked all 26 days, set adjusted basic salary to the full salary
+    $adjustedBasicSalary = ($daysWorked == 26) ? $basicSalary : $dailyRate * $daysWorked;
 
-        // Retrieve the manager for approval
-        $manager = User::where('company_id', $employee->company_id)
-                       ->where('role', 'manager')
-                       ->first(); 
+    // Initialize allowances
+    $transportAllowance = $request->transport_allowance;
+    $taxableTransportAllowance = $request->taxable_transport_allowance;
+    $positionAllowance = $request->position_allowance ?? 0;
 
-        Payroll::create([
-            'employee_id' => $request->employee_id,
-            'pay_period' => $request->pay_period,
-            'basic_salary' => $request->basic_salary,
-            'allowances' => $request->allowances,
-            'deductions' => $request->deductions,
-            'net_salary' => $request->net_salary,
-            'prepared_by' => Auth::id(),
-            'status' => $request->status ?? 'pending',
-            'approved_by' => $manager->user_id, // Only the manager's ID
-        ]);
-
-        return redirect()->route('finance.payrolls.index')->with('success', 'Payroll created successfully.');
+    // Calculate transport allowances if not provided
+    if (is_null($transportAllowance) && is_null($taxableTransportAllowance)) {
+        $transportAllowanceComputed = $adjustedBasicSalary / 4;
+        $transportAllowance = min($transportAllowanceComputed, 2200);
+        $taxableTransportAllowance = max($transportAllowanceComputed - 2200, 0);
     }
+
+    // Adjust allowances based on days worked
+    if ($daysWorked < 26) {
+        $transportAllowance *= ($daysWorked / 26);
+        $taxableTransportAllowance *= ($daysWorked / 26);
+        $positionAllowance *= ($daysWorked / 26);
+    }
+
+    // Calculate pension funds
+    $pensionFund7 = $adjustedBasicSalary * 0.07;
+    $pensionFund11 = $adjustedBasicSalary * 0.11;
+
+    // Total taxable earnings
+    $totalTaxableEarnings = $adjustedBasicSalary + $taxableTransportAllowance + $positionAllowance;
+
+    // Calculate income tax
+    $incomeTax = $this->calculateIncomeTax($totalTaxableEarnings);
+
+    // Calculate net payment
+    $netPayment = $totalTaxableEarnings - $incomeTax - $pensionFund7 - ($request->salary_advance ?? 0) + $transportAllowance;
+
+    // Get the currently logged-in employee
+    $employee = Auth::user();
+
+    // Retrieve the manager associated with the employee's company
+    $manager = User::where('company_id', $employee->company_id)
+                   ->where('role', 'manager')
+                   ->first();
+
+    // Create payroll record
+    Payroll::create([
+        'employee_id' => $request->employee_id,
+        'job_title' => $request->job_title,
+        'no_of_days' => 26 - $daysWorked, // Calculate absent days
+        'basic_salary' => $adjustedBasicSalary,
+        'transport_allowance' => $transportAllowance,
+        'taxable_transport_allowance' => $taxableTransportAllowance,
+        'position_allowance' => $positionAllowance,
+        'total_taxable_earnings' => $totalTaxableEarnings,
+        'income_tax' => $incomeTax,
+        'pension_fund_7' => $pensionFund7,
+        'pension_fund_11' => $pensionFund11,
+        'salary_advance' => $request->salary_advance ?? 0,
+        'net_payment' => $netPayment,
+        'pay_period' => $request->pay_period,
+        'status' => $request->status ?? 'Pending',
+        'prepared_by' => Auth::id(),
+        'approved_by' => User::where('company_id', Auth::user()->company_id)->where('role', 'manager')->first()->user_id ?? null,
+    ]);
+
+    return redirect()->route('finance.payrolls.index')->with('success', 'Payroll created successfully.');
+}
+    
 
     public function editPayroll(Payroll $payroll)
     {
-        $companyId = Auth::user()->company_id;
-        $employees = User::where('company_id', $companyId)->get();
+        $employees = User::where('company_id', Auth::user()->company_id)->get();
         return view('finance.payrolls.edit', compact('payroll', 'employees'));
     }
 
     public function updatePayroll(Request $request, Payroll $payroll)
-    {
-        $request->validate([
-            'employee_id' => 'required|exists:users,user_id',
-            'pay_period' => 'required|string|max:255',
-            'basic_salary' => 'required|numeric',
-            'allowances' => 'nullable|numeric',
-            'deductions' => 'nullable|numeric',
-            'net_salary' => 'required|numeric',
-            'status' => 'nullable|string',
-        ]);
+{
+    $request->validate([
+        'employee_id' => 'required|exists:users,user_id',
+        'pay_period' => 'required|string|max:255',
+        'basic_salary' => 'required|numeric',
+        'no_of_days' => 'required|integer|min:0|max:26', // Allow 0 to 26
+        'position_allowance' => 'nullable|numeric',
+        'salary_advance' => 'nullable|numeric',
+        'status' => 'nullable|string',
+        'transport_allowance' => 'nullable|numeric',
+        'taxable_transport_allowance' => 'nullable|numeric',
+    ]);
 
-        $payroll->update($request->all());
+    // Calculate adjusted basic salary based on days worked
+    $basicSalary = $request->basic_salary;
+    $daysWorked = $request->no_of_days;
+    $dailyRate = $basicSalary / 26;
 
-        return redirect()->route('finance.payrolls.index')->with('success', 'Payroll updated successfully.');
+    // If the employee worked all 26 days, set adjusted basic salary to the full salary
+    $adjustedBasicSalary = ($daysWorked == 26) ? $basicSalary : $dailyRate * $daysWorked;
+
+    // Initialize allowances
+    $transportAllowance = $request->transport_allowance;
+    $taxableTransportAllowance = $request->taxable_transport_allowance;
+    $positionAllowance = $request->position_allowance ?? 0;
+
+    // Calculate transport allowances if not provided
+    if (is_null($transportAllowance) && is_null($taxableTransportAllowance)) {
+        $transportAllowanceComputed = $adjustedBasicSalary / 4;
+        $transportAllowance = min($transportAllowanceComputed, 2200);
+        $taxableTransportAllowance = max($transportAllowanceComputed - 2200, 0);
     }
+
+    // Adjust allowances based on days worked
+    if ($daysWorked < 26) {
+        $transportAllowance *= ($daysWorked / 26);
+        $taxableTransportAllowance *= ($daysWorked / 26);
+        $positionAllowance *= ($daysWorked / 26);
+    }
+
+    // Calculate pension funds
+    $pensionFund7 = $adjustedBasicSalary * 0.07;
+    $pensionFund11 = $adjustedBasicSalary * 0.11;
+
+    // Total taxable earnings
+    $totalTaxableEarnings = $adjustedBasicSalary + $taxableTransportAllowance + $positionAllowance;
+
+    // Calculate income tax
+    $incomeTax = $this->calculateIncomeTax($totalTaxableEarnings);
+
+    // Calculate net payment
+    $netPayment = $totalTaxableEarnings - $incomeTax - $pensionFund7 - ($request->salary_advance ?? 0) + $transportAllowance;
+
+    // Update payroll record
+    $payroll->update([
+        'employee_id' => $request->employee_id,
+        'job_title' => $request->job_title,
+        'no_of_days' => 26 - $daysWorked, // Calculate absent days
+        'basic_salary' => $adjustedBasicSalary,
+        'transport_allowance' => $transportAllowance,
+        'taxable_transport_allowance' => $taxableTransportAllowance,
+        'position_allowance' => $positionAllowance,
+        'total_taxable_earnings' => $totalTaxableEarnings,
+        'income_tax' => $incomeTax,
+        'pension_fund_7' => $pensionFund7,
+        'pension_fund_11' => $pensionFund11,
+        'salary_advance' => $request->salary_advance ?? 0,
+        'net_payment' => $netPayment,
+        'pay_period' => $request->pay_period,
+        'status' => $request->status ?? 'Pending',
+    ]);
+
+    return redirect()->route('finance.payrolls.index')->with('success', 'Payroll updated successfully.');
+}
 
     public function destroyPayroll(Payroll $payroll)
     {
         $payroll->delete();
         return redirect()->route('finance.payrolls.index')->with('success', 'Payroll deleted successfully.');
     }
+
+    private function calculateIncomeTax($totalTaxableEarnings)
+    {
+        if ($totalTaxableEarnings < 600) {
+            return 0;
+        } elseif ($totalTaxableEarnings <= 1650) {
+            return ($totalTaxableEarnings * 0.1) - 60;
+        } elseif ($totalTaxableEarnings <= 3200) {
+            return ($totalTaxableEarnings * 0.15) - 142.5;
+        } elseif ($totalTaxableEarnings <= 5250) {
+            return ($totalTaxableEarnings * 0.2) - 302.5;
+        } elseif ($totalTaxableEarnings <= 7800) {
+            return ($totalTaxableEarnings * 0.25) - 565;
+        } elseif ($totalTaxableEarnings <= 10900) {
+            return ($totalTaxableEarnings * 0.3) - 955;
+        } else {
+            return ($totalTaxableEarnings * 0.35) - 1500;
+        }
+    }
+
+    public function downloadPdf($id)
+    {
+        $payroll = Payroll::findOrFail($id);
+        
+        // Generate PDF with A4 size and portrait orientation
+        $pdf = PDF::loadView('finance.payrolls.pdf', compact('payroll'))
+                    ->setPaper('A4', 'portrait');
+
+        return $pdf->download('finance_payrolls_' . $payroll->id . '.pdf');
+    }
+
+    
 }

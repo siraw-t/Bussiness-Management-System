@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('password');
             $table->enum('role', ['superadmin', 'admin', 'employee', 'finance', 'storekeeper', 'manager']);
             $table->unsignedBigInteger('company_id')->nullable(); // Logical relation to 'company_id'
+            $table->string('profile_image')->nullable(); // Field for profile image upload
             $table->timestamps();
         });
     }

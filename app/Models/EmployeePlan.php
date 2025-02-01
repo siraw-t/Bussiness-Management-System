@@ -1,5 +1,6 @@
 <?php
 
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -12,13 +13,13 @@ class EmployeePlan extends Model
     protected $keyType = 'int'; // Assuming you're using integers for IDs
 
     protected $fillable = [
-        'employee_id', 'week', 'plan', 'submitted_at', 'comment',
+        'employee_id', 'week', 'plan', 'status', 'reference_number', 'submitted_at', 'manager_comment', 'approved_by', 'urgent_issues',
     ];
 
     public function employee()
-    {
-        return $this->belongsTo(User::class, 'employee_id', 'user_id'); // Relate to the employee
-    }
+{
+    return $this->belongsTo(User::class, 'employee_id', 'user_id'); // Adjust as necessary
+}
 
     protected $casts = [
         'submitted_at' => 'datetime', // Cast to Carbon instance
@@ -26,6 +27,6 @@ class EmployeePlan extends Model
 
     public function user()
     {
-        return $this->belongsTo(User::class, 'employee_id'); // Change 'employee_id' if your foreign key is different
+        return $this->belongsTo(User::class, 'employee_id'); // Assuming employee_id is the foreign key
     }
 }

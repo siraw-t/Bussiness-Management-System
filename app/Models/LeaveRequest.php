@@ -1,31 +1,38 @@
 <?php
 
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
 class LeaveRequest extends Model
 {
-    protected $table = 'leave_requests'; // Define the table name
-    protected $primaryKey = 'leave_request_id'; // Define the primary key
-    public $incrementing = true; // This should be true for auto-incrementing IDs
-    protected $keyType = 'int'; // Assuming you're using integers for IDs
+    protected $table = 'leave_requests';
+    protected $primaryKey = 'leave_request_id';
+    public $incrementing = true;
 
     protected $fillable = [
-        'user_id', 'start_date', 'end_date', 'reason', 'status', 'approved_by',
+        'user_id', 
+        'start_date', 
+        'end_date', 
+        'leave_type', 
+        'other_reason', 
+        'employee_signature', 
+        'attachment', 
+        'status', 
+        'approved_by',
+        'manager_comments', // Add this line
     ];
 
     public function user()
     {
-        return $this->belongsTo(User::class, 'user_id', 'user_id'); // Relate to the User model
+        return $this->belongsTo(User::class, 'user_id', 'user_id');
     }
 
     public function approver()
     {
-        return $this->belongsTo(User::class, 'approved_by', 'user_id'); // Relate to the approver
+        return $this->belongsTo(User::class, 'approved_by', 'user_id');
     }
 
-    protected $casts = [
-        'submitted_at' => 'datetime',
-    ];
+    
 }

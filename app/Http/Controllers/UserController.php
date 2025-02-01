@@ -27,28 +27,34 @@ class UserController extends Controller
     }
 
     public function store(Request $request)
-    {
-        $request->validate([
-            'username' => 'required|string|max:255',
-            'full_name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users,email',
-            'password' => 'required|string|min:8|confirmed',
-            'role' => 'required|in:admin,employee,finance,manager,storekeeper',
-            'company_id' => 'required|exists:companies,company_id', // Adjust as necessary
-        ]);
+{
+    $request->validate([
+        'username' => 'required|string|max:255',
+        'full_name' => 'required|string|max:255',
+        'email' => 'required|string|email|max:255|unique:users,email',
+        'password' => 'required|string|min:8|confirmed',
+        'role' => 'required|in:admin,employee,finance,manager,storekeeper',
+        'company_id' => 'required|exists:companies,company_id',
+        'profile_image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048', // Validation for profile image
+    ]);
 
-        User::create([
-            'username' => $request->username,
-            'full_name' => $request->full_name,
-            'email' => $request->email,
-            'password' => bcrypt($request->password),
-            'role' => $request->role,
-            'company_id' => $request->company_id,
-        ]);
+    $user = User::create([
+        'username' => $request->username,
+        'full_name' => $request->full_name,
+        'email' => $request->email,
+        'password' => bcrypt($request->password),
+        'role' => $request->role,
+        'company_id' => $request->company_id,
+    ]);
 
-        return redirect()->route('users.index')->with('success', 'User created successfully.');
+    if ($request->hasFile('profile_image')) {
+        $filePath = $request->file('profile_image')->store('profile_images', 'public');
+        $user->profile_image = $filePath;
+        $user->save();
     }
 
+    return redirect()->route('users.index')->with('success', 'User created successfully.');
+}
     public function edit(User $user)
 {
     // Allow users to edit their own information
@@ -60,18 +66,14 @@ class UserController extends Controller
 
 public function update(Request $request, User $user)
 {
-    // Allow users to update their own information
-    if (Auth::user()->user_id !== $user->user_id) {
-        return redirect()->route('users.index')->with('error', 'Unauthorized access.');
-    }
-
     $request->validate([
         'username' => 'required|string|max:255',
         'full_name' => 'required|string|max:255',
-        'email' => 'required|string|email|max:255|unique:users,email,' . $user->user_id . ',user_id',
+        'email' => 'required|string|email|max:255|unique:users,email,' . $user->user_id . ',user_id', // Correct
         'password' => 'nullable|string|min:8|confirmed',
         'role' => 'required|in:admin,employee,finance,manager,storekeeper',
         'company_id' => 'required|exists:companies,company_id',
+        'profile_image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048', // Validation for profile image
     ]);
 
     $user->username = $request->username;
@@ -82,20 +84,16 @@ public function update(Request $request, User $user)
         $user->password = bcrypt($request->password);
     }
 
-    // Check if the role can be edited by the user
-    if (Auth::user()->role === 'admin' || Auth::user()->role === 'superadmin') {
-        $user->role = $request->role;
-        $user->company_id = $request->company_id;
-        $user->save();
-
-        return redirect()->route('users.index')->with('success', 'User updated successfully.');
-    } else {
-        // Non-admin users can update their info but not roles
-        $user->company_id = $request->company_id; // Allow updating company_id
-        $user->save();
-        
-        return redirect()->back()->with('success', 'User updated successfully.');
+    if ($request->hasFile('profile_image')) {
+        $filePath = $request->file('profile_image')->store('profile_images', 'public');
+        $user->profile_image = $filePath;
     }
+
+    $user->role = $request->role;
+    $user->company_id = $request->company_id;
+    $user->save();
+
+    return redirect()->route('users.index')->with('success', 'User updated successfully.');
 }
 
     public function destroy(User $user)
@@ -104,27 +102,32 @@ public function update(Request $request, User $user)
         return redirect()->route('users.index')->with('success', 'User deleted successfully.');
     }
 
-    public function uploadAvatar(Request $request)
+    public function uploadProfileImage(Request $request)
 {
-    $request->validate([
-        'avatar' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
-    ]);
-
-    if ($request->hasFile('avatar')) {
-        // Generate a unique filename for the avatar
-        $filename = time() . '.' . $request->file('avatar')->getClientOriginalExtension();
-
-        // Move the file to the public/avatars directory
-        $request->file('avatar')->move(public_path('avatars'), $filename);
-
-        // Set the avatar URL (you can customize this path)
-        $avatarUrl = '/avatars/' . $filename;
-
-        // Return the URL for the front-end to use
-        return response()->json(['avatarUrl' => $avatarUrl, 'message' => 'Avatar uploaded successfully!']);
+    // Check if the user is authenticated
+    if (!Auth::check()) {
+        return redirect()->route('login')->with('error', 'You need to log in first.');
     }
 
-    return response()->json(['message' => 'Avatar upload failed.'], 400);
+    $request->validate([
+        'profile_image' => 'required|image|mimes:jpg,jpeg,png|max:2048',
+    ]);
+
+    $user = Auth::user(); // Get the currently authenticated user
+
+    if ($request->hasFile('profile_image')) {
+        // Handle file upload
+        $file = $request->file('profile_image');
+        $filePath = $file->store('profile_images', 'public'); // Store in 'storage/app/public/profile_images'
+
+        // Update the user's profile image
+        $user->profile_image = $filePath;
+        $user->save();
+
+        return redirect()->route('users.index')->with('success', 'Profile image uploaded successfully!');
+    }
+
+    return redirect()->back()->with('error', 'Failed to upload profile image.');
 }
     
 }

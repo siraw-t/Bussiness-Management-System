@@ -2,26 +2,48 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class PurchaseRequest extends Model
 {
-    protected $table = 'purchase_requests'; // Define the table name
-    protected $primaryKey = 'purchase_request_id'; // Define the primary key
-    public $incrementing = true; // This should be true for auto-incrementing IDs
-    protected $keyType = 'int'; // Assuming you're using integers for IDs
+    use HasFactory;
+
+    protected $table = 'purchase_requests';
+
+    protected $primaryKey = 'purchase_request_id';
 
     protected $fillable = [
-        'user_id', 'item_name', 'quantity', 'estimated_cost', 'status', 'comment', 'approved_by',
+        'user_id',
+        'reference_number',
+        'item_info',
+        'quantity_with_unit',
+        'price_with_currency',
+        'status',
+        'attachments',
+        'approved_by',
+        'checked_by',
+        'manager_comment',
+        'finance_comment',
     ];
 
+    protected $casts = [
+        'attachments' => 'array', // Cast attachments to an array
+    ];
+
+    // Relationship with User (requester)
     public function user()
     {
-        return $this->belongsTo(User::class, 'user_id', 'user_id'); // Relate to the User model
+        return $this->belongsTo(User::class, 'user_id');
     }
 
-    public function approver()
-    {
-        return $this->belongsTo(User::class, 'approved_by', 'user_id'); // Relate to the approver
-    }
+    public function checkedBy()
+{
+    return $this->belongsTo(User::class, 'checked_by');
+}
+
+public function approvedBy()
+{
+    return $this->belongsTo(User::class, 'approved_by');
+}
 }

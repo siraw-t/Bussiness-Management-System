@@ -13,7 +13,7 @@ class Company extends Model
     protected $keyType = 'int'; // Assuming you're using integers for IDs
 
     protected $fillable = [
-        'company_name', 'country', 'city', 'contact_email', 'contact_phone', 'created_by', 'company_admin', 'registered_at'
+        'company_name', 'country', 'city', 'contact_email', 'contact_phone', 'created_by', 'company_admin', 'registered_at', 'logo'
     ];
 
     public function admin()

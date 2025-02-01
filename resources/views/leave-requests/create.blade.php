@@ -1,63 +1,71 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container mt-5">
-    <h1 class="text-center text-primary mb-4">Create Leave Request</h1>
+    <div class="container mt-5">
+        <h1 class="text-center text-primary mb-4">Create Leave Request</h1>
 
-    <form action="{{ route('leave-requests.store') }}" method="POST" class="shadow p-4 rounded bg-light" style="max-width: 600px; margin: auto;">
-        @csrf
+        <form action="{{ route('leave-requests.store') }}" method="POST" enctype="multipart/form-data"
+            class="shadow p-4 rounded bg-light" style="max-width: 600px; margin: auto;">
+            @csrf
 
-        <div class="form-group mb-3">
-            <label for="start_date">Start Date</label>
-            <input type="date" name="start_date" class="form-control" required>
-        </div>
+            <div class="form-group mb-3">
+                <label for="start_date">Start Date</label>
+                <input type="date" name="start_date" class="form-control" required>
+            </div>
 
-        <div class="form-group mb-3">
-            <label for="end_date">End Date</label>
-            <input type="date" name="end_date" class="form-control" required>
-        </div>
+            <div class="form-group mb-3">
+                <label for="end_date">End Date</label>
+                <input type="date" name="end_date" class="form-control" required>
+            </div>
 
-        <div class="form-group mb-3">
-            <label for="status">Status</label>
-            <select name="status" class="form-control" required>
-                <option value="pending" selected>Pending</option>
-                <option value="approved">Approved</option>
-                <option value="rejected">Rejected</option>
-            </select>
-        </div>
+            <div class="form-group mb-3">
+                <label for="leave_type">Leave Type</label>
+                <select name="leave_type" class="form-control" required>
+                    <option value="annual_leave">Annual Leave</option>
+                    <option value="bereavement_leave">Bereavement Leave</option>
+                    <option value="maternity_leave">Maternity Leave</option>
+                    <option value="sick_leave">Sick Leave</option>
+                    <option value="unpaid_leave">Unpaid Leave</option>
+                    <option value="parental_leave">Parental Leave</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
 
-        <div class="form-group mb-3">
-            <label for="reason">Reason</label>
-            <textarea name="reason" class="form-control" rows="4" required></textarea>
-        </div>
+            <div class="form-group mb-3">
+                <label for="other_reason">If Other, Please Specify</label>
+                <input type="text" name="other_reason" class="form-control"
+                    placeholder="Enter reason if 'Other' selected">
+            </div>
 
-        <button type="submit" class="btn btn-success btn-lg w-100">
-            <i class="bi bi-check-lg"></i> Submit
-        </button>
-    </form>
-</div>
+            <div class="form-group mb-3">
+                <label for="employee_signature">Upload Your Signature</label>
+                <input type="file" name="employee_signature" id="employee_signature" class="form-control"
+                    accept="image/*">
+                <img id="signature-preview" class="mt-3" style="display: none; max-width: 100%; height: auto;">
+            </div>
 
-<!-- Optional: Add Bootstrap Icons -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
 
-<!-- Optional: Add custom CSS for additional effects -->
-<style>
-    .form-control:focus {
-        border-color: #28a745; /* Green border on focus */
-        box-shadow: 0 0 5px rgba(40, 167, 69, 0.5); /* Green shadow on focus */
-    }
+            <div class="form-group mb-3">
+                <label for="attachment">Attach File</label>
+                <input type="file" name="attachment" class="form-control">
+            </div>
 
-    .btn-success {
-        transition: background-color 0.3s, transform 0.2s; /* Smooth transition for button */
-    }
+            <button type="submit" class="btn btn-success btn-lg w-100">Submit</button>
+        </form>
+    </div>
 
-    .btn-success:hover {
-        background-color: #218838; /* Darker green on hover */
-        transform: scale(1.05); /* Slightly enlarge on hover */
-    }
-
-    .bg-light {
-        background-color: #f8f9fa !important; /* Light background for the form */
-    }
-</style>
+    <script>
+        document.getElementById('employee_signature').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.getElementById('signature-preview');
+                    img.src = e.target.result;
+                    img.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    </script>
 @endsection
