@@ -214,11 +214,11 @@
                                 <i class="bi bi-file-earmark-text"></i> Weekly Reports
                             </a>
                         </li>
-                        {{-- <li class="nav-item">
-                        <a class="nav-link text-white" href="{{ route('documents.index') }}">
-                            <i class="bi bi-file-earmark-text"></i> Archived Documents
-                        </a>
-                    </li> --}}
+                        <li class="nav-item">
+                            <a class="nav-link text-white" href="{{ route('stock_requisitions.index') }}">
+                                <i class="bi bi-file-earmark-text"></i> Request Stock
+                            </a>
+                        </li>
                     </ul>
                 </div>
             </nav>

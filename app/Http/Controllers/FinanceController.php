@@ -31,10 +31,15 @@ class FinanceController extends Controller
     {
         $request->validate([
             'forecast_period' => 'required|string|max:255',
-            'forecast_amount' => 'required|numeric',
-            'actual_amount' => 'required|numeric',
-            'description' => 'nullable|string',
-            'comment' => 'nullable|string',
+            'budget_description' => 'nullable|string',
+            'budget_item' => 'nullable|string',
+            'budget_code' => 'nullable|string',
+            'department' => 'nullable|string',
+            'budget_source' => 'nullable|string',
+            'quantity_with_unit' => 'nullable|string',
+            'status' => 'nullable|string',
+            'unit_cost' => 'nullable|numeric',
+            // 'total_budget' => 'nullable|numeric',
         ]);
 
         // Get the currently logged-in user
@@ -45,14 +50,31 @@ class FinanceController extends Controller
                        ->where('role', 'manager')
                        ->first(); 
 
+     // Get and cast unit_cost as float
+     $unit_cost = (float)$request->input('unit_cost');
+
+     // Get raw input of quantity (e.g., "2 pcs")
+     $quantity_with_unit_raw = $request->input('quantity_with_unit');
+ 
+     // Extract only the numeric part and cast to float
+     $quantity_numeric = (float) preg_replace('/[^0-9.]/', '', $quantity_with_unit_raw);
+ 
+     // Calculate total budget
+     $total_budget = $unit_cost * $quantity_numeric;
+
         BudgetForecasting::create([
             'forecast_period' => $request->forecast_period,
-            'forecast_amount' => $request->forecast_amount,
-            'actual_amount' => $request->actual_amount,
-            'description' => $request->description,
-            'comment' => $request->comment,
+            'budget_description' => $request->budget_description,
+            'budget_item' => $request->budget_item,
+            'budget_code' => $request->budget_code,
+            'department' => $request->department,
+            'budget_source' => $request->budget_source,
+            'quantity_with_unit' => $quantity_with_unit_raw, // store original input if needed
+            'unit_cost'          => $unit_cost,
+            'total_budget'       => $total_budget, // use the calculated value
+            'status' => $request->status ?? 'Pending',
             'created_by' => Auth::id(),
-            'approved_by' => $manager->user_id, // Only the manager's ID
+            'approved_by' => $manager->user_id ?? null, // Only the manager's ID
         ]);
 
         return redirect()->route('finance.budgets.index')->with('success', 'Budget forecasting created successfully.');
@@ -67,13 +89,43 @@ class FinanceController extends Controller
     {
         $request->validate([
             'forecast_period' => 'required|string|max:255',
-            'forecast_amount' => 'required|numeric',
-            'actual_amount' => 'required|numeric',
-            'description' => 'nullable|string',
-            'comment' => 'nullable|string',
+            'budget_description' => 'nullable|string',
+            'budget_item' => 'nullable|string',
+            'budget_code' => 'nullable|string',
+            'department' => 'nullable|string',
+            'budget_source' => 'nullable|string',
+            'quantity_with_unit' => 'nullable|string',
+            'status' => 'nullable|string',
+            'unit_cost' => 'nullable|numeric',
+            'total_budget' => 'nullable|numeric',
         ]);
 
-        $budget->update($request->all());
+    // Get and cast unit_cost as float
+    $unit_cost = (float)$request->input('unit_cost');
+
+    // Get raw input for quantity
+    $quantity_with_unit_raw = $request->input('quantity_with_unit');
+
+    // Extract numeric part and cast to float
+    $quantity_numeric = (float) preg_replace('/[^0-9.]/', '', $quantity_with_unit_raw);
+
+    // Calculate total budget
+    $total_budget = $unit_cost * $quantity_numeric;
+ 
+
+
+        $budget->update([
+            'forecast_period' => $request->forecast_period,
+            'budget_description' => $request->budget_description,
+            'budget_item' => $request->budget_item,
+            'budget_code' => $request->budget_code,
+            'department' => $request->department,
+            'budget_source' => $request->budget_source,
+            'quantity_with_unit' => $quantity_with_unit_raw, // store original input if needed
+            'unit_cost'          => $unit_cost,
+            'total_budget' => $total_budget, // Use the calculated total_budget
+            'status' => $request->status ?? 'Pending',
+        ]);
 
         return redirect()->route('finance.budgets.index')->with('success', 'Budget forecasting updated successfully.');
     }
@@ -83,6 +135,19 @@ class FinanceController extends Controller
         $budget->delete();
         return redirect()->route('finance.budgets.index')->with('success', 'Budget forecasting deleted successfully.');
     }
+
+    public function downloadBudgetPdf($id)
+    {
+        $budget = BudgetForecasting::findOrFail($id);
+        
+        // Generate PDF with A4 size and portrait orientation
+        $pdf = PDF::loadView('finance.budgets.pdf', compact('budget'))
+                    ->setPaper('A4', 'portrait');
+
+        return $pdf->download('finance_budgets_' . $budget->id . '.pdf');
+    }
+
+
 
     public function indexPayroll()
     {

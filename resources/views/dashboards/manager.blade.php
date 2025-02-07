@@ -56,6 +56,11 @@
                                         <i class="bi bi-file-earmark-text"></i> View Payroll
                                     </a>
                                 </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-white" href="{{ route('display.stock-requisition') }}">
+                                        <i class="bi bi-file-earmark-text"></i> View Stock Requisitions
+                                    </a>
+                                </li>
 
                                 <li class="nav-item">
                                     <a class="nav-link text-white" href="{{ route('display.pending') }}">

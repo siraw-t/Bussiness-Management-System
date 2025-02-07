@@ -23,6 +23,8 @@ use App\Models\EmployeePlan;
 use App\Models\EmployeeReport;
 use App\Models\BudgetForecasting;
 use App\Http\Controllers\ManagerController;
+use App\Http\Controllers\StockRequisitionController;
+
 
 
 
@@ -130,7 +132,21 @@ Route::prefix('inventory')->group(function () {
     Route::get('/{inventory}/edit', [InventoryController::class, 'edit'])->name('inventory.edit'); // Show form to edit an inventory item
     Route::put('/{inventory}', [InventoryController::class, 'update'])->name('inventory.update'); // Update the inventory item
     Route::delete('/{inventory}', [InventoryController::class, 'destroy'])->name('inventory.destroy'); // Delete the inventory item
+    Route::post('/inventory/{inventory}/stock-out', [InventoryController::class, 'stockOut'])->name('inventory.stockOut');
 });
+
+
+Route::prefix('stock_requisitions')->group(function () {
+    Route::get('/', [StockRequisitionController::class, 'index'])->name('stock_requisitions.index'); // List all stock requisitions
+    Route::get('/create', [StockRequisitionController::class, 'create'])->name('stock_requisitions.create'); // Show form to create a stock requisition
+    Route::post('/', [StockRequisitionController::class, 'store'])->name('stock_requisitions.store'); // Store a new stock requisition
+    Route::get('/{stockRequisition}/edit', [StockRequisitionController::class, 'edit'])->name('stock_requisitions.edit'); // Show form to edit a stock requisition
+    Route::put('/{stockRequisition}', [StockRequisitionController::class, 'update'])->name('stock_requisitions.update'); // Update the stock requisition
+    Route::delete('/{stockRequisition}', [StockRequisitionController::class, 'destroy'])->name('stock_requisitions.destroy'); // Delete the stock requisition
+
+Route::post('/stock_requisitions/comment/{stock_requisition_id}', [StockRequisitionController::class, 'addEmployeeComment'])->name('stock_requisitions.comment');
+});
+
 
 Route::get('/dashboards/finance', function () {
     return auth()->check() && auth()->user()->role === 'finance'
@@ -182,6 +198,12 @@ Route::get('/display/budget', function () {
     return view('display.budget', compact('budgetForecasts'));
 })->name('display.budget');
 
+Route::get('/display/stock-requisition', function () {
+    $stockRequisitions = \App\Models\StockRequisition::with('user')->get();
+    return view('display.stock-requisition', compact('stockRequisitions'));
+})->name('display.stock-requisition');
+
+
 Route::get('/display/pending', [ManagerController::class, 'managerDashboard'])->name('display.pending');
 Route::get('/display/admin', [DashboardController::class, 'displayAdmins'])->name('display.admin');
 Route::get('/display/users', [DashboardController::class, 'displayUsers'])->name('display.users');
@@ -220,6 +242,8 @@ Route::get('/pending-requests', [LeaveRequestController::class, 'showPendingRequ
 
 Route::post('/manager/payment-request/{payment_request_id}/approve', [DashboardController::class, 'approvePaymentRequest'])->name('manager.payment.approve');
 Route::post('/manager/payment-request/{payment_request_id}/reject', [DashboardController::class, 'rejectPaymentRequest'])->name('manager.payment.reject');
+Route::post('/finance/payment-request/comment/{payment_request_id}', [PaymentRequestController::class, 'addFinanceComment'])->name('finance.payment.comment');
+Route::get('/finance/payment-requests/pending', [DashboardController::class, 'showPendingPaymentRequests'])->name('display.payment-pending');
 
 Route::post('/manager/purchase-request/{purchase_request_id}/approve', [DashboardController::class, 'approvePurchaseRequest'])->name('manager.purchase.approve');
 Route::post('/manager/purchase-request/{purchase_request_id}/reject', [DashboardController::class, 'rejectPurchaseRequest'])->name('manager.purchase.reject');
@@ -235,6 +259,14 @@ Route::post('/manager/weekly-reports/{report_id}/reject', [DashboardController::
 
 Route::post('/manager/payroll/{payroll_id}/approve', [DashboardController::class, 'approvePayroll'])->name('manager.payroll.approve');
 Route::post('/manager/payroll/{payroll_id}/reject', [DashboardController::class, 'rejectPayroll'])->name('manager.payroll.reject');
+
+Route::post('/manager/budget/{budget_id}/approve', [DashboardController::class, 'approveBudget'])->name('manager.budget.approve');
+Route::post('/manager/budget/{budget_id}/reject', [DashboardController::class, 'rejectBudget'])->name('manager.budget.reject');
+
+// Stock Requisition Routes
+Route::post('/manager/stock_requisition/{stock_requisition_id}/approve', [DashboardController::class, 'approveStockRequisition'])->name('manager.stock_requisition.approve');
+Route::post('/manager/stock_requisition/{stock_requisition_id}/reject', [DashboardController::class, 'rejectStockRequisition'])->name('manager.stock_requisition.reject');
+Route::get('/stock-requisitions', [StockRequisitionController::class, 'showStockRequisitions'])->name('stock.requisitions');
 
 
 // Superadmin Dashboard Route
@@ -350,6 +382,12 @@ Route::delete('/users/{user}', function (User $user) {
 Route::post('/user/upload-profile-image', [UserController::class, 'uploadProfileImage']);// downloading functions
 Route::get('/leave-requests/{request}/download-pdf', [LeaveRequestController::class, 'downloadPdf'])->name('leave-requests.downloadPdf');
 Route::get('/purchase-requests/{request}/download-pdf', [PurchaseRequestController::class, 'downloadPdf'])->name('purchase-requests.downloadPdf');
+Route::get('/payment-requests/{request}/download-pdf', [PaymentRequestController::class, 'downloadPdf'])->name('payment-requests.downloadPdf');
 Route::get('/weekly-plan/{plan}/download-pdf', [EmployeePlanController::class, 'downloadPdf'])->name('weekly-plan.downloadPdf');
 Route::get('/weekly-reports/{report}/download-pdf', [EmployeeReportController::class, 'downloadPdf'])->name('weekly-reports.downloadPdf');
 Route::get('/finance/payrolls/{payroll}/download-pdf', [FinanceController::class, 'downloadPdf'])->name('finance.payrolls.downloadPdf');
+Route::get('/finance/budgets/{budget}/download-pdf', [FinanceController::class, 'downloadBudgetPdf'])->name('finance.budgets.downloadBudgetPdf');
+Route::get('/stock_requisitions/{requisition}/download-pdf', [StockRequisitionController::class, 'downloadPdf'])->name('stock_requisitions.downloadPdf');
+
+
+

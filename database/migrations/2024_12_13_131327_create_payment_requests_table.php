@@ -25,13 +25,13 @@ return new class extends Migration
             $table->decimal('vat', 10, 2)->nullable(); // VAT 18%
             $table->decimal('total', 10, 2); // Total including VAT
             $table->decimal('net_payment', 10, 2); // Net Payment
+            $table->decimal('with_holding', 10, 2)->nullable(); //  6%
             $table->string('cost_center')->nullable(); // Cost Center
             $table->string('account_code')->nullable(); // Account Code
             $table->decimal('country_cost_recharge', 10, 2)->nullable(); // Country cost recharge
             $table->decimal('allocation_for_country', 10, 2)->nullable(); // Cost allocation for the country recharge
             $table->string('status')->default('pending'); // Status (e.g., pending, approved)
             $table->string('manager_comment')->nullable(); // Add this line
-            // $table->foreignId('reviewed_by')->nullable()->constrained('users');
             $table->unsignedBigInteger('reviewed_by')->nullable(); // Finance reviewer
 
             $table->unsignedBigInteger('approved_by')->nullable(); // Reference to users table

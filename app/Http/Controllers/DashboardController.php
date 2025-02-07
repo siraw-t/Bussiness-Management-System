@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Company;
+use App\Models\StockRequisition;
 use App\Models\User;
 use App\Models\LeaveRequest; // Leave requests model
 use App\Models\PaymentRequest; // Payment requests model
@@ -140,6 +141,7 @@ public function displayUsers()
             ->groupBy('status')
             ->pluck('count', 'status');
         
+
            
 
         return view('dashboards.finance', compact('inventories', 'leaveCounts', 'paymentCounts', 'purchaseCounts'));
@@ -154,6 +156,16 @@ public function displayUsers()
             
                 return view('display.finance-pending', compact('pendingPurchaseRequests'));
             }
+
+            public function showPendingPaymentRequests()
+    {
+        // Fetch all pending payment requests
+        $pendingPaymentRequests = PaymentRequest::where('status', 'pending')
+            ->with('user') // Load the user relationship
+            ->get();
+        
+        return view('display.payment-pending', compact('pendingPaymentRequests'));
+    }
 
     public function managerDashboard()
     {
@@ -182,6 +194,11 @@ public function displayUsers()
             ->where('approved_by', $managerId)
             ->with(['employee', 'preparedBy'])
             ->get();
+        
+        $pendingBudgetForecasts = BudgetForecasting::where('status', 'pending')
+            ->where('approved_by', $managerId)
+            ->with('user')
+            ->get();
 
             // Get pending employee plans approved by this manager
     $pendingEmployeePlans = EmployeePlan::where('status', 'pending')
@@ -195,6 +212,11 @@ public function displayUsers()
     ->with('employee') // Load the employee relationship if needed
     ->get();
 
+    $pendingStockRequisitionRequests = StockRequisition::where('status', 'pending')
+    ->where('approved_by', $managerId)
+    ->with('user') // Load the user relationship if needed
+    ->get();
+
 
         return view('dashboards.manager', compact(
             'inventories',
@@ -203,7 +225,10 @@ public function displayUsers()
             'pendingPurchaseRequests', 
             'pendingPayrolls',
             'pendingEmployeePlans',
-            'pendingEmployeeReports'
+            'pendingEmployeeReports',
+            'pendingBudgetForecasts',
+            'pendingStockRequisitionRequests'
+
 
         ));
     }
@@ -244,31 +269,41 @@ public function rejectLeaveRequest(Request $request, $leave_request_id)
     return redirect()->back()->with('success', 'Leave request rejected successfully.');
 }
 
-// Similar changes for PaymentRequest, PurchaseRequest, and Payroll methods
-public function approvePaymentRequest($payment_request_id)
+
+public function approvePaymentRequest(Request $request, $payment_request_id)
 {
-    $request = PaymentRequest::where('payment_request_id', $payment_request_id) // Correct primary key
-        ->where('approved_by', Auth::id())
+    $request->validate([
+        'manager_comment' => 'required|string|max:255', // Validate manager comment
+    ]);
+
+    $paymentRequest = PaymentRequest::where('payment_request_id', $payment_request_id)
+        ->where('status', 'pending') // Check if status is pending
         ->firstOrFail();
 
-    $request->status = 'approved';
-    $request->approved_by = Auth::id(); 
-    $request->save();
+    $paymentRequest->status = 'approved';
+    $paymentRequest->approved_by = Auth::id();
+    $paymentRequest->manager_comment = $request->manager_comment; // Save manager comment
+    $paymentRequest->save();
 
     return redirect()->back()->with('success', 'Payment request approved successfully.');
 }
 
-public function rejectPaymentRequest($payment_request_id)
+public function rejectPaymentRequest(Request $request, $payment_request_id)
 {
-    $request = PaymentRequest::where('payment_request_id', $payment_request_id) // Correct primary key
-        ->where('approved_by', Auth::id())
+    $request->validate([
+        'manager_comment' => 'required|string|max:255', // Validate manager comment
+    ]);
+
+    $paymentRequest = PaymentRequest::where('payment_request_id', $payment_request_id)
+        ->where('status', 'pending') // Ensure it hasn't been approved yet
         ->firstOrFail();
 
-    $request->status = 'rejected';
-    $request->approved_by = Auth::id(); 
-    $request->save();
+    $paymentRequest->status = 'rejected';
+    $paymentRequest->approved_by = Auth::id();
+    $paymentRequest->manager_comment = $request->manager_comment; // Save comments
+    $paymentRequest->save();
 
-    return redirect()->back()->with('success', 'Payment request rejected.');
+    return redirect()->back()->with('success', 'Payment request rejected successfully.');
 }
 
 public function approvePurchaseRequest(Request $request, $purchase_request_id)
@@ -422,4 +457,94 @@ public function rejectPayroll(Request $request, $payroll_id)
 
     return redirect()->back()->with('success', 'Payroll rejected successfully.');
 }
+
+public function approveBudget(Request $request, $budget_id)
+{
+    $request->validate([
+        'manager_comment' => 'required|string|max:255',
+    ]);
+
+    $budget = BudgetForecasting::where('budget_id', $budget_id) // Correct primary key
+        ->where('status', 'pending') // Ensure the budget is pending before approving
+        ->firstOrFail();
+
+    $budget->status = 'approved';
+    $budget->approved_by = Auth::id();
+    $budget->manager_comment = $request->manager_comment; // Save manager comment
+    $budget->save();
+
+    return redirect()->back()->with('success', 'Budget approved successfully.');
+}
+
+public function rejectBudget(Request $request, $budget_id)
+{
+    $request->validate([
+        'manager_comment' => 'required|string|max:255',
+    ]);
+
+    $budget = BudgetForecasting::where('budget_id', $budget_id) // Correct primary key
+        ->where('status', 'pending') // Ensure the budget is pending before rejecting
+        ->firstOrFail();
+
+    $budget->status = 'rejected';
+    $budget->approved_by = Auth::id();
+    $budget->manager_comment = $request->manager_comment; // Save manager comment
+    $budget->save();
+
+    return redirect()->back()->with('success', 'Budget rejected successfully.');
+}
+
+public function approveStockRequisition(Request $request, $stock_requisition_id)
+{
+    // Validate the request for manager comments and approved quantity
+    $request->validate([
+        'manager_comment' => 'required|string|max:255',
+        'approved_quantity' => 'required|integer|min:1',
+    ]);
+
+    // Find the stock requisition
+    $requisition = StockRequisition::where('stock_requisition_id', $stock_requisition_id)
+        ->where('status', 'pending') // Ensure it's pending
+        ->firstOrFail();
+
+    // Update the requisition details
+    $requisition->status = 'approved';
+    $requisition->approved_by = Auth::id();
+    $requisition->manager_comment = $request->manager_comment; // Save manager comments
+    $requisition->quantity_approved = $request->approved_quantity; // Save approved quantity
+    $requisition->save();
+
+    // Optionally, add logic to update inventory here
+
+    return redirect()->back()->with('success', 'Stock requisition approved successfully.');
+}
+
+    public function rejectStockRequisition(Request $request, $stock_requisition_id)
+{
+    // Validate the request for manager comments
+    $request->validate([
+        'manager_comment' => 'required|string|max:255',
+    ]);
+
+    // Find the stock requisition
+    $requisition = StockRequisition::where('stock_requisition_id', $stock_requisition_id)
+        ->where('status', 'pending') // Ensure it's pending
+        ->firstOrFail();
+
+    // Update the requisition details
+    $requisition->status = 'rejected';
+    $requisition->approved_by = Auth::id();
+    $requisition->manager_comment = $request->manager_comment; // Save manager comments
+    $requisition->save();
+
+    return redirect()->back()->with('success', 'Stock requisition rejected successfully.');
+}
+
+public function getNotifications()
+{
+    $notifications = Auth::user()->unreadNotifications()->latest()->take(5)->get();
+    
+    return response()->json($notifications);
+}
+
 }

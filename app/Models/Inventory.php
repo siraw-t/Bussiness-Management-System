@@ -12,7 +12,12 @@ class Inventory extends Model
     protected $keyType = 'int'; // Assuming you're using integers for IDs
 
     protected $fillable = [
-        'item_name', 'quantity', 'description', 'stock_in_date', 'stock_out_date', 'managed_by', 'approved_by',
+        'item_name', 'tag_number', 'item_type', 'reference_number',
+        'quantity', 'unit_price', 'total_price', 'description',
+        'stock_in_date', 'managed_by', 'issued_quantity',
+        'issued_unit_price', 'issued_total_price', 'stock_out_date',
+        'issued_department', 'received_by', 'balance_quantity',
+        'balance_total_price',
     ];
 
     public function manager()
@@ -21,14 +26,22 @@ class Inventory extends Model
     }
 
     public function approver()
-    {
-        return $this->belongsTo(User::class, 'approved_by', 'user_id'); // Relationship to approver
-    }
+{
+    return $this->belongsTo(User::class, 'user_id'); // Adjust 'approver_id' as per your database column
+}
+
+public function receivedBy()
+{
+    return $this->belongsTo(User::class, 'received_by');
+}
+
 
     protected $dates = [
-        'stock_in_date',
-        'stock_out_date',
-        'created_at',
-        'updated_at',
+        'stock_in_date', 'stock_out_date', 'created_at', 'updated_at',
     ];
+
+    public function stockRequisition()
+    {
+        return $this->belongsTo(StockRequisition::class, 'stock_requisition_id', 'stock_requisition_id');
+    }
 }

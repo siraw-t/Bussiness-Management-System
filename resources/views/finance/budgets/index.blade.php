@@ -13,12 +13,17 @@
             <table class="table table-bordered table-striped table-hover">
                 <thead class="thead-dark">
                     <tr>
-                        <th>Full Name</th>
-                        <th>Period</th>
-                        <th>Forecast Amount</th>
-                        <th>Actual Amount</th>
-                        <th>Description</th>
-                        <th>Comment</th>
+                        <th>Forecast Period</th>
+                        <th>Budget Description</th>
+                        <th>Budget Item</th>
+                        <th>Budget Code</th>
+                        <th>Department</th>
+                        <th>Budget Source</th>
+                        <th>Quantity with Unit</th>
+                        <th>Unit Cost</th>
+                        <th>Total Budget</th>
+                        <th>Status</th>
+                        <th>Manager Comments</th>
                         <th>Approved By</th>
                         <th class="text-center">Actions</th>
                     </tr>
@@ -26,40 +31,57 @@
                 <tbody>
                     @foreach ($budgets as $budget)
                         <tr>
-                            <td>{{ Auth::user()->full_name }}</td>
                             <td>{{ $budget->forecast_period }}</td>
-                            <td>{{ number_format($budget->forecast_amount, 2) }}</td>
-                            <td>{{ number_format($budget->actual_amount, 2) }}</td>
-                            <td>{{ $budget->description }}</td>
-                            <td>{{ $budget->comment }}</td>
+                            <td>{{ $budget->budget_description }}</td>
+                            <td>{{ $budget->budget_item }}</td>
+                            <td>{{ $budget->budget_code }}</td>
+                            <td>{{ $budget->department }}</td>
+                            <td>{{ $budget->budget_source }}</td>
+                            <td>{{ $budget->quantity_with_unit }}</td>
+                            <td>${{ number_format($budget->unit_cost, 2) }}</td>
+                            <td>${{ number_format($budget->total_budget, 2) }}</td>
+                            <td>
+                                <span
+                                    class="badge {{ $budget->status === 'approved' ? 'bg-success' : ($budget->status === 'pending' ? 'bg-warning' : 'bg-danger') }}">
+                                    {{ ucfirst($budget->status) }}
+                                </span>
+                            </td>
+                            <td>{{ $budget->manager_comment ?? 'N/A' }}</td>
+
                             <td>{{ $budget->approver ? $budget->approver->full_name : 'N/A' }}</td>
-                            <td class="text-center">
-                                <a href="{{ route('finance.budgets.edit', $budget->budget_id) }}"
-                                    class="btn btn-warning btn-sm">
-                                    <i class="bi bi-pencil"></i> Edit
-                                </a>
-                                <form action="{{ route('finance.budgets.destroy', $budget->budget_id) }}" method="POST"
-                                    style="display:inline;">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-danger btn-sm"
-                                        onclick="return confirm('Are you sure you want to delete this budget?');">
-                                        <i class="bi bi-trash"></i> Delete
-                                    </button>
-                                </form>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a href="{{ route('finance.budgets.edit', $budget) }}"
+                                        class="btn btn-warning btn-sm me-2">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <form action="{{ route('finance.budgets.destroy', $budget) }}" method="POST"
+                                        style="display:inline;">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-danger btn-sm me-2">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                    <a href="{{ route('finance.budgets.downloadBudgetPdf', $budget) }}"
+                                        class="btn btn-info btn-sm">
+                                        <i class="bi bi-file-earmark-pdf"></i>
+                                    </a>
+                                </div>
                             </td>
                         </tr>
                     @endforeach
 
                     @if ($budgets->isEmpty())
                         <tr>
-                            <td colspan="7" class="text-center">No budget items found.</td>
+                            <td colspan="12" class="text-center">No budget items found.</td>
                         </tr>
                     @endif
                 </tbody>
             </table>
         </div>
     </div>
+
     <style>
         .table-hover tr:hover {
             background-color: #f8f9fa;

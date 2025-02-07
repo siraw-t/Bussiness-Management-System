@@ -12,8 +12,11 @@ class BudgetForecasting extends Model
     protected $keyType = 'int'; // Assuming you're using integers for IDs
 
     protected $fillable = [
-        'created_by', 'forecast_period', 'forecast_amount', 'actual_amount', 'description', 'comment', 'approved_by',
+        'created_by', 'forecast_period', 'budget_description', 'budget_item', 'budget_code', 
+        'department', 'budget_source', 'quantity_with_unit', 'unit_cost', 'total_budget', 
+        'manager_comment', 'approved_by',
     ];
+
 
     // In BudgetForecasting.php
 public function creator()
@@ -36,5 +39,5 @@ public function company()
         return $this->belongsTo(Company::class, 'company_id', 'company_id'); // Relate to the Company model
     }
 
-
+    
 }

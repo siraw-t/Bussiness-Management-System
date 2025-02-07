@@ -14,13 +14,18 @@ return new class extends Migration
         Schema::create('budget_forecasting', function (Blueprint $table) {
             $table->bigIncrements('budget_id'); // Primary key
             $table->unsignedBigInteger('created_by'); // Reference to users table
-            $table->string('forecast_period');//in dropdawn weekly,monthly,quarterly,annualy
-            $table->decimal('forecast_amount', 10, 2);
-            $table->decimal('actual_amount', 10, 2);
-            $table->text('description')->nullable();
-            $table->text('comment')->nullable();
+            $table->string('forecast_period'); // in dropdown: weekly, monthly, quarterly, annually
+            $table->text('budget_description')->nullable();
+            $table->text('budget_item')->nullable();
+            $table->string('budget_code')->nullable(); // Unique code for the budget
+            $table->string('department')->nullable(); // Department associated with the budget
+            $table->string('budget_source')->nullable(); // Source of the budget
+            $table->string('quantity_with_unit')->nullable(); // Quantity with units (e.g., "2 pcs")
+            $table->decimal('unit_cost', 10, 2)->nullable(); // Cost per unit
+            $table->decimal('total_budget', 10, 2)->nullable(); // Total budget amount
+            $table->text('manager_comment')->nullable();
             $table->unsignedBigInteger('approved_by')->nullable(); // Reference to users table
-            $table->timestamps();
+            $table->timestamps(); // Created at and updated at timestamps
         });
     }
 

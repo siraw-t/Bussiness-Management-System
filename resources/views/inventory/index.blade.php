@@ -2,8 +2,9 @@
 
 @section('content')
     <div class="container mt-5">
-        <h1 class="text-center text-success mb-4"><i class="fas fa-list-alt"></i> {{ Auth::user()->full_name }}'s Inventory
-            List</h1>
+        <h1 class="text-center text-success mb-4">
+            <i class="fas fa-list-alt"></i> Inventory List
+        </h1>
 
         @if (session('success'))
             <div class="alert alert-success fade show" role="alert">
@@ -21,39 +22,73 @@
             <table class="table table-striped table-hover table-bordered mt-3">
                 <thead class="thead-dark">
                     <tr>
-                        <th>Full Name</th>
                         <th>Item Name</th>
+                        <th>Tag Number</th>
+                        <th>Item Type</th>
+                        <th>Reference Number</th>
                         <th>Quantity</th>
+                        <th>Unit Price</th>
+                        <th>Total Price</th>
                         <th>Description</th>
                         <th>Stock In Date</th>
-                        <th>Stock Out Date</th>
-                        <th>Approved By</th>
                         <th>Managed By</th>
+                        <th>Issued Stocks</th>
+                        <th>Balance</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach ($inventories as $inventory)
-                        <tr class="align-middle" style="transition: background-color 0.3s;">
-                            <td>{{ Auth::user()->full_name }}</td>
+                        <tr class="align-middle">
                             <td>{{ $inventory->item_name }}</td>
+                            <td>{{ $inventory->tag_number }}</td>
+                            <td>{{ ucfirst($inventory->item_type) }}</td>
+                            <td>{{ $inventory->reference_number }}</td>
                             <td>{{ $inventory->quantity }}</td>
+                            <td>{{ number_format($inventory->unit_price, 2) }}</td>
+                            <td>{{ number_format($inventory->total_price, 2) }}</td>
                             <td>{{ $inventory->description }}</td>
                             <td>{{ $inventory->stock_in_date }}</td>
-                            <td>{{ $inventory->stock_out_date }}</td>
+                            <td>{{ optional(\App\Models\User::find($inventory->managed_by))->full_name ?? 'N/A' }}</td>
                             <td>
-                                @if ($inventory->approved_by)
-                                    {{ optional(\App\Models\User::find($inventory->approved_by))->full_name ?? 'N/A' }}
-                                @else
-                                    N/A
-                                @endif
+                                <form action="{{ route('inventory.stockOut', $inventory->inventory_id) }}" method="POST"
+                                    style="display:inline;">
+                                    @csrf
+                                    <div class="form-group">
+                                        <label for="issued_quantity">Issued Quantity</label>
+                                        <input type="number" name="issued_quantity" class="form-control" min="1"
+                                            max="{{ $inventory->quantity }}" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="issued_unit_price">Issued Unit Price</label>
+                                        <input type="number" name="issued_unit_price" class="form-control" required
+                                            step="0.01" min="0">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="issued_department">Issued Department</label>
+                                        <input type="text" name="issued_department" class="form-control" maxlength="255">
+                                    </div>
+                                    <p>Issued Total Price: {{ number_format($inventory->issued_total_price ?? 0, 2) }}</p>
+
+                                    <div class="form-group">
+                                        <label for="employee_comment">Employee Comment</label>
+                                        <select name="employee_comment" class="form-control" required>
+                                            <option value="received">Received</option>
+                                            <option value="not_received">Not Received</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="received_by">Received By</label>
+                                        {{ optional($inventory->receivedBy)->full_name ?? 'N/A' }}
+                                    </div>
+                                    <button type="submit" class="btn btn-info btn-sm">
+                                        <i class="fas fa-arrow-out"></i> Stock Out
+                                    </button>
+                                </form>
                             </td>
                             <td>
-                                @if ($inventory->managed_by)
-                                    {{ optional(\App\Models\User::find($inventory->managed_by))->full_name ?? 'N/A' }}
-                                @else
-                                    N/A
-                                @endif
+                                <p>Balance Quantity: {{ $inventory->balance_quantity ?? 'N/A' }}</p>
+                                <p>Balance Total: {{ number_format($inventory->balance_total_price ?? 0, 2) }}</p>
                             </td>
                             <td>
                                 <a href="{{ route('inventory.edit', $inventory->inventory_id) }}"
@@ -77,16 +112,20 @@
         </div>
     </div>
 
-    <!-- Optional: Add Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
 
-    <!-- Optional: Add custom CSS for additional effects -->
     <style>
         .table-hover tr:hover {
             background-color: #f8f9fa;
             /* Light grey on hover */
             cursor: pointer;
             /* Pointer cursor on hover */
+        }
+
+        @media (max-width: 768px) {
+            .table-responsive {
+                overflow-x: auto;
+            }
         }
     </style>
 @endsection

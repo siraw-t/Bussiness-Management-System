@@ -185,49 +185,62 @@
     <div class="container-fluid">
         <div class="row">
             <!-- Sidebar -->
-            <nav class="col-2 bg-dark text-white sidebar position-fixed pr-30" style="height: 100vh;">
+            <nav class="col-2 bg-dark text-white sidebar position-fixed pr-30" style="height: 100vh; top: 0; z-index: 1000;">
                 <div class="position-sticky">
-                    <h5 class="sidebar-title text-center mt-5">Storekeeper Menu</h5>
-                    <ul class="nav flex-column">
-                        <li class="nav-item">
-                            <a class="nav-link text-white" href="{{ route('leave-requests.index') }}">
-                                <i class="bi bi-card-list"></i> Leave Requests
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-white" href="{{ route('payment-requests.index') }}">
-                                <i class="bi bi-cash"></i> Payment Requests
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-white" href="{{ route('purchase-requests.index') }}">
-                                <i class="bi bi-cart"></i> Purchase Requests
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-white" href="{{ route('weekly-plan.index') }}">
-                                <i class="bi bi-calendar-week"></i> Weekly Plans
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-white" href="{{ route('weekly-reports.index') }}">
-                                <i class="bi bi-file-earmark-text"></i> Weekly Reports
-                            </a>
-                        </li>
-                        {{-- <li class="nav-item">
-                        <a class="nav-link text-white" href="{{ route('documents.index') }}">
-                            <i class="bi bi-file-earmark-text"></i> Archived Documents
-                        </a>
-                    </li> --}}
+                    <div class="scrollable-links"
+                        style="max-height: calc(100vh - 130px); overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none;">
+                        <ul class="nav flex-column">
+                            <li class="nav-item mt-5">
+                                <h5 class="sidebar-title text-center mt-5 mb-4"
+                                    style="font-size: 1.5rem; color: #ffffff; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);">
+                                    Storekeeper Menu</h5>
+                            </li>
+                            <ul class="nav flex-column">
+                                <li class="nav-item">
+                                    <a class="nav-link text-white" href="{{ route('leave-requests.index') }}">
+                                        <i class="bi bi-card-list"></i> Leave Requests
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-white" href="{{ route('payment-requests.index') }}">
+                                        <i class="bi bi-cash"></i> Payment Requests
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-white" href="{{ route('purchase-requests.index') }}">
+                                        <i class="bi bi-cart"></i> Purchase Requests
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-white" href="{{ route('weekly-plan.index') }}">
+                                        <i class="bi bi-calendar-week"></i> Weekly Plans
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-white" href="{{ route('weekly-reports.index') }}">
+                                        <i class="bi bi-file-earmark-text"></i> Weekly Reports
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-white" href="{{ route('stock_requisitions.index') }}">
+                                        <i class="bi bi-file-earmark-text"></i> Request Stock
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-white" href="{{ route('display.stock-requisition') }}">
+                                        <i class="bi bi-file-earmark-text"></i> View Stock Requisitions
+                                    </a>
+                                </li>
 
-                        <li class="nav-item">
-                            <a class="nav-link text-white" href="{{ route('inventory.index') }}">
-                                <i class="fas fa-box"></i> <!-- Font Awesome icon -->
-                                Inventory Management
-                            </a>
-                        </li>
-                    </ul>
-                </div>
+                                <li class="nav-item">
+                                    <a class="nav-link text-white" href="{{ route('inventory.index') }}">
+                                        <i class="fas fa-box"></i> <!-- Font Awesome icon -->
+                                        Inventory Management
+                                    </a>
+                                </li>
+
+                            </ul>
+                    </div>
             </nav>
 
             <!-- Main Content -->

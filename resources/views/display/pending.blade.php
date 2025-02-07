@@ -431,54 +431,6 @@
             @endif
         </div>
 
-        <!-- Pending Payment Requests -->
-        <div class="table-container">
-            <h5 class="text-primary">Pending Payment Requests</h5>
-            @if ($pendingPaymentRequests->isEmpty())
-                <p class="no-requests">No pending payment requests at this time.</p>
-            @else
-                <table class="table table-striped table-hover">
-                    <thead class="thead-dark">
-                        <tr>
-                            <th>Description</th>
-                            <th>Amount</th>
-                            <th>Requested By</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($pendingPaymentRequests as $request)
-                            <tr>
-                                <td>{{ $request->description }}</td>
-                                <td>${{ number_format($request->amount, 2) }}</td>
-                                <td>{{ $request->user->full_name }}</td>
-                                <td>{{ ucfirst($request->status) }}</td>
-                                <td class="action-buttons">
-                                    <form
-                                        action="{{ route('manager.payment.approve', ['payment_request_id' => $request->payment_request_id]) }}"
-                                        method="POST" style="display:inline;">
-                                        @csrf
-                                        <button type="submit" class="btn btn-success btn-sm"
-                                            title="Approve Payment">
-                                            <i class="fas fa-check"></i> Approve
-                                        </button>
-                                    </form>
-                                    <form
-                                        action="{{ route('manager.payment.reject', ['payment_request_id' => $request->payment_request_id]) }}"
-                                        method="POST" style="display:inline;">
-                                        @csrf
-                                        <button type="submit" class="btn btn-danger btn-sm" title="Reject Payment">
-                                            <i class="fas fa-times"></i> Reject
-                                        </button>
-                                    </form>
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            @endif
-        </div>
 
         <!-- Pending Purchase Requests -->
         <div class="table-container">
@@ -602,6 +554,144 @@
                                                         for="manager-comment-reject{{ $request->purchase_request_id }}">Manager
                                                         Comments:</label>
                                                     <textarea class="form-control" id="manager-comment-reject{{ $request->purchase_request_id }}" name="manager_comment"
+                                                        rows="3" required></textarea>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary"
+                                                    data-dismiss="modal">Close</button>
+                                                <button type="submit" class="btn btn-danger">Reject</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </tbody>
+                </table>
+            @endif
+        </div>
+
+        <!-- Pending Payment Requests -->
+        <div class="table-container">
+            <h5 class="text-primary">Pending Payment Requests</h5>
+            @if ($pendingPaymentRequests->isEmpty())
+                <p class="no-requests">No pending payment requests at this time.</p>
+            @else
+                <table class="table table-striped table-hover">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>Reference Number</th>
+                            <th>Request Date</th>
+                            <th>From</th>
+                            <th>Description</th>
+                            <th>Unit & Qty</th>
+                            <th>Amount</th>
+                            <th>VAT</th>
+                            <th>Total</th>
+                            <th>Net Payment</th>
+                            <th>Withholding</th>
+                            <th>Status</th>
+                            <th>Finance Comment</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($pendingPaymentRequests as $request)
+                            <tr>
+                                <td>{{ $request->ref_no }}</td>
+                                <td>{{ $request->request_date ? $request->request_date->format('Y-m-d') : 'N/A' }}</td>
+                                <td>{{ $request->from }}</td>
+                                <td>{{ $request->description }}</td>
+                                <td>{{ $request->unit_and_qty }}</td>
+                                <td>${{ number_format($request->amount, 2) }}</td>
+                                <td>${{ number_format($request->vat, 2) ?? '0.00' }}</td>
+                                <td>${{ number_format($request->total, 2) }}</td>
+                                <td>${{ number_format($request->net_payment, 2) }}</td>
+                                <td>${{ number_format($request->with_holding, 2) ?? '0.00' }}</td>
+                                <td>
+                                    <span
+                                        class="badge {{ $request->status === 'approved' ? 'bg-success' : ($request->status === 'pending' ? 'bg-warning' : 'bg-danger') }}">
+                                        {{ ucfirst($request->status) }}
+                                    </span>
+                                </td>
+                                <td>{{ $request->finance_comment ?? 'N/A' }}</td>
+                                <td class="action-buttons">
+                                    @if (empty($request->finance_comment))
+                                        <button class="btn btn-success btn-sm" disabled
+                                            title="Cannot approve - Missing finance verification">
+                                            <i class="fas fa-check"></i> Approve
+                                        </button>
+                                        <button class="btn btn-danger btn-sm" disabled
+                                            title="Cannot reject - Missing finance verification">
+                                            <i class="fas fa-times"></i> Reject
+                                        </button>
+                                    @else
+                                        <button class="btn btn-success btn-sm" data-toggle="modal"
+                                            data-target="#approveModal{{ $request->payment_request_id }}">
+                                            <i class="fas fa-check"></i> Approve
+                                        </button>
+                                        <button class="btn btn-danger btn-sm" data-toggle="modal"
+                                            data-target="#rejectModal{{ $request->payment_request_id }}">
+                                            <i class="fas fa-times"></i> Reject
+                                        </button>
+                                    @endif
+                                </td>
+                            </tr>
+
+                            <!-- Approval Modal -->
+                            <div class="modal fade" id="approveModal{{ $request->payment_request_id }}"
+                                tabindex="-1" role="dialog">
+                                <div class="modal-dialog" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Approve Payment Request</h5>
+                                            <button type="button" class="close"
+                                                data-dismiss="modal">&times;</button>
+                                        </div>
+                                        <form
+                                            action="{{ route('manager.payment.approve', ['payment_request_id' => $request->payment_request_id]) }}"
+                                            method="POST">
+                                            @csrf
+                                            <div class="modal-body">
+                                                <div class="form-group">
+                                                    <label
+                                                        for="manager-comment-approve{{ $request->payment_request_id }}">Manager
+                                                        Comments:</label>
+                                                    <textarea class="form-control" id="manager-comment-approve{{ $request->payment_request_id }}" name="manager_comment"
+                                                        rows="3" required></textarea>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary"
+                                                    data-dismiss="modal">Close</button>
+                                                <button type="submit" class="btn btn-success">Approve</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Rejection Modal -->
+                            <div class="modal fade" id="rejectModal{{ $request->payment_request_id }}"
+                                tabindex="-1" role="dialog">
+                                <div class="modal-dialog" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Reject Payment Request</h5>
+                                            <button type="button" class="close"
+                                                data-dismiss="modal">&times;</button>
+                                        </div>
+                                        <form
+                                            action="{{ route('manager.payment.reject', ['payment_request_id' => $request->payment_request_id]) }}"
+                                            method="POST">
+                                            @csrf
+                                            <div class="modal-body">
+                                                <div class="form-group">
+                                                    <label
+                                                        for="manager-comment-reject{{ $request->payment_request_id }}">Manager
+                                                        Comments:</label>
+                                                    <textarea class="form-control" id="manager-comment-reject{{ $request->payment_request_id }}" name="manager_comment"
                                                         rows="3" required></textarea>
                                                 </div>
                                             </div>
@@ -750,6 +840,250 @@
                 </table>
             @endif
         </div>
+
+        <!-- Pending Budget Forecasts -->
+        <div class="table-container">
+            <h5 class="text-primary">Pending Budget Forecasts</h5>
+            @if ($pendingBudgetForecasts->isEmpty())
+                <p class="no-requests">No pending budget forecasts at this time.</p>
+            @else
+                <table class="table table-striped table-hover">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>Forecast Period</th>
+                            <th>Budget Description</th>
+                            <th>Department</th>
+                            <th>Budget Source</th>
+                            <th>Quantity with Unit</th>
+                            <th>Unit Cost</th>
+                            <th>Total Budget</th>
+                            <th>Approved By</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($pendingBudgetForecasts as $forecast)
+                            <tr>
+                                <td>{{ ucfirst($forecast->forecast_period) }}</td>
+                                <td>{{ $forecast->budget_description }}</td>
+                                <td>{{ $forecast->department }}</td>
+                                <td>{{ $forecast->budget_source }}</td>
+                                <td>{{ $forecast->quantity_with_unit }}</td>
+                                <td>${{ number_format($forecast->unit_cost, 2) }}</td>
+                                <td>${{ number_format($forecast->total_budget, 2) }}</td>
+                                <td>{{ optional($forecast->approver)->full_name ?? 'N/A' }}</td>
+                                <td class="action-buttons">
+                                    <!-- Approve Button -->
+                                    <button class="btn btn-success btn-sm" data-toggle="modal"
+                                        data-target="#approveModal{{ $forecast->budget_id }}">
+                                        <i class="fas fa-check"></i> Approve
+                                    </button>
+
+                                    <!-- Reject Button -->
+                                    <button class="btn btn-danger btn-sm" data-toggle="modal"
+                                        data-target="#rejectModal{{ $forecast->budget_id }}">
+                                        <i class="fas fa-times"></i> Reject
+                                    </button>
+                                </td>
+                            </tr>
+
+                            <!-- Approval Modal -->
+                            <div class="modal fade" id="approveModal{{ $forecast->budget_id }}" tabindex="-1"
+                                role="dialog" aria-labelledby="approveModalLabel{{ $forecast->budget_id }}"
+                                aria-hidden="true">
+                                <div class="modal-dialog" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Approve Budget</h5>
+                                            <button type="button" class="close"
+                                                data-dismiss="modal">&times;</button>
+                                        </div>
+                                        <form
+                                            action="{{ route('manager.budget.approve', ['budget_id' => $forecast->budget_id]) }}"
+                                            method="POST">
+                                            @csrf
+                                            <div class="modal-body">
+                                                <div class="form-group">
+                                                    <label
+                                                        for="manager-comments-approve{{ $forecast->budget_id }}">Manager
+                                                        Comments</label>
+                                                    <textarea class="form-control" id="manager-comments-approve{{ $forecast->budget_id }}" name="manager_comment"
+                                                        rows="3" required></textarea>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary"
+                                                    data-dismiss="modal">Close</button>
+                                                <button type="submit" class="btn btn-success">Approve</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Rejection Modal -->
+                            <div class="modal fade" id="rejectModal{{ $forecast->budget_id }}" tabindex="-1"
+                                role="dialog" aria-labelledby="rejectModalLabel{{ $forecast->budget_id }}"
+                                aria-hidden="true">
+                                <div class="modal-dialog" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Reject Budget</h5>
+                                            <button type="button" class="close"
+                                                data-dismiss="modal">&times;</button>
+                                        </div>
+                                        <form
+                                            action="{{ route('manager.budget.reject', ['budget_id' => $forecast->budget_id]) }}"
+                                            method="POST">
+                                            @csrf
+                                            <div class="modal-body">
+                                                <div class="form-group">
+                                                    <label
+                                                        for="manager-comments-reject{{ $forecast->budget_id }}">Manager
+                                                        Comments</label>
+                                                    <textarea class="form-control" id="manager-comments-reject{{ $forecast->budget_id }}" name="manager_comment"
+                                                        rows="3" required></textarea>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary"
+                                                    data-dismiss="modal">Close</button>
+                                                <button type="submit" class="btn btn-danger">Reject</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </tbody>
+                </table>
+            @endif
+        </div>
+
+
+
+
+        <div class="table-container">
+            <h5 class="text-primary mt-5">Pending Stock Requisition Requests</h5>
+            @if ($pendingStockRequisitionRequests->isEmpty())
+                <p class="no-requests">No pending stock requisition requests at this time.</p>
+            @else
+                <table class="table table-striped table-hover">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>Item Name</th>
+                            <th>Quantity Requested</th>
+                            <th>Requested By</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($pendingStockRequisitionRequests as $request)
+                            <tr>
+                                <td>{{ $request->item_name_with_description }}</td>
+                                <td>{{ $request->quantity_requested }}</td>
+                                <td>{{ optional($request->user)->full_name }}</td>
+                                <td>
+                                    <span class="badge bg-warning">{{ ucfirst($request->status) }}</span>
+                                </td>
+                                <td class="action-buttons">
+                                    <!-- Approve Button -->
+                                    <button class="btn btn-success btn-sm" data-toggle="modal"
+                                        data-target="#approveModal{{ $request->stock_requisition_id }}">
+                                        <i class="fas fa-check"></i> Approve
+                                    </button>
+
+                                    <!-- Reject Button -->
+                                    <button class="btn btn-danger btn-sm" data-toggle="modal"
+                                        data-target="#rejectModal{{ $request->stock_requisition_id }}">
+                                        <i class="fas fa-times"></i> Reject
+                                    </button>
+                                </td>
+                            </tr>
+
+                            <!-- Approval Modal -->
+                            <div class="modal fade" id="approveModal{{ $request->stock_requisition_id }}"
+                                tabindex="-1" role="dialog"
+                                aria-labelledby="approveModalLabel{{ $request->stock_requisition_id }}"
+                                aria-hidden="true">
+                                <div class="modal-dialog" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Approve Stock Requisition</h5>
+                                            <button type="button" class="close"
+                                                data-dismiss="modal">&times;</button>
+                                        </div>
+                                        <form
+                                            action="{{ route('manager.stock_requisition.approve', $request->stock_requisition_id) }}"
+                                            method="POST">
+                                            @csrf
+                                            <div class="modal-body">
+                                                <div class="form-group">
+                                                    <label
+                                                        for="approved_quantity{{ $request->stock_requisition_id }}">Approved
+                                                        Quantity:</label>
+                                                    <input type="number" class="form-control"
+                                                        id="approved_quantity{{ $request->stock_requisition_id }}"
+                                                        name="approved_quantity" min="1"
+                                                        max="{{ $request->quantity_requested }}" required>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label
+                                                        for="comment-approve{{ $request->stock_requisition_id }}">Comments:</label>
+                                                    <textarea class="form-control" id="comment-approve{{ $request->stock_requisition_id }}" name="manager_comment"
+                                                        rows="3" required></textarea>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary"
+                                                    data-dismiss="modal">Close</button>
+                                                <button type="submit" class="btn btn-success">Approve</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Rejection Modal -->
+                            <div class="modal fade" id="rejectModal{{ $request->stock_requisition_id }}"
+                                tabindex="-1" role="dialog"
+                                aria-labelledby="rejectModalLabel{{ $request->stock_requisition_id }}"
+                                aria-hidden="true">
+                                <div class="modal-dialog" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Reject Stock Requisition</h5>
+                                            <button type="button" class="close"
+                                                data-dismiss="modal">&times;</button>
+                                        </div>
+                                        <form
+                                            action="{{ route('manager.stock_requisition.reject', $request->stock_requisition_id) }}"
+                                            method="POST">
+                                            @csrf
+                                            <div class="modal-body">
+                                                <div class="form-group">
+                                                    <label
+                                                        for="comment-reject{{ $request->stock_requisition_id }}">Comments:</label>
+                                                    <textarea class="form-control" id="comment-reject{{ $request->stock_requisition_id }}" name="manager_comment"
+                                                        rows="3" required></textarea>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary"
+                                                    data-dismiss="modal">Close</button>
+                                                <button type="submit" class="btn btn-danger">Reject</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </tbody>
+                </table>
+            @endif
+        </div>
+        <!-- Optional: Add Bootstrap Icons -->
 
         <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.1/dist/umd/popper.min.js"></script>

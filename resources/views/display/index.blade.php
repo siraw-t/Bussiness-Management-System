@@ -67,12 +67,24 @@
                 <thead class="thead-dark">
                     <tr>
                         <th>Item Name</th>
+                        <th>Tag Number</th>
+                        <th>Item Type</th>
+                        <th>Reference Number</th>
                         <th>Quantity</th>
+                        <th>Unit Price</th>
+                        <th>Total Price</th>
                         <th>Description</th>
                         <th>Stock In Date</th>
                         <th>Stock Out Date</th>
+                        <th>Issued Quantity</th>
+                        <th>Issued Unit Price</th>
+                        <th>Issued Total Price</th>
+                        <th>Issued Department</th>
                         <th>Approved By</th>
                         <th>Managed By</th>
+                        <th>Received By</th>
+                        <th>Balance Quantity</th>
+                        <th>Balance Total Price</th>
                         <th>Created At</th>
                         <th>Updated At</th>
                     </tr>
@@ -90,20 +102,36 @@
 
                     @if ($filteredInventories->isEmpty())
                         <tr>
-                            <td colspan="9" class="text-center">No inventory items found.</td>
+                            <td colspan="20" class="text-center">No inventory items found.</td>
                         </tr>
                     @else
                         @foreach ($filteredInventories as $inventory)
                             <tr class="align-middle" style="transition: background-color 0.3s;">
                                 <td>{{ $inventory->item_name }}</td>
+                                <td>{{ $inventory->tag_number ?? 'N/A' }}</td>
+                                <td>{{ ucfirst($inventory->item_type) }}</td>
+                                <td>{{ $inventory->reference_number }}</td>
                                 <td>{{ $inventory->quantity }}</td>
+                                <td>{{ number_format($inventory->unit_price, 2) }}</td>
+                                <td>{{ number_format($inventory->total_price, 2) }}</td>
                                 <td>{{ $inventory->description ?? 'N/A' }}</td>
                                 <td>{{ $inventory->stock_in_date ? \Illuminate\Support\Carbon::parse($inventory->stock_in_date)->format('Y-m-d') : 'N/A' }}
                                 </td>
                                 <td>{{ $inventory->stock_out_date ? \Illuminate\Support\Carbon::parse($inventory->stock_out_date)->format('Y-m-d') : 'N/A' }}
                                 </td>
+                                <td>{{ $inventory->issued_quantity ?? 'N/A' }}</td>
+                                <td>{{ $inventory->issued_unit_price ? number_format($inventory->issued_unit_price, 2) : 'N/A' }}
+                                </td>
+                                <td>{{ $inventory->issued_total_price ? number_format($inventory->issued_total_price, 2) : 'N/A' }}
+                                </td>
+                                <td>{{ $inventory->issued_department ?? 'N/A' }}</td>
                                 <td>{{ $inventory->approver ? $inventory->approver->full_name : 'N/A' }}</td>
                                 <td>{{ $inventory->manager ? $inventory->manager->full_name : 'N/A' }}</td>
+                                <td>{{ $inventory->received_by ? optional($inventory->receivedBy)->full_name : 'N/A' }}
+                                </td>
+                                <td>{{ $inventory->balance_quantity ?? 'N/A' }}</td>
+                                <td>{{ $inventory->balance_total_price ? number_format($inventory->balance_total_price, 2) : 'N/A' }}
+                                </td>
                                 <td>{{ $inventory->created_at ? \Illuminate\Support\Carbon::parse($inventory->created_at)->format('Y-m-d H:i:s') : 'N/A' }}
                                 </td>
                                 <td>{{ $inventory->updated_at ? \Illuminate\Support\Carbon::parse($inventory->updated_at)->format('Y-m-d H:i:s') : 'N/A' }}

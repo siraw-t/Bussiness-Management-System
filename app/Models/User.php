@@ -51,10 +51,10 @@ class User extends Authenticatable
         return $this->hasMany(User::class, 'company_id', 'company_id')->where('role', 'manager');
     }
 
-    // public function user()
-    // {
-    //     return $this->belongsTo(User::class, 'employee_id'); // Adjust 'employee_id' if your foreign key is different
-    // }
+    public function inventoriesReceived()
+    {
+        return $this->hasMany(Inventory::class, 'received_by');
+    }
 
     public function budgetForecastings()
     {

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\LeaveRequest;
+use App\Models\StockRequisition;
 use App\Models\EmployeePlan;
 use App\Models\EmployeeReport;
 use App\Models\PaymentRequest;
@@ -44,6 +45,13 @@ class ManagerController extends Controller
             ->where('approved_by', $managerId)
             ->with(['employee', 'preparedBy'])
             ->get();
+
+        // Get pending payrolls approved by this manager
+        $pendingBudgetForecasts = BudgetForecasting::where('status', 'pending')
+            ->where('approved_by', $managerId)
+            ->with('user')
+            ->get();
+
         // Get pending employee plans approved by this manager
     $pendingEmployeePlans = EmployeePlan::where('status', 'pending')
     ->where('approved_by', $managerId)
@@ -56,15 +64,20 @@ class ManagerController extends Controller
     ->with('employee') // Load the employee relationship if needed
     ->get();
 
+    $pendingStockRequisitionRequests = StockRequisition::where('status', 'pending')
+    ->where('approved_by', $managerId)
+    ->with('user') // Load the user relationship if needed
+    ->get();
+
         return view('display.pending', compact(
             'pendingLeaveRequests', 
             'pendingPaymentRequests', 
             'pendingPurchaseRequests', 
             'pendingPayrolls',
             'pendingEmployeePlans',
-            'pendingEmployeeReports'
-
-
+            'pendingEmployeeReports',
+            'pendingBudgetForecasts',
+            'pendingStockRequisitionRequests'
         ));
     }
 
@@ -172,4 +185,64 @@ public function rejectPayroll($payroll_id)
 
     return redirect()->back()->with('success', 'Payroll rejected.');
 }
+
+public function approveBudget($budget_id)
+{
+    $budget = BudgetForecasting::where('budget_id', $budget_id) // Correct primary key
+        ->where('status', 'pending') // Ensure the budget is pending before approving
+        ->firstOrFail();
+
+    $budget->status = 'approved';
+    $budget->approved_by = Auth::id(); 
+    $budget->save();
+
+    return redirect()->back()->with('success', 'Budget approved successfully.');
+}
+
+public function rejectBudget($budget_id)
+{
+    $budget = BudgetForecasting::where('budget_id', $budget_id) // Correct primary key
+        ->where('status', 'pending') // Ensure the budget is pending before rejecting
+        ->firstOrFail();
+
+    $budget->status = 'rejected';
+    $budget->approved_by = Auth::id(); 
+    $budget->save();
+
+    return redirect()->back()->with('success', 'Budget rejected.');
+}
+
+public function approveStockRequisition($stock_requisition_id)
+    {
+        // Find the stock requisition with the given ID
+        $requisition = StockRequisition::where('stock_requisition_id', $stock_requisition_id)
+            ->where('status', 'pending') // Ensure it's pending
+            ->firstOrFail();
+
+        // Update the requisition status and approver details
+        $requisition->status = 'approved';
+        $requisition->approved_by = Auth::id(); 
+        $requisition->save();
+
+        // Optionally, you can add logic to update inventory here
+
+        return redirect()->back()->with('success', 'Stock requisition approved successfully.');
+    }
+
+    public function rejectStockRequisition($stock_requisition_id)
+    {
+        // Find the stock requisition with the given ID
+        $requisition = StockRequisition::where('stock_requisition_id', $stock_requisition_id)
+            ->where('status', 'pending') // Ensure it's pending
+            ->firstOrFail();
+
+        // Update the requisition status and approver details
+        $requisition->status = 'rejected';
+        $requisition->approved_by = Auth::id(); 
+        $requisition->save();
+
+        return redirect()->back()->with('success', 'Stock requisition rejected successfully.');
+    }
+
+
 }

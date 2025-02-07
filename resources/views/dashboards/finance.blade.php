@@ -52,6 +52,11 @@
                                 </a>
                             </li>
                             <li class="nav-item">
+                                <a class="nav-link text-white" href="{{ route('stock_requisitions.index') }}">
+                                    <i class="bi bi-file-earmark-text"></i> Request Stock
+                                </a>
+                            </li>
+                            <li class="nav-item">
                                 <a class="nav-link text-white" href="{{ route('finance.budgets.index') }}">
                                     <i class="bi bi-wallet"></i>
                                     <span class="link-text">Budget Forecasting</span>
@@ -69,8 +74,18 @@
                                 </a>
                             </li>
                             <li class="nav-item">
+                                <a class="nav-link text-white" href="{{ route('display.payment') }}">
+                                    <i class="bi bi-cart"></i> View Payment Requests
+                                </a>
+                            </li>
+                            <li class="nav-item">
                                 <a class="nav-link text-white" href="{{ route('display.finance-pending') }}">
-                                    <i class="bi bi-file-earmark-text"></i> Pending Requests
+                                    <i class="bi bi-file-earmark-text"></i> Purchase Pending Requests
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-white" href="{{ route('display.payment-pending') }}">
+                                    <i class="bi bi-file-earmark-text"></i> Payment Pending Requests
                                 </a>
                             </li>
                         </ul>
