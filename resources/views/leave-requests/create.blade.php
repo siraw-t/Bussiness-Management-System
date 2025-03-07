@@ -4,6 +4,16 @@
     <div class="container mt-5">
         <h1 class="text-center text-primary mb-4">Create Leave Request</h1>
 
+        @if ($errors->any())
+            <div class="alert alert-danger">
+                <ul>
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         <form action="{{ route('leave-requests.store') }}" method="POST" enctype="multipart/form-data"
             class="shadow p-4 rounded bg-light" style="max-width: 600px; margin: auto;">
             @csrf
@@ -43,7 +53,6 @@
                     accept="image/*">
                 <img id="signature-preview" class="mt-3" style="display: none; max-width: 100%; height: auto;">
             </div>
-
 
             <div class="form-group mb-3">
                 <label for="attachment">Attach File</label>

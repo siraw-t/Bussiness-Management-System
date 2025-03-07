@@ -14,25 +14,48 @@
             @method('PUT')
 
             <div class="form-group mb-3">
-                <label for="item_info">Item Info</label>
-                <input type="text" name="item_info" class="form-control"
-                    value="{{ old('item_info', $purchaseRequest->item_info) }}" required>
+                <label for="item_name">Item Name</label>
+                <input type="text" name="item_name" class="form-control"
+                    value="{{ old('item_name', $purchaseRequest->item_name) }}" required>
             </div>
 
             <div class="form-group mb-3">
-                <label for="quantity_with_unit">Quantity with Unit</label>
-                <input type="text" name="quantity_with_unit" class="form-control"
-                    value="{{ old('quantity_with_unit', $purchaseRequest->quantity_with_unit) }}" required>
+                <label for="item_description">Item Description</label>
+                <textarea name="item_description" class="form-control" rows="3">{{ old('item_description', $purchaseRequest->item_description) }}</textarea>
             </div>
 
             <div class="form-group mb-3">
-                <label for="price_with_currency">Price with Currency</label>
-                <input type="text" name="price_with_currency" class="form-control"
-                    value="{{ old('price_with_currency', $purchaseRequest->price_with_currency) }}" required>
+                <label for="quantity">Quantity</label>
+                <input type="number" name="quantity" class="form-control"
+                    value="{{ old('quantity', $purchaseRequest->quantity) }}" required>
             </div>
 
             <div class="form-group mb-3">
-                <label for="attachments">Attachments (At least 3 files required)</label>
+                <label for="unit">Unit</label>
+                <select name="unit" class="form-control" required>
+                    <option value="kg" {{ $purchaseRequest->unit == 'kg' ? 'selected' : '' }}>KG</option>
+                    <option value="ltr" {{ $purchaseRequest->unit == 'ltr' ? 'selected' : '' }}>LTR</option>
+                    <option value="pcs" {{ $purchaseRequest->unit == 'pcs' ? 'selected' : '' }}>Pcs</option>
+                </select>
+            </div>
+
+            <div class="form-group mb-3">
+                <label for="price">Price</label>
+                <input type="number" step="0.01" name="price" class="form-control"
+                    value="{{ old('price', $purchaseRequest->price) }}" required>
+            </div>
+
+            <div class="form-group mb-3">
+                <label for="currency">Currency</label>
+                <select name="currency" class="form-control" required>
+                    <option value="USD" {{ $purchaseRequest->currency == 'USD' ? 'selected' : '' }}>USD</option>
+                    <option value="ETB" {{ $purchaseRequest->currency == 'ETB' ? 'selected' : '' }}>ETB</option>
+                    <option value="UGX" {{ $purchaseRequest->currency == 'UGX' ? 'selected' : '' }}>UGX</option>
+                </select>
+            </div>
+
+            <div class="form-group mb-3">
+                <label for="attachments">Attachments</label>
                 <input type="file" name="attachments[]" class="form-control" multiple>
                 @if ($purchaseRequest->attachments)
                     <p>Current Attachments:</p>

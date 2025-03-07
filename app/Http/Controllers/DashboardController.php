@@ -95,26 +95,46 @@ public function displayUsers()
     return view('display.users', compact('users','totalUsers')); // Return the view for company users
 }
 
+public function displayForms()
+    {
+        $templates = RequestFormTemplate::all(); // Fetch all templates
+        return view('display.forms', compact('templates')); // Adjust the view name accordingly
+    }
+
     public function employeeDashboard()
-{
-    $userId = Auth::id();
-
-    // Fetch leave, payment, and purchase requests
-    $leaveRequests = LeaveRequest::where('user_id', $userId)->get();
-    $paymentRequests = PaymentRequest::where('user_id', $userId)->get();
-    $purchaseRequests = PurchaseRequest::where('user_id', $userId)->get();
-    $weeklyPlans = EmployeePlan::where('employee_id', $userId)->get();
-    $reports = EmployeeReport::where('employee_id', $userId)->get();
-
-    // Aggregate data for the charts
-    $leaveCounts = $leaveRequests->groupBy('status')->map->count();
-    $paymentCounts = $paymentRequests->groupBy('status')->map->count();
-    $purchaseCounts = $purchaseRequests->groupBy('status')->map->count();
-    $planCounts = $weeklyPlans->groupBy('status')->map->count();
-    $reportCounts = $reports->groupBy('status')->map->count();
-
-    return view('dashboards.employee', compact('leaveCounts', 'paymentCounts', 'purchaseCounts', 'planCounts', 'reportCounts'));
-}
+    {
+        $userId = Auth::id(); // Get the logged-in employee's user ID
+    
+        // Fetch leave, payment, and purchase requests
+        $leaveRequests = LeaveRequest::where('user_id', $userId)->get();
+        $paymentRequests = PaymentRequest::where('user_id', $userId)->get();
+        $purchaseRequests = PurchaseRequest::where('user_id', $userId)->get();
+        $weeklyPlans = EmployeePlan::where('employee_id', $userId)->get();
+        $reports = EmployeeReport::where('employee_id', $userId)->get();
+    
+        // Get counts for leave requests
+        $leaveCounts = $leaveRequests->groupBy('status')->map->count()->toArray();
+    
+        // Get counts for payment requests
+        $paymentCounts = $paymentRequests->groupBy('status')->map->count()->toArray();
+    
+        // Get counts for purchase requests
+        $purchaseCounts = $purchaseRequests->groupBy('status')->map->count()->toArray();
+    
+        // Get counts for weekly plans
+        $planCounts = $weeklyPlans->groupBy('status')->map->count()->toArray();
+    
+        // Get counts for weekly reports
+        $reportCounts = $reports->groupBy('status')->map->count()->toArray();
+    
+        return view('dashboards.employee', compact(
+            'leaveCounts',
+            'paymentCounts',
+            'purchaseCounts',
+            'planCounts',
+            'reportCounts'
+        ));
+    }
 
     public function storekeeperDashboard()
     {
@@ -169,8 +189,81 @@ public function displayUsers()
 
     public function managerDashboard()
     {
+
+          
+
         $managerId = Auth::id(); // Get the logged-in manager's user ID
         $inventories = Inventory::all();
+
+        // Get counts for leave requests
+    $leaveCounts = LeaveRequest::selectRaw('status, count(*) as count')
+    ->where('approved_by', $managerId)
+    ->groupBy('status')
+    ->pluck('count', 'status')
+    ->toArray();
+
+// Get counts for payment requests
+$paymentCounts = PaymentRequest::selectRaw('status, count(*) as count')
+    ->where('approved_by', $managerId)
+    ->groupBy('status')
+    ->pluck('count', 'status')
+    ->toArray();
+
+// Get counts for purchase requests
+$purchaseCounts = PurchaseRequest::selectRaw('status, count(*) as count')
+    ->where('approved_by', $managerId)
+    ->groupBy('status')
+    ->pluck('count', 'status')
+    ->toArray();
+
+// Get counts for weekly plans
+$planCounts = EmployeePlan::selectRaw('DATE(submitted_at) as submitted_date, count(*) as count')
+    ->where('approved_by', $managerId)
+    ->groupBy('submitted_date')
+    ->pluck('count', 'submitted_date')
+    ->toArray();
+
+// Get counts for weekly reports
+$reportCounts = EmployeeReport::selectRaw('DATE(submitted_at) as submitted_date, count(*) as count')
+    ->where('approved_by', $managerId)
+    ->groupBy('submitted_date')
+    ->pluck('count', 'submitted_date')
+    ->toArray();
+
+// Initialize an array to hold all pending counts
+$pendingCounts = [
+    'leave_requests' => LeaveRequest::where('approved_by', $managerId)
+        ->where('status', 'pending')
+        ->count(),
+
+    'payment_requests' => PaymentRequest::where('approved_by', $managerId)
+        ->where('status', 'pending')
+        ->count(),
+
+    'purchase_requests' => PurchaseRequest::where('approved_by', $managerId)
+        ->where('status', 'pending')
+        ->count(),
+
+    'weekly_plans' => EmployeePlan::where('approved_by', $managerId)
+        ->where('status', 'pending')
+        ->count(),
+
+    'weekly_reports' => EmployeeReport::where('approved_by', $managerId)
+        ->where('status', 'pending')
+        ->count(),
+];
+
+return view('dashboards.manager', compact(
+    'inventories',
+    'leaveCounts',
+    'paymentCounts',
+    'purchaseCounts',
+    'planCounts',
+    'reportCounts',
+    'pendingCounts'
+));
+
+
         // Get pending leave requests approved by this manager
         $pendingLeaveRequests = LeaveRequest::where('status', 'pending')
             ->where('approved_by', $managerId)
@@ -221,13 +314,13 @@ public function displayUsers()
         return view('dashboards.manager', compact(
             'inventories',
             'pendingLeaveRequests', 
+            'pendingStockRequisitionRequests',
             'pendingPaymentRequests', 
             'pendingPurchaseRequests', 
             'pendingPayrolls',
             'pendingEmployeePlans',
             'pendingEmployeeReports',
-            'pendingBudgetForecasts',
-            'pendingStockRequisitionRequests'
+            'pendingBudgetForecasts'
 
 
         ));
@@ -312,10 +405,15 @@ public function approvePurchaseRequest(Request $request, $purchase_request_id)
         'manager_comment' => 'required|string|max:255',
     ]);
 
-    $purchaseRequest = PurchaseRequest::where('purchase_request_id', $purchase_request_id)
-        ->where('status', 'pending') // Check if status is pending
-        ->firstOrFail();
+    // Find the purchase request by ID
+    $purchaseRequest = PurchaseRequest::findOrFail($purchase_request_id);
 
+    // Ensure the status is 'pending'
+    if ($purchaseRequest->status !== 'pending') {
+        return redirect()->back()->with('error', 'Purchase request is not pending.');
+    }
+
+    // Update the purchase request
     $purchaseRequest->status = 'approved';
     $purchaseRequest->approved_by = Auth::id();
     $purchaseRequest->manager_comment = $request->manager_comment;
@@ -327,13 +425,18 @@ public function approvePurchaseRequest(Request $request, $purchase_request_id)
 public function rejectPurchaseRequest(Request $request, $purchase_request_id)
 {
     $request->validate([
-        'manager_comments' => 'required|string|max:255',
+        'manager_comment' => 'required|string|max:255',
     ]);
 
-    $purchaseRequest = PurchaseRequest::where('purchase_request_id', $purchase_request_id)
-        ->where('approved_by', 'pending') // Ensure it hasn't been approved yet
-        ->firstOrFail();
+    // Find the purchase request by ID
+    $purchaseRequest = PurchaseRequest::findOrFail($purchase_request_id);
 
+    // Ensure the status is 'pending'
+    if ($purchaseRequest->status !== 'pending') {
+        return redirect()->back()->with('error', 'Purchase request is not pending.');
+    }
+
+    // Update the purchase request
     $purchaseRequest->status = 'rejected';
     $purchaseRequest->approved_by = Auth::id();
     $purchaseRequest->manager_comment = $request->manager_comment; // Save comments
@@ -399,7 +502,7 @@ public function approveEmployeeReport(Request $request, $report_id)
     $employeeReport->approved_by = Auth::id(); // Optional: Set the ID of the approving manager
     $employeeReport->save(); // Save the changes
 
-    return redirect()->back()->with('success', 'Employee report approved successfully.');
+    return redirect()->route('display.pending')->with('success', 'Employee report approved successfully.');
 }
 
 public function rejectEmployeeReport(Request $request, $report_id)
@@ -540,11 +643,6 @@ public function approveStockRequisition(Request $request, $stock_requisition_id)
     return redirect()->back()->with('success', 'Stock requisition rejected successfully.');
 }
 
-public function getNotifications()
-{
-    $notifications = Auth::user()->unreadNotifications()->latest()->take(5)->get();
-    
-    return response()->json($notifications);
-}
+
 
 }

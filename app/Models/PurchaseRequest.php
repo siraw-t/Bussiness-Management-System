@@ -16,9 +16,14 @@ class PurchaseRequest extends Model
     protected $fillable = [
         'user_id',
         'reference_number',
-        'item_info',
-        'quantity_with_unit',
-        'price_with_currency',
+        'item_name', // Updated to match schema
+        'item_description', // Updated to match schema
+        'quantity', // Updated to match schema
+        'unit', // Updated to match schema
+        'price', // Updated to match schema
+        'currency', // Updated to match schema
+        'total_price', // Updated to match schema
+        'company_country', // Updated to match schema
         'status',
         'attachments',
         'approved_by',
@@ -38,12 +43,12 @@ class PurchaseRequest extends Model
     }
 
     public function checkedBy()
-{
-    return $this->belongsTo(User::class, 'checked_by');
-}
+    {
+        return $this->belongsTo(User::class, 'checked_by', 'user_id');
+    }
 
-public function approvedBy()
-{
-    return $this->belongsTo(User::class, 'approved_by');
-}
+    public function approvedBy()
+    {
+        return $this->belongsTo(User::class, 'approved_by', 'user_id');
+    }
 }

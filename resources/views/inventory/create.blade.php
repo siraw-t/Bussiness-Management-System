@@ -23,10 +23,6 @@
                 </select>
             </div>
             <div class="form-group mb-3">
-                <label for="reference_number">Reference Number</label>
-                <input type="text" name="reference_number" class="form-control" required>
-            </div>
-            <div class="form-group mb-3">
                 <label for="quantity">Quantity</label>
                 <input type="number" name="quantity" class="form-control" required min="0">
             </div>
@@ -41,6 +37,28 @@
             <div class="form-group mb-3">
                 <label for="stock_in_date">Stock In Date</label>
                 <input type="date" name="stock_in_date" class="form-control">
+            </div>
+            <div class="form-group mb-3">
+                <label for="currency">Currency</label>
+                <select name="currency" class="form-control" required>
+                    <option value="USD">USD</option>
+                    <option value="EUR">EUR</option>
+                    <option value="GBP">UGX</option>
+                    <option value="JPY">ETB</option>
+                    <option value="AUD">AUD</option>
+                    <!-- Add more currencies as needed -->
+                </select>
+            </div>
+            <div class="form-group mb-3">
+                <label for="unit">Unit</label>
+                <select name="unit" class="form-control" required>
+                    <option value="pcs">Pieces</option>
+                    <option value="kg">Kilograms</option>
+                    <option value="liters">Liters</option>
+                    <option value="m">Meters</option>
+                    <option value="box">Boxes</option>
+                    <!-- Add more units as needed -->
+                </select>
             </div>
 
             <button type="submit" class="btn btn-primary w-100">

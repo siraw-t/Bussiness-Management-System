@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('payroll', function (Blueprint $table) {
             $table->bigIncrements('payroll_id'); // Primary key
             $table->unsignedBigInteger('employee_id'); // Reference to users table
+            $table->string('reference_number')->unique(); // Unique reference number for the requisition
             $table->string('job_title'); // Job title
             $table->decimal('basic_salary', 10, 2); // Basic salary
             $table->integer('no_of_days'); // Number of working days
@@ -29,9 +30,10 @@ return new class extends Migration
             $table->string('signature')->nullable(); // Employee signature
             $table->unsignedBigInteger('approved_by')->nullable(); // Reference to users table
             $table->unsignedBigInteger('prepared_by')->nullable(); // Reference to users table
-            $table->string('pay_period')->nullable(); // Pay Period
+            $table->date('pay_period'); // Pay Period as a date
+            $table->string('company_country'); // Country of the company
             $table->string('status')->default('Pending'); // Status
-            $table->text('manager_comment')->nullable(); 
+            $table->text('manager_comment')->nullable(); // Manager's comment
             $table->timestamps(); // Created at and Updated at
         });
     }

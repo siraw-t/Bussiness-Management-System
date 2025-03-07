@@ -24,11 +24,10 @@ use App\Models\EmployeeReport;
 use App\Models\BudgetForecasting;
 use App\Http\Controllers\ManagerController;
 use App\Http\Controllers\StockRequisitionController;
-
-
-
-
-
+use App\Http\Controllers\Auth\EmailVerificationNotificationController;
+use App\Http\Controllers\Auth\EmailVerificationPromptController;
+use App\Http\Controllers\Auth\VerifyEmailController;
+use App\Http\Controllers\RequestFormTemplateController;
 
 
 
@@ -45,12 +44,32 @@ Route::get('/login', [AuthenticatedSessionController::class, 'create'])->name('l
 Route::post('/login', [AuthenticatedSessionController::class, 'store']);
 Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
 
+
+Route::middleware('auth')->group(function () {
+    Route::get('verify-email', EmailVerificationPromptController::class)
+        ->name('verification.notice');
+
+    Route::get('verify-email/{id}/{hash}', VerifyEmailController::class)
+        ->middleware(['signed', 'throttle:6,1'])
+        ->name('verification.verify');
+
+    Route::post('email/verification-notification', [EmailVerificationNotificationController::class, 'store'])
+        ->middleware('throttle:6,1')
+        ->name('verification.send');
+});
+
+Route::get('/profile', function () {
+    // Only verified users may access this route...
+})->middleware(['auth', 'verified']);
+
+
+
+
 // Password Reset Routes
 Route::get('/forgot-password', [PasswordResetLinkController::class, 'create'])->name('password.request');
 Route::post('/forgot-password', [PasswordResetLinkController::class, 'store'])->name('password.email');
 Route::get('/reset-password/{token}', [NewPasswordController::class, 'create'])->name('password.reset');
 Route::post('/reset-password', [NewPasswordController::class, 'store'])->name('password.update');
-
 // Protected routes
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
@@ -203,10 +222,15 @@ Route::get('/display/stock-requisition', function () {
     return view('display.stock-requisition', compact('stockRequisitions'));
 })->name('display.stock-requisition');
 
+               // all pendings
+
+            //    Route::get('/pending-leave', [LeaveRequestController::class, 'showPendingRequests'])->name('display.pending-leave');
 
 Route::get('/display/pending', [ManagerController::class, 'managerDashboard'])->name('display.pending');
 Route::get('/display/admin', [DashboardController::class, 'displayAdmins'])->name('display.admin');
 Route::get('/display/users', [DashboardController::class, 'displayUsers'])->name('display.users');
+Route::get('/display/forms', [DashboardController::class, 'displayForms'])->name('display.forms');
+
 
 // Budget Forecasting Routes
 Route::prefix('finance/budgets')->name('finance.budgets.')->group(function () {
@@ -250,6 +274,7 @@ Route::post('/manager/purchase-request/{purchase_request_id}/reject', [Dashboard
 Route::post('/finance/purchase-request/comment/{purchase_request_id}', [PurchaseRequestController::class, 'addFinanceComment'])->name('finance.purchase.comment');
 Route::get('/finance/dashboard', [DashboardController::class, 'financeDashboard'])->name('finance.dashboard');
 Route::get('/finance/purchase-requests/pending', [DashboardController::class, 'showPendingRequests'])->name('display.finance-pending');
+// Route::get('/pending-requests', [PurchaseRequestController::class, 'showPendingRequests'])->name('pending.requests');
 
 Route::post('/manager/weekly-plan/{plan_id}/approve', [DashboardController::class, 'approveEmployeePlan'])->name('manager.plan.approve');
 Route::post('/manager/weekly-plan/{plan_id}/reject', [DashboardController::class, 'rejectEmployeePlan'])->name('manager.plan.reject');
@@ -267,6 +292,16 @@ Route::post('/manager/budget/{budget_id}/reject', [DashboardController::class, '
 Route::post('/manager/stock_requisition/{stock_requisition_id}/approve', [DashboardController::class, 'approveStockRequisition'])->name('manager.stock_requisition.approve');
 Route::post('/manager/stock_requisition/{stock_requisition_id}/reject', [DashboardController::class, 'rejectStockRequisition'])->name('manager.stock_requisition.reject');
 Route::get('/stock-requisitions', [StockRequisitionController::class, 'showStockRequisitions'])->name('stock.requisitions');
+
+// templates for admin
+
+Route::get('/templates', [RequestFormTemplateController::class, 'index'])->name('templates.index'); // List all templates
+Route::get('/templates/create', [RequestFormTemplateController::class, 'create'])->name('templates.create'); // Show form to create a new template
+Route::post('/templates', [RequestFormTemplateController::class, 'store'])->name('templates.store'); // Store a new template
+Route::get('/templates/{template}', [RequestFormTemplateController::class, 'show'])->name('templates.show'); // Show a specific template
+Route::get('/templates/{template}/edit', [RequestFormTemplateController::class, 'edit'])->name('templates.edit'); // Show form to edit a template
+Route::put('/templates/{template}', [RequestFormTemplateController::class, 'update'])->name('templates.update'); // Update a specific template
+Route::delete('/templates/{template}', [RequestFormTemplateController::class, 'destroy'])->name('templates.destroy'); // Delete a specific template
 
 
 // Superadmin Dashboard Route
@@ -388,6 +423,6 @@ Route::get('/weekly-reports/{report}/download-pdf', [EmployeeReportController::c
 Route::get('/finance/payrolls/{payroll}/download-pdf', [FinanceController::class, 'downloadPdf'])->name('finance.payrolls.downloadPdf');
 Route::get('/finance/budgets/{budget}/download-pdf', [FinanceController::class, 'downloadBudgetPdf'])->name('finance.budgets.downloadBudgetPdf');
 Route::get('/stock_requisitions/{requisition}/download-pdf', [StockRequisitionController::class, 'downloadPdf'])->name('stock_requisitions.downloadPdf');
-
+Route::get('/inventory/{id}/download-pdf', [InventoryController::class, 'downloadPdf'])->name('inventory.downloadPdf');
 
 

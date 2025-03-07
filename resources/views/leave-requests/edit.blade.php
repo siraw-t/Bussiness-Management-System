@@ -53,6 +53,10 @@
                 @endif
             </div>
 
+            <div class="form-group mb-3">
+                <label for="attachment">Attach New File</label>
+                <input type="file" name="attachment" class="form-control">
+            </div>
 
             <button type="submit" class="btn btn-success btn-lg w-100">Update</button>
         </form>

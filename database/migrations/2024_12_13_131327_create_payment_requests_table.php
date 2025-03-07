@@ -15,26 +15,30 @@ return new class extends Migration
             $table->bigIncrements('payment_request_id'); // Primary key
             
             $table->unsignedBigInteger('user_id'); // Reference to users table
-            $table->string('ref_no')->nullable(); // Reference number
+            $table->string('reference_no')->nullable(); // Reference number
             $table->date('request_date')->nullable(); // Date of the request
-            $table->string('from')->nullable(); // Requestor's department
+            $table->string('department')->nullable(); // Requestor's department
             $table->text('finance_comment')->nullable(); // Finance comment
-            $table->text('description'); // Description of Goods/Services
-            $table->string('unit_and_qty')->nullable(); // Unit and Quantity
+            $table->text('item_description'); // Description of Goods/Services
+            $table->string('item_name')->nullable(); // Item name
+            $table->string('unit')->nullable(); // Unit of measurement
+            $table->integer('quantity')->nullable(); // Quantity
             $table->decimal('amount', 10, 2); // Total amount
             $table->decimal('vat', 10, 2)->nullable(); // VAT 18%
             $table->decimal('total', 10, 2); // Total including VAT
             $table->decimal('net_payment', 10, 2); // Net Payment
-            $table->decimal('with_holding', 10, 2)->nullable(); //  6%
+            $table->decimal('with_holding', 10, 2)->nullable(); // 6%
             $table->string('cost_center')->nullable(); // Cost Center
             $table->string('account_code')->nullable(); // Account Code
-            $table->decimal('country_cost_recharge', 10, 2)->nullable(); // Country cost recharge
-            $table->decimal('allocation_for_country', 10, 2)->nullable(); // Cost allocation for the country recharge
+            
+            $table->string('company_country'); // Country of the company
+            $table->string('currency')->nullable(); // Currency (e.g., USD, EUR)
+            
             $table->string('status')->default('pending'); // Status (e.g., pending, approved)
-            $table->string('manager_comment')->nullable(); // Add this line
+            $table->string('manager_comment')->nullable(); // Manager's comment
             $table->unsignedBigInteger('reviewed_by')->nullable(); // Finance reviewer
-
             $table->unsignedBigInteger('approved_by')->nullable(); // Reference to users table
+            
             $table->timestamps(); // Created at and Updated at
         });
     }

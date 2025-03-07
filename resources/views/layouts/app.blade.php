@@ -13,6 +13,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
     <link href="{{ asset('css/custom.css') }}" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <style>
         /* Global Styles */
         body {
@@ -35,6 +36,8 @@
         .navbar-brand {
             color: black;
             text-transform: uppercase;
+            font-size: 1rem;
+            /* Decreased font size */
         }
 
         .nav-link {
@@ -45,6 +48,11 @@
         .nav-link:hover {
             color: #ffc107;
             transform: scale(1.1);
+        }
+
+        .navbar-toggler {
+            margin-left: auto;
+            /* Move toggle button to the right */
         }
 
         .navbar-toggler-icon {
@@ -103,11 +111,20 @@
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="notificationDropdown" role="button"
                                 data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fas fa-bell"></i> <span id="notificationCount" class="badge bg-danger">0</span>
+                                <i class="fas fa-bell"></i> <span id="notificationCount"
+                                    class="badge bg-danger">{{ Auth::user()->notifications->count() }}</span>
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end" id="notificationList"
                                 aria-labelledby="notificationDropdown">
-                                <li><a class="dropdown-item" href="#">No Notifications</a></li>
+                                @if (Auth::user()->notifications->isEmpty())
+                                    <li><a class="dropdown-item" href="#">No Notifications</a></li>
+                                @else
+                                    @foreach (Auth::user()->notifications as $notification)
+                                        <li>
+                                            <a class="dropdown-item" href="#">{{ $notification->data['message'] }}</a>
+                                        </li>
+                                    @endforeach
+                                @endif
                             </ul>
                         </li>
                         <li class="nav-item d-flex align-items-center">
@@ -258,35 +275,32 @@
     <script src="{{ mix('js/app.js') }}" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        let notifications = [];
-
-        function addNotification(message) {
-            notifications.push(message);
-            updateNotificationCount();
-            updateNotificationList();
-        }
+        let notifications = @json(Auth::user()->notifications); // Fetch notifications from server
 
         function updateNotificationCount() {
-            document.getElementById('notificationCount').innerText = notifications.length;
+            const count = notifications.length;
+            document.getElementById('notificationCount').innerText = count;
         }
 
         function updateNotificationList() {
             const notificationList = document.getElementById('notificationList');
             notificationList.innerHTML = ''; // Clear existing notifications
-            notifications.forEach((notification) => {
-                const listItem = document.createElement('li');
-                listItem.innerHTML = `<a class="dropdown-item" href="#">${notification}</a>`;
-                notificationList.appendChild(listItem);
-            });
+
             if (notifications.length === 0) {
                 notificationList.innerHTML = '<li><a class="dropdown-item" href="#">No Notifications</a></li>';
+            } else {
+                notifications.forEach((notification) => {
+                    const listItem = document.createElement('li');
+                    listItem.innerHTML = `<a class="dropdown-item" href="#">${notification.data.message}</a>`;
+                    notificationList.appendChild(listItem);
+                });
             }
         }
 
-        // Example of adding notifications for all users
-        addNotification('New message received');
-        addNotification('Your profile has been updated');
-        addNotification('System maintenance scheduled for tonight at 11 PM');
+        document.addEventListener('DOMContentLoaded', function() {
+            updateNotificationCount();
+            updateNotificationList();
+        });
     </script>
 </body>
 

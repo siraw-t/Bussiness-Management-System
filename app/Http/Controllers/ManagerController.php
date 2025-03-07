@@ -71,13 +71,13 @@ class ManagerController extends Controller
 
         return view('display.pending', compact(
             'pendingLeaveRequests', 
+            'pendingStockRequisitionRequests',
             'pendingPaymentRequests', 
             'pendingPurchaseRequests', 
             'pendingPayrolls',
             'pendingEmployeePlans',
             'pendingEmployeeReports',
-            'pendingBudgetForecasts',
-            'pendingStockRequisitionRequests'
+            'pendingBudgetForecasts'
         ));
     }
 
@@ -212,37 +212,51 @@ public function rejectBudget($budget_id)
     return redirect()->back()->with('success', 'Budget rejected.');
 }
 
-public function approveStockRequisition($stock_requisition_id)
-    {
-        // Find the stock requisition with the given ID
-        $requisition = StockRequisition::where('stock_requisition_id', $stock_requisition_id)
-            ->where('status', 'pending') // Ensure it's pending
-            ->firstOrFail();
+public function approveStockRequisition(Request $request, $stock_requisition_id)
+{
+    // Validate the request for manager comments and approved quantity
+    $request->validate([
+        'manager_comment' => 'required|string|max:255',
+        'approved_quantity' => 'required|integer|min:1',
+    ]);
 
-        // Update the requisition status and approver details
-        $requisition->status = 'approved';
-        $requisition->approved_by = Auth::id(); 
-        $requisition->save();
+    // Find the stock requisition
+    $requisition = StockRequisition::where('stock_requisition_id', $stock_requisition_id)
+        ->where('status', 'pending') // Ensure it's pending
+        ->firstOrFail();
 
-        // Optionally, you can add logic to update inventory here
+    // Update the requisition details
+    $requisition->status = 'approved';
+    $requisition->approved_by = Auth::id();
+    $requisition->manager_comment = $request->manager_comment; // Save manager comments
+    $requisition->quantity_approved = $request->approved_quantity; // Save approved quantity
+    $requisition->save();
 
-        return redirect()->back()->with('success', 'Stock requisition approved successfully.');
-    }
+    // Optionally, add logic to update inventory here
 
-    public function rejectStockRequisition($stock_requisition_id)
-    {
-        // Find the stock requisition with the given ID
-        $requisition = StockRequisition::where('stock_requisition_id', $stock_requisition_id)
-            ->where('status', 'pending') // Ensure it's pending
-            ->firstOrFail();
+    return redirect()->back()->with('success', 'Stock requisition approved successfully.');
+}
 
-        // Update the requisition status and approver details
-        $requisition->status = 'rejected';
-        $requisition->approved_by = Auth::id(); 
-        $requisition->save();
+    public function rejectStockRequisition(Request $request, $stock_requisition_id)
+{
+    // Validate the request for manager comments
+    $request->validate([
+        'manager_comment' => 'required|string|max:255',
+    ]);
 
-        return redirect()->back()->with('success', 'Stock requisition rejected successfully.');
-    }
+    // Find the stock requisition
+    $requisition = StockRequisition::where('stock_requisition_id', $stock_requisition_id)
+        ->where('status', 'pending') // Ensure it's pending
+        ->firstOrFail();
+
+    // Update the requisition details
+    $requisition->status = 'rejected';
+    $requisition->approved_by = Auth::id();
+    $requisition->manager_comment = $request->manager_comment; // Save manager comments
+    $requisition->save();
+
+    return redirect()->back()->with('success', 'Stock requisition rejected successfully.');
+}
 
 
 }

@@ -26,16 +26,18 @@ class AuthenticatedSessionController extends Controller
 {
     // Check if the email exists in the database
     $user = \App\Models\User::where('email', $request->email)->first();
-    
+
     if (!$user) {
-        return back()->withErrors([
-            'email' => 'The provided email does not exist.',
-        ]);
+        return back()->withErrors(['email' => 'The provided email does not exist.']);
     }
 
-    // Authenticate the user
     if (Auth::attempt($request->only('email', 'password'))) {
         $request->session()->regenerate();
+
+        if (!$user->hasVerifiedEmail()) {
+            $user->sendEmailVerificationNotification(); // Send verification email
+            return redirect()->route('verification.notice'); // Redirect to verification notice
+        }
 
         // Redirect based on user role
         if ($user->role === 'superadmin') {

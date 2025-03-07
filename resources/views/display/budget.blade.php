@@ -2,7 +2,7 @@
 
 @section('content')
     <div class="container-fluid mt-5">
-        <h2 class="text-center text-info mb-4">{{ Auth::user()->company->company_name }} Budget Forecasting</h2>
+        <h2 class="text-center text-info mb-4">Budget Forecasting</h2>
 
         <div class="table-responsive">
             <table class="table table-bordered table-striped table-hover">
@@ -14,14 +14,17 @@
                         <th>Budget Code</th>
                         <th>Department</th>
                         <th>Budget Source</th>
-                        <th>Quantity with Unit</th>
+                        <th>Quantity</th>
                         <th>Unit Cost</th>
                         <th>Total Budget</th>
                         <th>Status</th>
                         <th>Manager Comment</th>
                         <th>Approved By</th>
+                        <th>Reference Number</th>
+                        <th>Company Country</th>
                         <th>Created At</th>
                         <th>Updated At</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -30,13 +33,13 @@
 
                         // Filter budget forecasts for users belonging to the same company
                         $filteredBudgetForecasts = $budgetForecasts->filter(function ($forecast) use ($userCompanyId) {
-                            return $forecast->user->company_id == $userCompanyId; // Ensure the budget user is in the same company
+                            return $forecast->creator->company_id == $userCompanyId; // Ensure the budget user is in the same company
                         });
                     @endphp
 
                     @if ($filteredBudgetForecasts->isEmpty())
                         <tr>
-                            <td colspan="14" class="text-center">No budget forecasts found.</td>
+                            <td colspan="18" class="text-center">No budget forecasts found.</td>
                         </tr>
                     @else
                         @foreach ($filteredBudgetForecasts as $forecast)
@@ -47,9 +50,9 @@
                                 <td>{{ $forecast->budget_code }}</td>
                                 <td>{{ $forecast->department }}</td>
                                 <td>{{ $forecast->budget_source }}</td>
-                                <td>{{ $forecast->quantity_with_unit }}</td>
-                                <td>${{ number_format($forecast->unit_cost, 2) }}</td>
-                                <td>${{ number_format($forecast->total_budget, 2) }}</td>
+                                <td>{{ $forecast->quantity }} {{ $forecast->unit }}</td>
+                                <td>{{ number_format($forecast->unit_cost, 2) }} {{ $forecast->currency }}</td>
+                                <td>{{ number_format($forecast->total_budget, 2) }} {{ $forecast->currency }}</td>
                                 <td>
                                     <span
                                         class="badge {{ $forecast->status === 'approved' ? 'bg-success' : ($forecast->status === 'pending' ? 'bg-warning' : 'bg-danger') }}">
@@ -58,11 +61,16 @@
                                 </td>
                                 <td>{{ $forecast->manager_comment ?? 'N/A' }}</td>
                                 <td>{{ optional($forecast->approver)->full_name ?? 'N/A' }}</td>
+                                <td>{{ $forecast->reference_number }}</td>
+                                <td>{{ $forecast->company_country }}</td>
                                 <td>{{ $forecast->created_at->format('Y-m-d H:i:s') }}</td>
                                 <td>{{ $forecast->updated_at->format('Y-m-d H:i:s') }}</td>
-                                <td><a href="{{ route('finance.budgets.downloadBudgetPdf', $forecast) }}"
+                                <td>
+                                    <a href="{{ route('finance.budgets.downloadBudgetPdf', $forecast) }}"
                                         class="btn btn-info">
-                                        PDF</a></td>
+                                        PDF
+                                    </a>
+                                </td>
                             </tr>
                         @endforeach
                     @endif

@@ -12,9 +12,10 @@ class BudgetForecasting extends Model
     protected $keyType = 'int'; // Assuming you're using integers for IDs
 
     protected $fillable = [
-        'created_by', 'forecast_period', 'budget_description', 'budget_item', 'budget_code', 
-        'department', 'budget_source', 'quantity_with_unit', 'unit_cost', 'total_budget', 
-        'manager_comment', 'approved_by',
+        'created_by', 'forecast_period', 'budget_description', 'budget_item',
+        'budget_code', 'department', 'budget_source', 'quantity', 'unit',
+        'unit_cost', 'total_budget', 'status', 'manager_comment',
+        'approved_by', 'reference_number', 'company_country', 'currency'
     ];
 
 

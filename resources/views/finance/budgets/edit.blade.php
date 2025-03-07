@@ -46,14 +46,34 @@
                     placeholder="Enter budget source">
             </div>
             <div class="form-group mb-3">
-                <label for="quantity_with_unit">Quantity with Unit</label>
-                <input type="text" name="quantity_with_unit" class="form-control"
-                    value="{{ $budget->quantity_with_unit }}" placeholder="E.g., 2 pcs">
+                <label for="quantity">Quantity</label>
+                <input type="number" name="quantity" class="form-control" value="{{ $budget->quantity }}"
+                    placeholder="Enter quantity">
+            </div>
+            <div class="form-group mb-3">
+                <label for="unit">Unit</label>
+                <select name="unit" class="form-control" required>
+                    <option value="" disabled>Select unit</option>
+                    <option value="pcs" {{ $budget->unit == 'pcs' ? 'selected' : '' }}>Pieces</option>
+                    <option value="kg" {{ $budget->unit == 'kg' ? 'selected' : '' }}>Kilograms</option>
+                    <option value="liters" {{ $budget->unit == 'liters' ? 'selected' : '' }}>Liters</option>
+                    <option value="boxes" {{ $budget->unit == 'boxes' ? 'selected' : '' }}>Boxes</option>
+                </select>
             </div>
             <div class="form-group mb-3">
                 <label for="unit_cost">Unit Cost</label>
                 <input type="number" name="unit_cost" class="form-control" value="{{ $budget->unit_cost }}" step="0.01"
                     placeholder="Enter unit cost">
+            </div>
+            <div class="form-group mb-3">
+                <label for="currency">Currency</label>
+                <select name="currency" class="form-control" required>
+                    <option value="" disabled>Select currency</option>
+                    <option value="USD" {{ $budget->currency == 'USD' ? 'selected' : '' }}>USD</option>
+                    <option value="EUR" {{ $budget->currency == 'EUR' ? 'selected' : '' }}>EUR</option>
+                    <option value="ETB" {{ $budget->currency == 'ETB' ? 'selected' : '' }}>ETB</option>
+                    <option value="UGX" {{ $budget->currency == 'UGX' ? 'selected' : '' }}>UGX</option>
+                </select>
             </div>
 
             <button type="submit" class="btn btn-warning btn-lg w-100">Update Budget</button>

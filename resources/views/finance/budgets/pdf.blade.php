@@ -4,148 +4,222 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Budget Record</title>
+    <title>Budget Record PDF</title>
     <style>
+        @media print {
+            @page {
+                size: A4;
+                /* Set the size to A4 */
+                margin: 10mm;
+                /* Set minimal margins */
+            }
+        }
+
         body {
             font-family: Arial, sans-serif;
             margin: 0;
-            padding: 20px;
-            line-height: 1.6;
-            background-color: #f9f9f9;
-            /* Light background color */
-        }
-
-        h1 {
-            text-align: center;
-            margin-bottom: 30px;
-            border-bottom: 3px solid #007bff;
-            /* Blue border for header */
-            padding-bottom: 10px;
-            color: #007bff;
-            /* Header color */
-        }
-
-        .form-section {
-            margin-bottom: 20px;
-            padding: 20px;
-            border: 2px solid #007bff;
-            /* Blue border for sections */
-            border-radius: 8px;
+            padding: 5mm;
+            /* Reduced padding */
             background-color: #ffffff;
-            /* White background for sections */
+            /* White background */
         }
 
-        .form-row {
+        .container {
+            width: 100%;
+            /* Full width of the A4 */
+            padding: 5mm;
+            /* Padding inside the container */
+            border: 1px solid #000;
+            /* Border for the container */
+            border-radius: 5px;
+            /* Reduced border radius */
+            box-sizing: border-box;
+            /* Include padding and border in element's width and height */
+        }
+
+        header {
             display: flex;
-            margin-bottom: 15px;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 5mm;
+            /* Reduced margin */
+            border-bottom: 1px solid #000;
+            /* Header border */
+            padding-bottom: 5px;
+            /* Reduced padding */
         }
 
-        .form-label {
+        header img {
+            max-width: 90px;
+            /* Logo size */
+            margin-right: 10px;
+            /* Margin for logo */
+        }
+
+        .company-info {
+            text-align: left;
+            font-size: 14px;
+            /* Font size */
+            color: #555;
+            /* Text color */
+        }
+
+        .company-name {
+            text-align: center;
+            font-size: 18px;
+            /* Font size */
+            color: #007bff;
+            /* Company color */
+            margin: 5px 0;
+            /* Margin */
+            width: 100%;
+            /* Full width */
+        }
+
+        .budget-title {
+            text-align: center;
+            font-size: 20px;
+            /* Font size */
             font-weight: bold;
-            color: #333;
-            /* Darker color for labels */
-            width: 200px;
-            /* Fixed width for labels */
+            /* Bold font */
+            margin: 5px 0;
+            /* Margin */
         }
 
-        .form-value {
-            border-bottom: 1px solid #ccc;
-            /* Underline for value fields */
+        .details-table {
+            width: 100%;
+            /* Full width of the table */
+            border-collapse: collapse;
+            /* Collapse borders */
+            margin-bottom: 10px;
+            /* Margin */
+        }
+
+        .details-table,
+        .details-table th,
+        .details-table td {
+            border: 1px solid #000;
+            /* Table borders */
+        }
+
+        .details-table th,
+        .details-table td {
             padding: 5px;
-            flex: 1;
-            /* Takes remaining space */
+            /* Padding */
+            text-align: left;
+            /* Text alignment */
+            font-size: 16px;
+            /* Font size */
         }
 
-        .signature-section {
-            margin-top: 30px;
-            border-top: 2px solid #007bff;
-            /* Line above signature */
-            padding-top: 10px;
+        .bottom-section {
+            display: flex;
+            justify-content: space-between;
+            /* Space between sections */
+            margin-top: 5mm;
+            /* Margin */
+            font-size: 14px;
+            /* Font size */
         }
 
         footer {
             text-align: center;
-            margin-top: 30px;
+            /* Centered footer */
+            margin-top: 10mm;
+            /* Margin */
             font-style: italic;
-            /* Italic style for footer */
+            /* Italic style */
+            font-size: 14px;
+            /* Font size */
         }
     </style>
 </head>
 
 <body>
-    <h1>Budget Record</h1>
+    <div class="container">
+        <!-- Header Section -->
+        <header>
+            <div class="company-info">
+                <img src="{{ public_path('storage/' . $company->logo) }}" alt="Company Logo">
+                <p>{{ optional($company)->city ?? 'N/A' }}, {{ optional($company)->country ?? 'N/A' }}</p>
+                <p>Date: {{ date('Y-m-d') }}</p>
+                <p>Budget Code: {{ $budget->budget_code }}</p>
+                <p>Reference Number: {{ $budget->reference_number }}</p>
+            </div>
+            <h1 class="company-name">{{ optional($company)->company_name ?? 'N/A' }}</h1>
+        </header>
 
-    <div class="form-section">
-        <div class="form-row">
-            <span class="form-label">Budget ID:</span>
-            <span class="form-value">{{ $budget->budget_id }}</span>
+        <h2 class="budget-title">Budget Record</h2>
+
+        <!-- Main Details Table -->
+        <table class="details-table">
+            <tr>
+                <th class="label">Detail</th>
+                <th class="value">Information</th>
+            </tr>
+
+
+            <tr>
+                <td class="label"><strong>Forecast Period:</strong></td>
+                <td class="value">{{ ucfirst($budget->forecast_period) }}</td>
+            </tr>
+            <tr>
+                <td class="label"><strong>Budget Item:</strong></td>
+                <td class="value">{{ $budget->budget_item }}</td>
+            </tr>
+            <tr>
+                <td class="label"><strong>Budget Description:</strong></td>
+                <td class="value">{{ $budget->budget_description }}</td>
+            </tr>
+
+
+            <tr>
+                <td class="label"><strong>Department:</strong></td>
+                <td class="value">{{ $budget->department }}</td>
+            </tr>
+            <tr>
+                <td class="label"><strong>Budget Source:</strong></td>
+                <td class="value">{{ $budget->budget_source }}</td>
+            </tr>
+            <tr>
+                <td class="label"><strong>Quantity:</strong></td>
+                <td class="value">{{ $budget->quantity }} {{ $budget->unit }}</td>
+            </tr>
+            <tr>
+                <td class="label"><strong>Unit Cost:</strong></td>
+                <td class="value">{{ number_format($budget->unit_cost, 2) }} {{ $budget->currency }}</td>
+            </tr>
+            <tr>
+                <td class="label"><strong>Total Budget:</strong></td>
+                <td class="value">{{ number_format($budget->total_budget, 2) }} {{ $budget->currency }}</td>
+            </tr>
+            <tr>
+                <td class="label"><strong>Status:</strong></td>
+                <td class="value">{{ ucfirst($budget->status) }}</td>
+            </tr>
+            <tr>
+                <td class="label"><strong>Created At:</strong></td>
+                <td class="value">{{ $budget->created_at->format('Y-m-d H:i:s') }}</td>
+            </tr>
+            <tr>
+                <td class="label"><strong>Updated At:</strong></td>
+                <td class="value">{{ $budget->updated_at->format('Y-m-d H:i:s') }}</td>
+            </tr>
+        </table>
+
+        <!-- Bottom Section -->
+        <div class="bottom-section">
+            <p><strong>Created By:</strong> {{ $budget->creator ? $budget->creator->full_name : 'N/A' }}</p>
+            <p><strong>Approved By:</strong> {{ $budget->approver ? $budget->approver->full_name : 'N/A' }}</p>
+            <p><strong>Manager Comments:</strong> {{ $budget->manager_comment ?? 'N/A' }}</p>
         </div>
-        <div class="form-row">
-            <span class="form-label">Forecast Period:</span>
-            <span class="form-value">{{ ucfirst($budget->forecast_period) }}</span>
-        </div>
-        <div class="form-row">
-            <span class="form-label">Budget Description:</span>
-            <span class="form-value">{{ $budget->budget_description }}</span>
-        </div>
-        <div class="form-row">
-            <span class="form-label">Budget Item:</span>
-            <span class="form-value">{{ $budget->budget_item }}</span>
-        </div>
-        <div class="form-row">
-            <span class="form-label">Budget Code:</span>
-            <span class="form-value">{{ $budget->budget_code }}</span>
-        </div>
-        <div class="form-row">
-            <span class="form-label">Department:</span>
-            <span class="form-value">{{ $budget->department }}</span>
-        </div>
-        <div class="form-row">
-            <span class="form-label">Budget Source:</span>
-            <span class="form-value">{{ $budget->budget_source }}</span>
-        </div>
-        <div class="form-row">
-            <span class="form-label">Quantity with Unit:</span>
-            <span class="form-value">{{ $budget->quantity_with_unit }}</span>
-        </div>
-        <div class="form-row">
-            <span class="form-label">Unit Cost:</span>
-            <span class="form-value">${{ number_format($budget->unit_cost, 2) }}</span>
-        </div>
-        <div class="form-row">
-            <span class="form-label">Total Budget:</span>
-            <span class="form-value">${{ number_format($budget->total_budget, 2) }}</span>
-        </div>
-        <div class="form-row">
-            <span class="form-label">Status:</span>
-            <span class="form-value">{{ ucfirst($budget->status) }}</span>
-        </div>
-        <div class="form-row">
-            <span class="form-label">Created By:</span>
-            <span class="form-value">{{ $budget->creator ? $budget->creator->full_name : 'N/A' }}</span>
-        </div>
-        <div class="form-row">
-            <span class="form-label">Approved By:</span>
-            <span class="form-value">{{ $budget->approver ? $budget->approver->full_name : 'N/A' }}</span>
-        </div>
-        <div class="form-row">
-            <span class="form-label">Manager Comments:</span>
-            <span class="form-value">{{ $budget->manager_comment ?? 'N/A' }}</span>
-        </div>
-        <div class="form-row">
-            <span class="form-label">Created At:</span>
-            <span class="form-value">{{ $budget->created_at->format('Y-m-d H:i:s') }}</span>
-        </div>
-        <div class="form-row">
-            <span class="form-label">Updated At:</span>
-            <span class="form-value">{{ $budget->updated_at->format('Y-m-d H:i:s') }}</span>
-        </div>
+
+        <!-- Footer -->
+        <footer>
+            <p>Thank you for reviewing this budget record.</p>
+            <p>Please retain this document for your records.</p>
+        </footer>
     </div>
-
-    <footer>
-        <p>Thank you for reviewing this budget record.</p>
-        <p>Please retain this document for your records.</p>
-    </footer>
 </body>
 
 </html>

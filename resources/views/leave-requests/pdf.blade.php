@@ -10,129 +10,198 @@
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 20px;
-            line-height: 1.6;
-            background-color: #f9f9f9;
-            /* Light background color */
-        }
-
-        h1 {
-            text-align: center;
-            margin-bottom: 30px;
-            border-bottom: 3px solid #007bff;
-            /* Blue border for header */
-            padding-bottom: 10px;
-            color: #007bff;
-            /* Header color */
-        }
-
-        .form-section {
-            margin-bottom: 20px;
-            padding: 20px;
-            border: 2px solid #007bff;
-            /* Blue border for sections */
-            border-radius: 8px;
             background-color: #ffffff;
-            /* White background for sections */
         }
 
-        .form-row {
+        .container {
+            max-width: 800px;
+            margin: auto;
+            padding: 20px;
+            border: 3px solid #000;
+            border-radius: 10px;
+        }
+
+        header {
             display: flex;
-            margin-bottom: 15px;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #000;
+            padding-bottom: 10px;
         }
 
-        .form-label {
+        header img {
+            max-width: 100px;
+            margin-right: 20px;
+        }
+
+        .company-info {
+            text-align: left;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .company-name {
+            text-align: center;
+            font-size: 18px;
+            color: #007bff;
+            margin: 10px 0;
+            width: 100%;
+        }
+
+        .leave-request-title {
+            text-align: center;
+            font-size: 20px;
             font-weight: bold;
-            color: #333;
-            /* Darker color for labels */
-            width: 200px;
-            /* Fixed width for labels */
+            margin: 10px 0;
         }
 
-        .form-value {
-            border-bottom: 1px solid #ccc;
-            /* Underline for value fields */
-            padding: 5px;
-            flex: 1;
-            /* Takes remaining space */
+        .details-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
         }
 
-        .signature-section {
-            margin-top: 30px;
-            border-top: 2px solid #007bff;
-            /* Line above signature */
-            padding-top: 10px;
+        .details-table td {
+            vertical-align: top;
+            padding: 10px;
+        }
+
+        .inner-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .inner-table td {
+            padding: 5px 0;
+        }
+
+        .inner-table .label {
+            font-weight: bold;
+            width: 40%;
+        }
+
+        .inner-table .value {
+            width: 60%;
+        }
+
+        .bottom-section {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        .bottom-left,
+        .bottom-right {
+            width: 48%;
+        }
+
+        .signature img {
+            max-width: 150px;
+            display: block;
+            margin-top: 10px;
         }
 
         footer {
             text-align: center;
             margin-top: 30px;
             font-style: italic;
-            /* Italic style for footer */
         }
     </style>
 </head>
 
 <body>
-    <h1>Leave Request Form</h1>
+    <div class="container">
+        <header>
+            <div class="company-info">
+                <img src="{{ public_path('storage/' . Auth::user()->company->logo) }}" alt="Company Logo">
+                <p>{{ $company->city }}, {{ $company->country }}</p>
+                <p>Date: {{ date('Y-m-d') }}</p>
+                <p>Reference Number: {{ $request->reference_number }}</p>
+            </div>
+            <h1 class="company-name">{{ $company->company_name }}</h1>
+        </header>
 
-    <div class="form-section">
-        <div class="form-row">
-            <span class="form-label">Full Name:</span>
-            <span class="form-value">{{ Auth::user()->full_name }}</span>
+        <h2 class="leave-request-title">Leave Request</h2>
+
+        <table class="details-table">
+            <tr>
+                <td style="width:50%;">
+                    <table class="inner-table">
+                        <tr>
+                            <td class="label"><strong>Full Name:</strong></td>
+                            <td class="value">{{ Auth::user()->full_name }}</td>
+                        </tr>
+                        <tr>
+                            <td class="label"><strong>Company Country:</strong></td>
+                            <td class="value">{{ $company->country }}</td>
+                        </tr>
+                        <tr>
+                            <td class="label"><strong>Start Date:</strong></td>
+                            <td class="value">{{ $request->start_date }}</td>
+                        </tr>
+                        <tr>
+                            <td class="label"><strong>End Date:</strong></td>
+                            <td class="value">{{ $request->end_date }}</td>
+                        </tr>
+                        <tr>
+                            <td class="label"><strong>Leave Type:</strong></td>
+                            <td class="value">{{ ucfirst(str_replace('_', ' ', $request->leave_type)) }}</td>
+                        </tr>
+                    </table>
+                </td>
+                <td style="width:50%;">
+                    <table class="inner-table">
+                        @if ($request->leave_type === 'other')
+                            <tr>
+                                <td class="label"><strong>Other Reason:</strong></td>
+                                <td class="value">{{ $request->other_reason ?? 'N/A' }}</td>
+                            </tr>
+                        @endif
+                        <tr>
+                            <td class="label"><strong>Uploaded File:</strong></td>
+                            <td class="value">{{ $request->attachment ? 'Attached' : 'N/A' }}</td>
+                        </tr>
+                        <tr>
+                            <td class="label"><strong>Status:</strong></td>
+                            <td class="value">{{ ucfirst($request->status) }}</td>
+                        </tr>
+                        <tr>
+                            <td class="label"><strong>Created At:</strong></td>
+                            <td class="value">{{ $request->created_at->format('Y-m-d H:i:s') }}</td>
+                        </tr>
+                        <tr>
+                            <td class="label"><strong>Updated At:</strong></td>
+                            <td class="value">{{ $request->updated_at->format('Y-m-d H:i:s') }}</td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+
+        <div class="bottom-section">
+            <div class="bottom-left">
+                <p><strong>Employee Signature:</strong></p>
+                <div class="signature">
+                    @if ($request->employee_signature)
+                        <img src="{{ public_path('storage/' . $request->employee_signature) }}" alt="Signature">
+                    @else
+                        <p>N/A</p>
+                    @endif
+                </div>
+            </div>
+            <div class="bottom-right">
+                <p><strong>Manager Comments:</strong> {{ $request->manager_comments ?? 'N/A' }}</p>
+                <p><strong>Approved By:</strong>
+                    {{ optional(\App\Models\User::find($request->approved_by))->full_name ?? 'N/A' }}</p>
+            </div>
         </div>
-        <div class="form-row">
-            <span class="form-label">Start Date:</span>
-            <span class="form-value">{{ $request->start_date }}</span>
-            <span class="form-label">End Date:</span>
-            <span class="form-value">{{ $request->end_date }}</span>
-        </div>
-        <div class="form-row">
-            <span class="form-label">Leave Type:</span>
-            <span class="form-value">{{ ucfirst(str_replace('_', ' ', $request->leave_type)) }}</span>
-        </div>
-        <div class="form-row">
-            <span class="form-label">Other Reason:</span>
-            <span class="form-value">{{ $request->other_reason ?? 'N/A' }}</span>
-        </div>
-        <div class="signature">
-            <strong>Employee Signature:</strong>
-            @if ($request->employee_signature)
-                <img src="{{ public_path('storage/' . $request->employee_signature) }}" alt="Signature">
-            @else
-                N/A
-            @endif
-        </div>
-        <div class="form-row">
-            <span class="form-label">Uploaded File:</span>
-            <span class="form-value">{{ $request->attachment ? 'Attached' : 'N/A' }}</span>
-        </div>
-        <div class="form-row">
-            <span class="form-label">Status:</span>
-            <span class="form-value">{{ ucfirst($request->status) }}</span>
-        </div>
-        <div class="form-row">
-            <span class="form-label">Approved By:</span>
-            <span
-                class="form-value">{{ optional(\App\Models\User::find($request->approved_by))->full_name ?? 'N/A' }}</span>
-        </div>
-        <div class="form-row">
-            <span class="form-label">Manager Comments:</span>
-            <span class="form-value">{{ $request->manager_comments ?? 'N/A' }}</span>
-        </div>
-        <div class="form-row">
-            <span class="form-label">Created At:</span>
-            <span class="form-value">{{ $request->created_at->format('Y-m-d H:i:s') }}</span>
-            <span class="form-label">Updated At:</span>
-            <span class="form-value">{{ $request->updated_at->format('Y-m-d H:i:s') }}</span>
-        </div>
+
+        <footer>
+            <p>Thank you for your request.</p>
+            <p>Please retain this document for your records.</p>
+        </footer>
     </div>
-
-
-
-    <footer>
-        <p>Thank you for your request.</p>
-        <p>Please retain this document for your records.</p>
-    </footer>
 </body>
 
 </html>

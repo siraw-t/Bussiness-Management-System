@@ -5,59 +5,112 @@ namespace App\Http\Controllers;
 
 use App\Models\Inventory;
 use App\Models\User;
+use App\Models\Company;
+use App\Models\StockRequisition;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Notifications\StockOutNotification; // Ensure this is imported
+use App\Notifications\StockFulfilledNotification;
 use Illuminate\Support\Facades\Notification;
-use App\Models\StockRequisition;
-
+use App\Notifications\LowStockNotification;
+use PDF;
 
 class InventoryController extends Controller
 {
     public function index()
     {   
-      
-        $inventories = Inventory::all();
         $inventories = Inventory::with('stockRequisition')->get();
+        $users = User::all();
+        $notifications = Auth::user()->notifications;
 
-        return view('inventory.index', compact('inventories'));
+        return view('inventory.index', compact('inventories', 'users', 'notifications'));
     }
 
     public function create()
     {
-
         return view('inventory.create');
     }
 
     public function store(Request $request)
+{
+    $request->validate([
+        'item_name' => 'required|string|max:255',
+        'tag_number' => 'nullable|string|max:255',
+        'item_type' => 'required|in:fixed asset,consumable',
+        'quantity' => 'required|integer|min:0',
+        'unit_price' => 'required|numeric|min:0',
+        'description' => 'nullable|string',
+        'stock_in_date' => 'nullable|date',
+        'currency' => 'required|string',
+        'unit' => 'required|string',
+    ]);
+
+    $employee = Auth::user();
+
+    // Retrieve the manager associated with the employee's company
+    $manager = User::where('company_id', $employee->company_id)
+                   ->where('role', 'manager') // Ensure we get the manager
+                   ->first();
+
+    // Get the user's company country
+    $user = Auth::user();
+    $companyCountry = $user->company ? $user->company->country : null;
+
+    $company = Company::find($employee->company_id);
+
+         // Function to create an acronym from the company name
+    function createAcronym($companyName)
     {
-        $request->validate([
-            'item_name' => 'required|string|max:255',
-            'tag_number' => 'nullable|string|max:255',
-            'item_type' => 'required|in:fixed asset,consumable',
-            'reference_number' => 'required|string|unique:inventory',
-            'quantity' => 'required|integer|min:0',
-            'unit_price' => 'required|numeric|min:0',
-            'description' => 'nullable|string',
-            'stock_in_date' => 'nullable|date',
-            'managed_by' => 'nullable|integer',
-        ]);
+        $words = explode(' ', $companyName);
+        $acronym = '';
 
-        Inventory::create([
-            'item_name' => $request->item_name,
-            'tag_number' => $request->tag_number,
-            'item_type' => $request->item_type,
-            'reference_number' => $request->reference_number,
-            'quantity' => $request->quantity,
-            'unit_price' => $request->unit_price,
-            'total_price' => $request->quantity * $request->unit_price,
-            'description' => $request->description,
-            'stock_in_date' => $request->stock_in_date,
-            'managed_by' => Auth::id(),
-        ]);
+        foreach ($words as $word) {
+            if (!empty($word)) {
+                $acronym .= strtoupper($word[0]); // Take the first letter of each word
+            }
+        }
 
-        return redirect()->route('inventory.index')->with('success', 'Inventory item created successfully.');
+        return $acronym;
     }
+
+    // Generate the acronym for the company name
+    $companyAcronym = createAcronym($company->company_name);
+
+    // Format the reference number
+    $requestName = 'IVM_Req'; // Using the table name
+    $currentYear = date('Y');
+
+    // Get the last reference number for the same request name and year to increment
+    $lastRequest = Inventory::where('reference_number', 'LIKE', "{$companyAcronym}/{$requestName}/{$currentYear}/%")
+        ->orderBy('created_at', 'desc')
+        ->first();
+
+    // Determine the next sequence number
+    $sequenceNumber = $lastRequest ? intval(substr($lastRequest->reference_number, strrpos($lastRequest->reference_number, '/') + 1)) + 1 : 1;
+
+    // Format the reference number
+    $reference_number = "{$companyAcronym}/{$requestName}/{$currentYear}/" . str_pad($sequenceNumber, 2, '0', STR_PAD_LEFT);
+
+
+    Inventory::create([
+        'item_name' => $request->item_name,
+        'tag_number' => $request->tag_number,
+        'item_type' => $request->item_type,
+        'reference_number' => $reference_number, // Use the generated reference number
+        'quantity' => $request->quantity,
+        'unit_price' => $request->unit_price,
+        'total_price' => $request->quantity * $request->unit_price,
+        'description' => $request->description,
+        'stock_in_date' => $request->stock_in_date,
+        'managed_by' => Auth::id(),
+        'currency' => $request->currency,
+        'unit' => $request->unit,
+        'company_country' => $companyCountry, // Set the company country
+        'approved_by' => $manager->user_id,
+
+    ]);
+
+    return redirect()->route('inventory.index')->with('success', 'Inventory item created successfully.');
+}
 
     public function edit(Inventory $inventory)
     {
@@ -70,16 +123,19 @@ class InventoryController extends Controller
             'item_name' => 'required|string|max:255',
             'tag_number' => 'nullable|string|max:255',
             'item_type' => 'required|in:fixed asset,consumable',
-            'reference_number' => 'required|string|unique:inventory,reference_number,' . $inventory->inventory_id,
+            // 'reference_number' => 'required|string|unique:inventory,reference_number,' . $inventory->inventory_id,
             'quantity' => 'required|integer|min:0',
             'unit_price' => 'required|numeric|min:0',
             'description' => 'nullable|string',
             'stock_in_date' => 'nullable|date',
+            'currency' => 'required|string',
+            'unit' => 'required|string',
         ]);
 
         $inventory->update($request->only([
-            'item_name', 'tag_number', 'item_type', 'reference_number',
-            'quantity', 'unit_price', 'total_price', 'description', 'stock_in_date'
+            'item_name', 'tag_number', 'item_type',
+            'quantity', 'unit_price', 'total_price', 'description', 'stock_in_date',
+            'currency', 'unit', 
         ]));
 
         return redirect()->route('inventory.index')->with('success', 'Inventory item updated successfully.');
@@ -91,77 +147,74 @@ class InventoryController extends Controller
         return redirect()->route('inventory.index')->with('success', 'Inventory item deleted successfully.');
     }
 
-//     public function stockOut(Request $request, Inventory $inventory)
-// {
-//     $request->validate([
-//         'issued_quantity' => 'required|integer|min:1|max:' . $inventory->quantity,
-//         'issued_unit_price' => 'required|numeric|min:0',
-//         'issued_department' => 'nullable|string|max:255',
-//         'received_by' => 'nullable|exists:users,user_id' // Ensure this references a valid user
-//     ]);
+    public function stockOut(Request $request, Inventory $inventory)
+    {
+        $request->validate([
+            'issued_quantity' => 'required|integer|min:1|max:' . $inventory->quantity,
+            'issued_unit_price' => 'required|numeric|min:0',
+            'issued_currency' => 'required|string',
+            'issued_unit' => 'required|string',
+            'issued_department' => 'nullable|string|max:255',
+            'received_by' => 'nullable|exists:users,user_id',
+        ]);
 
-//     // Check if the employee comment is 'received'
-//     $employeeComment = $request->input('employee_comment', 'not_received'); // Default to 'not_received'
+        // Get the latest stock requisition for this inventory item
+        $requisition = StockRequisition::where('item_name', $inventory->item_name)
+                                       ->where('status', 'approved')
+                                       ->first();
 
-//     // Update issued quantities
-//     $inventory->issued_quantity = $request->issued_quantity;
-//     $inventory->issued_unit_price = $request->issued_unit_price;
-//     $inventory->issued_total_price = $request->issued_quantity * $request->issued_unit_price;
-//     $inventory->issued_department = $request->issued_department; // If used
-//     $inventory->received_by = $request->received_by; // If used
-//     $inventory->stock_out_date = now();
+        if ($requisition && $requisition->employee_comment === 'received') {
+            // Proceed with issuing stock
+            $inventory->issued_quantity = $request->issued_quantity;
+            $inventory->issued_unit_price = $request->issued_unit_price;
+            $inventory->issued_total_price = $request->issued_quantity * $request->issued_unit_price;
+            $inventory->issued_department = $request->issued_department;
+            $inventory->received_by = $request->received_by;
+            $inventory->stock_out_date = now();
+            $inventory->issued_currency = $request->issued_currency;
+            $inventory->issued_unit = $request->issued_unit;
 
-//     // Only decrease the quantity if the employee comment is 'received'
-//     if ($employeeComment === 'received') {
-//         $inventory->quantity -= $request->issued_quantity; // Reduce the quantity
-//     }
+            // Decrease the quantity
+            $inventory->quantity -= $request->issued_quantity;
+            $inventory->balance_quantity = $inventory->quantity;
+            $inventory->balance_total_price = $inventory->balance_quantity * $inventory->unit_price;
+            $inventory->total_price = $inventory->balance_total_price;
 
-//     // Always update balance
-//     $inventory->balance_quantity = $inventory->quantity; // Update balance
-//     $inventory->balance_total_price = $inventory->balance_quantity * $inventory->unit_price; // Update total value
+            // Save the inventory
+            $inventory->save();
 
-//     $inventory->save();
+            // Notify the requester
+            $employee = User::find($request->received_by);
+            if ($employee) {
+                Notification::send($employee, new StockFulfilledNotification([
+                    'message' => 'Your stock request for ' . $inventory->item_name . ' has been fulfilled.'
+                ]));
+            }
 
-//     return redirect()->route('inventory.index')->with('success', 'Stock-out recorded successfully.');
-// }
+            // Notify storekeeper if stock is low
+            if ($inventory->quantity <= 5) {
+                $storekeeper = User::where('role', 'storekeeper')->first();
+                if ($storekeeper) {
+                    $storekeeper->notify(new LowStockNotification([
+                        'message' => 'Stock for ' . $inventory->item_name . ' is low. Only ' . $inventory->quantity . ' left.'
+                    ]));
+                }
+            }
 
-public function stockOut(Request $request, Inventory $inventory)
-{
-    // Validate the request
-    $request->validate([
-        'issued_quantity' => 'required|integer|min:1|max:' . $inventory->quantity,
-        'issued_unit_price' => 'required|numeric|min:0',
-        'issued_department' => 'nullable|string|max:255',
-        'received_by' => 'nullable|exists:users,user_id', // Ensure this references a valid user
-        'employee_comment' => 'required|string|in:received,not_received', // Add this validation
-    ]);
-
-    // Update issued quantities
-    $inventory->issued_quantity = $request->issued_quantity;
-    $inventory->issued_unit_price = $request->issued_unit_price;
-    $inventory->issued_total_price = $request->issued_quantity * $request->issued_unit_price;
-    $inventory->issued_department = $request->issued_department; // If used
-    $inventory->received_by = $request->received_by; // If used
-    $inventory->stock_out_date = now();
-
-    // Update balance and quantity only if the comment is 'received'
-    if ($request->employee_comment === 'received') {
-        $inventory->quantity -= $request->issued_quantity; // Reduce the quantity
-        $inventory->balance_quantity = $inventory->quantity; // Update balance
-        $inventory->balance_total_price = $inventory->balance_quantity * $inventory->unit_price; // Update total value
-        $inventory->total_price = $inventory->balance_total_price;
-
-        // // Send notification to the user who received the stock
-        // $requester = User::find($request->received_by);
-        // if ($requester) {
-        //     Notification::send($requester, new StockOutNotification($inventory));
-        // }
+            return redirect()->route('inventory.index')->with('success', 'Stock-out recorded successfully.');
+        } else {
+            return redirect()->route('inventory.index')->with('error', 'Cannot issue stock. Employee comment must be "received" or no approved requisition found.');
+        }
     }
 
-    // Save the inventory
-    $inventory->save();
+    public function downloadPdf($id)
+    {
+        $inventory = Inventory::findOrFail($id);
+        $company = Auth::user()->company;
 
-    return redirect()->route('inventory.index')->with('success', 'Stock-out recorded successfully.');
-}
+        $pdf = PDF::loadView('inventory.pdf', compact('inventory', 'company'))
+            ->setPaper('A4', 'portrait');
 
+        return $pdf->download('inventory_' . $inventory->inventory_id . '.pdf');
+    }
 }

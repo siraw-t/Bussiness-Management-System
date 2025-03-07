@@ -54,7 +54,7 @@
 
 @section('content')
     <div class="container-fluid mt-5">
-        <h2 class="text-center text-primary mb-4">{{ Auth::user()->company->company_name }} Leave Requests</h2>
+        <h2 class="text-center text-primary mb-4">Leave Requests</h2>
 
         <div class="table-responsive">
             <table class="table table-bordered table-striped table-hover">
@@ -70,6 +70,8 @@
                         <th>Status</th>
                         <th>Approved By</th>
                         <th>Manager Comments</th>
+                        <th>Company Country</th>
+                        <th>Reference Number</th>
                         <th>Created At</th>
                         <th>Updated At</th>
                         <th>Action</th>
@@ -81,22 +83,20 @@
                             $user = auth()->user();
                             $companyId = $user->company_id ?? null;
 
-                            if ($companyId) {
-                                $filteredLeaveRequests = $leaveRequests->filter(function ($request) use ($companyId) {
-                                    return optional($request->user)->company_id == $companyId;
-                                });
-                            } else {
-                                $filteredLeaveRequests = collect();
-                            }
+                            $filteredLeaveRequests = $companyId
+                                ? $leaveRequests->filter(
+                                    fn($request) => optional($request->user)->company_id == $companyId,
+                                )
+                                : collect();
                         @endphp
 
                         @if ($filteredLeaveRequests->isEmpty())
                             <tr>
-                                <td colspan="10" class="text-center text-danger">No leave requests found.</td>
+                                <td colspan="15" class="text-center text-danger">No leave requests found.</td>
                             </tr>
                         @else
                             @foreach ($filteredLeaveRequests as $request)
-                                <tr class="align-middle" style="transition: background-color 0.3s;">
+                                <tr class="align-middle">
                                     <td>{{ $request->employee->full_name ?? 'N/A' }}</td>
                                     <td>{{ $request->start_date }}</td>
                                     <td>{{ $request->end_date }}</td>
@@ -126,17 +126,20 @@
                                     </td>
                                     <td>{{ optional(\App\Models\User::find($request->approved_by))->full_name ?? 'N/A' }}</td>
                                     <td>{{ $request->manager_comments ?? 'N/A' }}</td>
+                                    <td>{{ $request->company_country }}</td>
+                                    <td>{{ $request->reference_number }}</td>
                                     <td>{{ $request->created_at->format('Y-m-d H:i:s') }}</td>
                                     <td>{{ $request->updated_at->format('Y-m-d H:i:s') }}</td>
-                                    <td><a href="{{ route('leave-requests.downloadPdf', $request) }}"
-                                            class="btn btn-info">Download
-                                            PDF</a></td>
+                                    <td>
+                                        <a href="{{ route('leave-requests.downloadPdf', $request) }}"
+                                            class="btn btn-info">Download PDF</a>
+                                    </td>
                                 </tr>
                             @endforeach
                         @endif
                     @else
                         <tr>
-                            <td colspan="10" class="text-center">
+                            <td colspan="15" class="text-center">
                                 <a href="{{ route('login') }}" class="btn btn-primary">Please log in to view your leave
                                     requests.</a>
                             </td>

@@ -10,9 +10,7 @@
         .header {
             font-weight: bold;
             margin-bottom: 20px;
-            /* Space below the header */
             font-size: 2em;
-            /* Larger font size for prominence */
         }
 
         .table {
@@ -22,48 +20,36 @@
 
         .thead-light th {
             background-color: #007bff;
-            /* Primary color */
             color: white;
             text-align: center;
         }
 
         .table-hover tbody tr:hover {
             background-color: #f1f1f1;
-            /* Light gray on hover */
             transform: scale(1.02);
-            /* Slightly enlarge on hover */
             transition: all 0.2s ease;
-            /* Smooth transition */
         }
 
         .action-buttons {
             min-width: 120px;
-            /* Ensure enough space for buttons */
         }
 
         .action-buttons .btn {
             margin-left: 5px;
-            /* Space between buttons */
         }
 
         .form-group {
             margin-bottom: 0;
-            /* Remove bottom margin for form groups */
         }
 
-        /* Style for the submit button */
         .btn-success {
             background-color: #28a745;
-            /* Green background */
             border-color: #28a745;
-            /* Green border */
         }
 
         .btn-success:hover {
             background-color: #218838;
-            /* Darker green on hover */
             border-color: #1e7e34;
-            /* Darker green border on hover */
         }
 
         @media (max-width: 768px) {
@@ -75,9 +61,8 @@
 </head>
 
 <body>
-    <!-- Pending Purchase Requests -->
     <div class="container mt-4 mb-5">
-        <h2 class="header text-center text-primary mb-4">{{ Auth::user()->company->company_name }} Pending Requests</h2>
+        <h2 class="header text-center text-primary mb-4">Pending Requests</h2>
         <div class="text-center mb-4">
             <a class="btn btn-outline-primary btn-lg" href="{{ route('finance.dashboard') }}">
                 <i class="fas fa-arrow-left"></i> Back to Dashboard
@@ -96,9 +81,13 @@
                     <thead class="thead-light">
                         <tr>
                             <th>Reference Number</th>
-                            <th>Item Info</th>
+                            <th>Item Name</th>
+                            <th>Item Description</th>
                             <th>Quantity</th>
+                            <th>Unit</th>
                             <th>Price</th>
+                            <th>Total Price</th>
+                            <th>Company Country</th>
                             <th>Requested By</th>
                             <th>Finance Comment</th>
                             <th>Manager Comment</th>
@@ -112,13 +101,17 @@
                         @foreach ($pendingPurchaseRequests as $request)
                             <tr>
                                 <td>{{ $request->reference_number }}</td>
-                                <td>{{ $request->item_info }}</td>
-                                <td>{{ $request->quantity_with_unit }}</td>
-                                <td>{{ $request->price_with_currency }}</td>
-                                <td>{{ $request->user->full_name }}</td>
+                                <td>{{ $request->item_name }}</td>
+                                <td>{{ $request->item_description ?? 'N/A' }}</td>
+                                <td>{{ $request->quantity }}</td>
+                                <td>{{ $request->unit }}</td>
+                                <td>{{ $request->price }} {{ $request->currency }}</td>
+                                <td>{{ $request->total_price }} {{ $request->currency }}</td>
+                                <td>{{ $request->company_country }}</td>
+                                <td>{{ $request->user->full_name ?? 'N/A' }}</td>
                                 <td>{{ $request->finance_comment ?? 'N/A' }}</td>
                                 <td>{{ $request->manager_comment ?? 'N/A' }}</td>
-                                <td>{{ $request->checkedBy ? $request->checkedBy->full_name : 'Not Checked' }}</td>
+                                <td>{{ optional($request->checkedBy)->full_name ?? 'Not Checked' }}</td>
                                 <td>{{ optional(\App\Models\User::find($request->approved_by))->full_name ?? 'N/A' }}
                                 </td>
                                 <td>

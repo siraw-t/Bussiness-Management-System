@@ -9,22 +9,45 @@
             @csrf
 
             <div class="form-group mb-3">
-                <label for="item_info">Item Info</label>
-                <input type="text" name="item_info" class="form-control" required>
+                <label for="item_name">Item Name</label>
+                <input type="text" name="item_name" class="form-control" required>
             </div>
 
             <div class="form-group mb-3">
-                <label for="quantity_with_unit">Quantity with Unit</label>
-                <input type="text" name="quantity_with_unit" class="form-control" required>
+                <label for="item_description">Item Description</label>
+                <textarea name="item_description" class="form-control" rows="3"></textarea>
             </div>
 
             <div class="form-group mb-3">
-                <label for="price_with_currency">Price with Currency</label>
-                <input type="text" name="price_with_currency" class="form-control" required>
+                <label for="quantity">Quantity</label>
+                <input type="number" name="quantity" class="form-control" required>
             </div>
 
             <div class="form-group mb-3">
-                <label for="attachments">Attachments (At least 3 files required)</label>
+                <label for="unit">Unit</label>
+                <select name="unit" class="form-control" required>
+                    <option value="kg">KG</option>
+                    <option value="ltr">LTR</option>
+                    <option value="pcs">Pcs</option>
+                </select>
+            </div>
+
+            <div class="form-group mb-3">
+                <label for="price">Price</label>
+                <input type="number" step="0.01" name="price" class="form-control" required>
+            </div>
+
+            <div class="form-group mb-3">
+                <label for="currency">Currency</label>
+                <select name="currency" class="form-control" required>
+                    <option value="USD">USD</option>
+                    <option value="ETB">ETB</option>
+                    <option value="UGX">UGX</option>
+                </select>
+            </div>
+
+            <div class="form-group mb-3">
+                <label for="attachments">Attachments</label>
                 <input type="file" name="attachments[]" class="form-control" multiple required>
             </div>
 

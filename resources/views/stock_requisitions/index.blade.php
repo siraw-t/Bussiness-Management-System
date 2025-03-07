@@ -4,14 +4,14 @@
     <div class="container mt-5">
         <h1 class="text-center text-success mb-4">Stock Requisitions</h1>
 
-        @if (session('success'))
+        {{-- @if (session('success'))
             <div class="alert alert-success fade show" role="alert">
                 {{ session('success') }}
             </div>
-        @endif
+        @endif --}}
 
         <div class="text-center mb-4">
-            <a href="{{ route('stock_requisitions.create') }}" class="btn btn-primary btn-lg">
+            <a href="{{ route('stock_requisitions.create') }}" class="btn btn-primary btn-sm">
                 <i class="fas fa-plus-circle"></i> Create New Requisition
             </a>
         </div>
@@ -20,11 +20,15 @@
             <table class="table table-striped table-hover table-bordered mt-3">
                 <thead class="thead-dark">
                     <tr>
-                        <th>Item Name & Description</th>
+                        <th>Reference Number</th>
+                        <th>Item Name</th>
+                        <th>Description</th>
                         <th>Quantity Requested</th>
+                        <th>Unit Requested</th>
                         <th>Quantity Approved</th>
                         <th>Status</th>
                         <th>Requested By</th>
+                        <th>Company Country</th>
                         <th>Manager Comment</th>
                         <th>Approved By</th>
                         <th>Employee Comment</th>
@@ -34,8 +38,11 @@
                 <tbody>
                     @foreach ($requisitions as $requisition)
                         <tr>
-                            <td>{{ $requisition->item_name_with_description }}</td>
+                            <td>{{ $requisition->reference_number }}</td>
+                            <td>{{ $requisition->item_name }}</td>
+                            <td>{{ $requisition->description ?? 'N/A' }}</td>
                             <td>{{ $requisition->quantity_requested }}</td>
+                            <td>{{ $requisition->unit_requested ?? 'N/A' }}</td>
                             <td>{{ $requisition->quantity_approved ?? 'N/A' }}</td>
                             <td>{{ ucfirst($requisition->status) }}</td>
                             <td>
@@ -45,13 +52,13 @@
                                     N/A
                                 @endif
                             </td>
+                            <td>{{ $requisition->company_country }}</td>
                             <td>{{ $requisition->manager_comment ?? 'N/A' }}</td>
                             <td>
-                                @if ($requisition->approved_by)
-                                    {{ optional(\App\Models\User::find($requisition->approved_by))->full_name ?? 'N/A' }}
-                                @else
-                                    N/A
-                                @endif
+                                @php
+                                    $approver = \App\Models\User::find($requisition->approved_by);
+                                @endphp
+                                {{ optional($approver)->full_name ?? 'N/A' }}
                             </td>
                             <td>
                                 <form action="{{ route('stock_requisitions.comment', $requisition->stock_requisition_id) }}"
@@ -79,22 +86,32 @@
                                     </button>
                                 </form>
                             </td>
-
                             <td>
-                                <a href="{{ route('stock_requisitions.edit', $requisition->stock_requisition_id) }}"
-                                    class="btn btn-warning btn-sm">
-                                    <i class="fas fa-edit"></i> Edit
-                                </a>
+                                @if ($requisition->status === 'approved')
+                                    <span class="btn btn-warning btn-sm disabled" title="Cannot edit approved requisitions">
+                                        <i class="fas fa-edit"></i>
+                                    </span>
+                                @else
+                                    <a href="{{ route('stock_requisitions.edit', $requisition->stock_requisition_id) }}"
+                                        class="btn btn-warning btn-sm">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                @endif
                                 <form
                                     action="{{ route('stock_requisitions.destroy', $requisition->stock_requisition_id) }}"
                                     method="POST" style="display:inline;">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="btn btn-danger btn-sm"
-                                        onclick="return confirm('Are you sure you want to delete this requisition?');">
-                                        <i class="fas fa-trash"></i> Delete
+                                        onclick="return confirm('Are you sure you want to delete this requisition?');"
+                                        @if ($requisition->status === 'approved') disabled @endif>
+                                        <i class="fas fa-trash"></i>
                                     </button>
                                 </form>
+                                <a href="{{ route('stock_requisitions.downloadPdf', $requisition) }}"
+                                    class="btn btn-info btn-sm">
+                                    <i class="bi bi-file-earmark-pdf"></i>
+                                </a>
                             </td>
                         </tr>
                     @endforeach
@@ -129,4 +146,21 @@
                 });
         }
     </script>
+
+    <style>
+        @media (max-width: 375px) {
+            .btn {
+                font-size: 0.8rem;
+                /* Smaller font size for mobile */
+                padding: 0.4rem 0.6rem;
+                /* Reduced padding */
+            }
+
+            .table th,
+            .table td {
+                font-size: 0.9rem;
+                /* Smaller text for table */
+            }
+        }
+    </style>
 @endsection

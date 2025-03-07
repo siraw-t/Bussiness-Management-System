@@ -18,13 +18,14 @@
                 </select>
             </div>
             <div class="form-group mb-3">
-                <label for="budget_description">Budget Description</label>
-                <textarea name="budget_description" class="form-control" placeholder="Add a description"></textarea>
-            </div>
-            <div class="form-group mb-3">
                 <label for="budget_item">Budget Item</label>
                 <input type="text" name="budget_item" class="form-control" placeholder="Enter budget item">
             </div>
+            <div class="form-group mb-3">
+                <label for="budget_description">Budget Description</label>
+                <textarea name="budget_description" class="form-control" placeholder="Add a description"></textarea>
+            </div>
+
             <div class="form-group mb-3">
                 <label for="budget_code">Budget Code</label>
                 <input type="text" name="budget_code" class="form-control" placeholder="Enter budget code">
@@ -38,12 +39,32 @@
                 <input type="text" name="budget_source" class="form-control" placeholder="Enter budget source">
             </div>
             <div class="form-group mb-3">
-                <label for="quantity_with_unit">Quantity with Unit</label>
-                <input type="text" name="quantity_with_unit" class="form-control" placeholder="E.g., 2 pcs">
+                <label for="quantity">Quantity</label>
+                <input type="number" name="quantity" class="form-control" placeholder="Enter quantity">
+            </div>
+            <div class="form-group mb-3">
+                <label for="unit">Unit</label>
+                <select name="unit" class="form-control" required>
+                    <option value="" disabled selected>Select unit</option>
+                    <option value="pcs">Pieces</option>
+                    <option value="kg">Kilograms</option>
+                    <option value="liters">Liters</option>
+                    <option value="boxes">Boxes</option>
+                </select>
             </div>
             <div class="form-group mb-3">
                 <label for="unit_cost">Unit Cost</label>
                 <input type="number" name="unit_cost" class="form-control" step="0.01" placeholder="Enter unit cost">
+            </div>
+            <div class="form-group mb-3">
+                <label for="currency">Currency</label>
+                <select name="currency" class="form-control" required>
+                    <option value="" disabled selected>Select currency</option>
+                    <option value="USD">USD</option>
+                    <option value="EUR">EUR</option>
+                    <option value="ETB">ETB</option>
+                    <option value="UGX">UGX</option>
+                </select>
             </div>
 
             <button type="submit" class="btn btn-primary btn-lg w-100">Add Budget</button>

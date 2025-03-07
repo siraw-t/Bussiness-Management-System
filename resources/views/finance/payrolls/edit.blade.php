@@ -47,6 +47,18 @@
             </div>
 
             <div class="form-group mb-3">
+                <label for="currency">Currency</label>
+                <select name="currency" class="form-control" required>
+                    <option value="">-- Select Currency --</option>
+                    @foreach ($currencies as $currency)
+                        <option value="{{ $currency }}" {{ $payroll->currency == $currency ? 'selected' : '' }}>
+                            {{ $currency }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="form-group mb-3">
                 <label for="transport_allowance">Transport Allowance</label>
                 <input type="number" name="transport_allowance" class="form-control"
                     value="{{ $payroll->transport_allowance }}" step="0.01" placeholder="Enter transport allowance">
@@ -99,15 +111,11 @@
         </form>
     </div>
 
-    <!-- Optional: Add Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
-
-    <!-- Optional: Add custom CSS for additional effects -->
     <style>
         .form-control:focus {
             box-shadow: none;
             border-color: #80bdff;
-            /* Bootstrap primary color */
         }
 
         .btn-warning {
@@ -116,7 +124,6 @@
 
         .btn-warning:hover {
             background-color: #ffca2c;
-            /* Lighter shade for hover */
         }
     </style>
 @endsection

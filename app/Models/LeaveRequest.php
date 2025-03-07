@@ -1,6 +1,5 @@
 <?php
 
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -12,16 +11,19 @@ class LeaveRequest extends Model
     public $incrementing = true;
 
     protected $fillable = [
-        'user_id', 
-        'start_date', 
-        'end_date', 
-        'leave_type', 
-        'other_reason', 
-        'employee_signature', 
-        'attachment', 
-        'status', 
+        'user_id',
+        'start_date',
+        'end_date',
+        'leave_type',
+        'other_reason',
+        'employee_signature',
+        'attachment',
+        'status',
         'approved_by',
-        'manager_comments', // Add this line
+        'manager_comments',
+        'company_country',
+        'reference_number',
+        'annual_leave_limit',
     ];
 
     public function user()
@@ -33,6 +35,4 @@ class LeaveRequest extends Model
     {
         return $this->belongsTo(User::class, 'approved_by', 'user_id');
     }
-
-    
 }

@@ -13,17 +13,23 @@ return new class extends Migration
     {
         Schema::create('stock_requisitions', function (Blueprint $table) {
             $table->bigIncrements('stock_requisition_id'); // Primary key
-            $table->string('item_name_with_description');
-            $table->integer('quantity_requested');
-            $table->integer('quantity_approved')->nullable();
-            $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
-            $table->text('manager_comment')->nullable();
-            $table->text('employee_comment')->nullable();
+            $table->string('item_name'); 
+            $table->text('description')->nullable(); // Item description
+        
+            $table->integer('quantity_requested'); // Quantity requested
+            $table->string('unit_requested')->nullable(); // Unit for the requested quantity
+            $table->integer('quantity_approved')->nullable(); // Quantity approved
+            $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending'); // Status
+            $table->text('manager_comment')->nullable(); // Manager's comment
+            $table->text('employee_comment')->nullable(); // Employee's comment
             $table->unsignedBigInteger('user_id'); // Reference to users table
-            $table->unsignedBigInteger('requested_by');
-            $table->unsignedBigInteger('approved_by')->nullable();
-    
-            $table->timestamps();
+            $table->unsignedBigInteger('requested_by'); // User who requested
+            $table->unsignedBigInteger('approved_by')->nullable(); // User who approved
+        
+            $table->string('reference_number')->unique(); // Unique reference number for the requisition
+            $table->string('company_country'); // Country of the company
+        
+            $table->timestamps(); // Created at and Updated at
         });
     }
 

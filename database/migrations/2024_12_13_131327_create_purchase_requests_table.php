@@ -15,9 +15,14 @@ return new class extends Migration
             $table->bigIncrements('purchase_request_id'); // Primary key
             $table->unsignedBigInteger('user_id'); // Reference to users table
             $table->string('reference_number')->unique(); // Unique reference number for each request
-            $table->text('item_info')->nullable(); // Combined item name and description
-            $table->string('quantity_with_unit'); // Combined quantity and unit (e.g., "10 pcs")
-            $table->string('price_with_currency'); // Combined price and currency (e.g., "100.00 USD")
+            $table->string('item_name'); // Separate item name
+            $table->text('item_description')->nullable(); // Separate item description
+            $table->integer('quantity'); // Quantity
+            $table->string('unit'); // Unit of measurement
+            $table->decimal('price', 10, 2); // Price without currency
+            $table->string('currency'); // Currency (e.g., USD)
+            $table->decimal('total_price', 10, 2); // Total price
+            $table->string('company_country'); // Country of the company
             $table->string('status')->default('pending'); // e.g., pending, approved, rejected
             $table->json('attachments')->nullable(); // Store multiple file paths as JSON
             $table->text('finance_comment')->nullable(); // Comments from finance

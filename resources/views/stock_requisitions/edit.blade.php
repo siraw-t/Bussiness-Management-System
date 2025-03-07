@@ -9,21 +9,26 @@
             @csrf
             @method('PUT')
             <div class="form-group mb-3">
-                <label for="item_name_with_description">Item Name & Description</label>
-                <select name="item_name_with_description" class="form-control" required>
-                    <option value="" disabled>Select an item</option>
-                    @foreach ($inventories as $inventory)
-                        <option value="{{ $inventory->item_name }}"
-                            {{ $inventory->item_name === $stockRequisition->item_name_with_description ? 'selected' : '' }}>
-                            {{ $inventory->item_name }}
-                        </option>
-                    @endforeach
-                </select>
+                <label for="item_name">Item Name</label>
+                <input type="text" name="item_name" class="form-control" value="{{ $stockRequisition->item_name }}"
+                    required>
             </div>
+
+            <div class="form-group mb-3">
+                <label for="description">Description</label>
+                <textarea name="description" class="form-control" rows="3">{{ $stockRequisition->description }}</textarea>
+            </div>
+
             <div class="form-group mb-3">
                 <label for="quantity_requested">Quantity Requested</label>
                 <input type="number" name="quantity_requested" class="form-control"
                     value="{{ $stockRequisition->quantity_requested }}" required min="1">
+            </div>
+
+            <div class="form-group mb-3">
+                <label for="unit_requested">Unit Requested</label>
+                <input type="text" name="unit_requested" class="form-control"
+                    value="{{ $stockRequisition->unit_requested }}" placeholder="e.g., pcs, kg">
             </div>
 
             <button type="submit" class="btn btn-warning w-100">

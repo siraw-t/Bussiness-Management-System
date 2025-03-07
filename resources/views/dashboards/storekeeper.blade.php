@@ -185,66 +185,67 @@
     <div class="container-fluid">
         <div class="row">
             <!-- Sidebar -->
-            <nav class="col-2 bg-dark text-white sidebar position-fixed pr-30" style="height: 100vh; top: 0; z-index: 1000;">
+            <nav class="col-md-2 col-lg-2 bg-dark text-white sidebar position-fixed" style="height: 100vh; z-index: 1000;">
                 <div class="position-sticky">
                     <div class="scrollable-links"
                         style="max-height: calc(100vh - 130px); overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none;">
+                        <h5 class="sidebar-title text-center mt-5 mb-4"
+                            style="font-size: 1.5rem; color: #ffffff; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);">
+                            Storekeeper Menu
+                        </h5>
                         <ul class="nav flex-column">
-                            <li class="nav-item mt-5">
-                                <h5 class="sidebar-title text-center mt-5 mb-4"
-                                    style="font-size: 1.5rem; color: #ffffff; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);">
-                                    Storekeeper Menu</h5>
+                            <li class="nav-item">
+                                <a class="nav-link text-white" href="{{ route('leave-requests.index') }}">
+                                    <i class="bi bi-card-list"></i> Leave Requests
+                                </a>
                             </li>
-                            <ul class="nav flex-column">
-                                <li class="nav-item">
-                                    <a class="nav-link text-white" href="{{ route('leave-requests.index') }}">
-                                        <i class="bi bi-card-list"></i> Leave Requests
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link text-white" href="{{ route('payment-requests.index') }}">
-                                        <i class="bi bi-cash"></i> Payment Requests
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link text-white" href="{{ route('purchase-requests.index') }}">
-                                        <i class="bi bi-cart"></i> Purchase Requests
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link text-white" href="{{ route('weekly-plan.index') }}">
-                                        <i class="bi bi-calendar-week"></i> Weekly Plans
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link text-white" href="{{ route('weekly-reports.index') }}">
-                                        <i class="bi bi-file-earmark-text"></i> Weekly Reports
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link text-white" href="{{ route('stock_requisitions.index') }}">
-                                        <i class="bi bi-file-earmark-text"></i> Request Stock
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link text-white" href="{{ route('display.stock-requisition') }}">
-                                        <i class="bi bi-file-earmark-text"></i> View Stock Requisitions
-                                    </a>
-                                </li>
-
-                                <li class="nav-item">
-                                    <a class="nav-link text-white" href="{{ route('inventory.index') }}">
-                                        <i class="fas fa-box"></i> <!-- Font Awesome icon -->
-                                        Inventory Management
-                                    </a>
-                                </li>
-
-                            </ul>
+                            <li class="nav-item">
+                                <a class="nav-link text-white" href="{{ route('payment-requests.index') }}">
+                                    <i class="bi bi-cash"></i> Payment Requests
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-white" href="{{ route('purchase-requests.index') }}">
+                                    <i class="bi bi-cart"></i> Purchase Requests
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-white" href="{{ route('weekly-plan.index') }}">
+                                    <i class="bi bi-calendar-week"></i> Weekly Plans
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-white" href="{{ route('weekly-reports.index') }}">
+                                    <i class="bi bi-file-earmark-text"></i> Weekly Reports
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-white" href="{{ route('stock_requisitions.index') }}">
+                                    <i class="bi bi-file-earmark-text"></i> Request Stock
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-white" href="{{ route('display.stock-requisition') }}">
+                                    <i class="bi bi-file-earmark-text"></i> View Stock Requisitions
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-white" href="{{ route('display.index') }}">
+                                    <i class="fas fa-box"></i> View Inventories
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-white" href="{{ route('inventory.index') }}">
+                                    <i class="fas fa-box"></i> Inventory Management
+                                </a>
+                            </li>
+                        </ul>
                     </div>
+                </div>
             </nav>
 
             <!-- Main Content -->
-            <main class="col-md-9 ms-sm-auto col-lg-10 px-4" style="margin-left: 0;">
+            <main class="col-md-10 ms-sm-auto col-lg-10 px-4" style="margin-left: 0;">
                 <!-- Dashboard Header -->
                 <h1 class="mb-4 text-center mt-5 animate__animated animate__fadeInDown"
                     style="color: #4A90E2; font-size: 2.5rem;">
@@ -254,8 +255,9 @@
                     <div class="card text-bg-success shadow-lg animated-card"
                         style="animation: slideIn 0.5s ease forwards; background: #28a745; border: none;">
                         <div class="card-body">
-                            <h5 class="card-title" style="color: white; font-weight: bold; display: inline-block;">Welcome
-                                to {{ Auth::user()->company->company_name }}</h5>
+                            <h5 class="card-title" style="color: white; font-weight: bold; display: inline-block;">
+                                Welcome to {{ Auth::user()->company->company_name }}
+                            </h5>
                             <button class="btn btn-light float-end" onclick="alert('Explore more!')"
                                 style="transition: background-color 0.3s;">
                                 <i class="fas fa-info-circle"></i> Info
@@ -296,53 +298,31 @@
 
                     .nav-link i {
                         margin-right: 10px;
-                        /* Space between icon and text */
                         transition: transform 0.3s ease;
-                        /* Animation for icon */
                     }
 
                     .nav-link:hover {
                         background-color: rgba(255, 255, 255, 0.1);
-                        /* Highlight on hover */
                         transform: scale(1.02);
-                        /* Slightly scale up on hover */
                     }
 
                     .nav-link:hover i {
                         transform: rotate(360deg);
-                        /* Rotate icon on hover */
-                    }
-
-                    .link-text {
-                        opacity: 1;
-                        /* Default visibility */
-                        transition: opacity 0.3s ease;
-                        /* Fade effect for text */
-                    }
-
-                    .nav-link:hover .link-text {
-                        opacity: 1;
-                        /* Ensure text is visible on hover */
                     }
 
                     /* Sidebar Toggle Button */
                     .sidebar-toggle {
                         display: none;
-                        /* Hide by default */
                         position: fixed;
-                        top: 5px;
-                        /* Adjust vertical position */
-                        left: 300px;
-                        /* Adjust horizontal position */
+                        top: 60px;
+                        left: 15px;
                         z-index: 1100;
-                        /* Ensure it's above other elements */
                     }
 
                     /* Mobile Styles */
                     @media (max-width: 768px) {
                         .sidebar-toggle {
                             display: block;
-                            /* Show toggle button on mobile */
                         }
 
                         .sidebar {
@@ -350,51 +330,48 @@
                             width: 250px;
                             height: 100vh;
                             left: -250px;
-                            /* Hide off-screen */
                             transition: left 0.3s ease;
                             z-index: 1000;
                         }
 
                         .sidebar.show {
                             left: 0;
-                            /* Show sidebar */
                         }
 
                         main {
                             margin-left: 0;
-                            /* No margin on mobile */
                         }
                     }
                 </style>
 
-                <!-- Sidebar Toggle Button -->
+                <!-- Sidebar Toggle Button for Mobile -->
                 <button class="btn btn-primary sidebar-toggle" onclick="toggleSidebar()">
                     <i class="bi bi-list"></i>
                 </button>
 
                 <!-- Analytics Section -->
                 <div class="row mb-4">
-                    <div class="col-md-6">
+                    <div class="col-md-6 mb-4">
                         <h5>Leave Requests Overview</h5>
                         <canvas id="leaveRequestsChart" class="chart"></canvas>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-6 mb-4">
                         <h5>Payment Requests Overview</h5>
                         <canvas id="paymentRequestsChart" class="chart"></canvas>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-6 mb-4">
                         <h5>Purchase Requests Overview</h5>
                         <canvas id="purchaseRequestsChart" class="chart"></canvas>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-6 mb-4">
                         <h5>Weekly Plans Overview</h5>
                         <canvas id="weeklyPlansChart" class="chart"></canvas>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-6 mb-4">
                         <h5>Weekly Reports Overview</h5>
                         <canvas id="weeklyReportsChart" class="chart"></canvas>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-6 mb-4">
                         <h5>Inventory Management Overview</h5>
                         <canvas id="inventoryChart" class="chart"></canvas>
                     </div>
@@ -548,7 +525,6 @@
                         data: weeklyReportsData,
                     });
 
-
                     // Create Inventory Chart
                     const ctxInventory = document.getElementById('inventoryChart').getContext('2d');
                     new Chart(ctxInventory, {
@@ -602,7 +578,6 @@
                         transition: transform 0.2s;
                     }
                 </style>
-
 
             </main>
         </div>

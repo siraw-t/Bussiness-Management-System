@@ -2,14 +2,14 @@
 
 @section('content')
     <div class="container mt-5">
-        <h1 class="text-center text-primary mb-4">{{ Auth::user()->full_name }}'s Weekly Reports</h1>
+        <h1 class="text-center text-primary mb-4"> Weekly Reports</h1>
 
-        @if (session('success'))
+        {{-- @if (session('success'))
             <div class="alert alert-success">{{ session('success') }}</div>
-        @endif
+        @endif --}}
 
         <div class="text-center mb-4">
-            <a href="{{ route('weekly-reports.create') }}" class="btn btn-primary btn-lg">
+            <a href="{{ route('weekly-reports.create') }}" class="btn btn-primary btn-sm">
                 <i class="bi bi-plus-circle"></i> Submit New Weekly Report
             </a>
         </div>
@@ -19,6 +19,7 @@
                 <thead class="thead-dark">
                     <tr>
                         <th>Full Name</th>
+                        <th>Company Country</th>
                         <th>Week</th>
                         <th>Last Week's Plan</th>
                         <th>Report</th>
@@ -35,30 +36,15 @@
                 <tbody>
                     @foreach ($reports as $report)
                         @php
-                            // // Debugging: Print the employee_id and week for the current report
-                            // echo 'Employee ID: ' . $report->employee_id . '<br>';
-                            // echo 'Report Week: ' . $report->week . '<br>';
-
                             // Fetch the plan for the same week as the report
                             $lastWeekPlan = \App\Models\EmployeePlan::where('employee_id', $report->employee_id)
-                                ->where('week', $report->week) // Fetch plan for the same week
+                                ->where('week', $report->week)
                                 ->orderBy('week', 'desc')
                                 ->first();
-
-                            //                             // Debugging: Print the last week's plan
-// if ($lastWeekPlan) {
-//     echo 'Last Week Plan: ' . $lastWeekPlan->plan . '<br>';
-// } else {
-//     echo 'No plan found for employee ID ' .
-//         $report->employee_id .
-//         ' and week ' .
-//         $report->week .
-//         '<br>';
-                            //                             }
-
                         @endphp
                         <tr>
-                            <td>{{ $report->employee->full_name }}</td> <!-- Use the report's user -->
+                            <td>{{ $report->employee->full_name }}</td>
+                            <td>{{ $report->employee->company->country ?? 'N/A' }}</td>
                             <td>{{ $report->week }}</td>
                             <td>
                                 @if ($lastWeekPlan)
@@ -81,18 +67,28 @@
                             </td>
                             <td>{{ $report->manager_comment ?? 'N/A' }}</td>
                             <td class="d-flex justify-content-around">
-                                <a href="{{ route('weekly-reports.edit', $report) }}" class="btn btn-warning btn-sm me-1">
-                                    <i class="bi bi-pencil"></i>
-                                </a>
+                                @if ($report->status === 'approved')
+                                    <span class="btn btn-warning btn-sm me-1 disabled" title="Cannot edit approved reports">
+                                        <i class="bi bi-pencil"></i>
+                                    </span>
+                                @else
+                                    <a href="{{ route('weekly-reports.edit', $report) }}"
+                                        class="btn btn-warning btn-sm me-1">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                @endif
+
                                 <form action="{{ route('weekly-reports.destroy', $report) }}" method="POST"
                                     class="me-1">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="btn btn-danger btn-sm"
-                                        onclick="return confirm('Are you sure?');">
+                                        onclick="return confirm('Are you sure?');"
+                                        @if ($report->status === 'approved') disabled @endif>
                                         <i class="bi bi-trash"></i>
                                     </button>
                                 </form>
+
                                 <a href="{{ route('weekly-reports.downloadPdf', $report->report_id) }}"
                                     class="btn btn-info btn-sm">
                                     <i class="bi bi-file-earmark-pdf"></i>
@@ -115,6 +111,19 @@
         @media (max-width: 768px) {
             .table-responsive {
                 overflow-x: auto;
+            }
+
+            .btn {
+                font-size: 0.8rem;
+                /* Smaller font size for mobile */
+                padding: 0.4rem 0.6rem;
+                /* Reduced padding */
+            }
+
+            .table th,
+            .table td {
+                font-size: 0.9rem;
+                /* Smaller text for table */
             }
         }
     </style>

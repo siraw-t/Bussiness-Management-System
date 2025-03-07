@@ -9,21 +9,44 @@
             @csrf
             @method('PUT')
 
+            {{-- <div class="form-group mb-3">
+                <label for="reference_no">Reference No</label>
+                <input type="text" name="reference_no" class="form-control"
+                    value="{{ old('reference_no', $paymentRequest->reference_no) }}">
+            </div> --}}
+
+            <div class="form-group mb-3">
+                <label for="department">Department</label>
+                <input type="text" name="department" class="form-control"
+                    value="{{ old('department', $paymentRequest->department) }}">
+            </div>
+
+            <div class="form-group mb-3">
+                <label for="item_name">Item Name</label>
+                <input type="text" name="item_name" class="form-control"
+                    value="{{ old('item_name', $paymentRequest->item_name) }}">
+            </div>
+
+            <div class="form-group mb-3">
+                <label for="item_description">Item Description</label>
+                <textarea name="item_description" class="form-control" rows="4" required>{{ old('item_description', $paymentRequest->item_description) }}</textarea>
+            </div>
+
             <div class="form-group mb-3">
                 <label for="amount">Amount</label>
-                <input type="number" name="amount" class="form-control" value="{{ old('amount', $paymentRequest->amount) }}"
-                    required>
+                <input type="number" name="amount" class="form-control"
+                    value="{{ old('amount', $paymentRequest->amount) }}" required>
             </div>
 
             <div class="form-group mb-3">
-                <label for="description">Description</label>
-                <textarea name="description" class="form-control" rows="4" required>{{ old('description', $paymentRequest->description) }}</textarea>
+                <label for="quantity">Quantity</label>
+                <input type="number" name="quantity" class="form-control"
+                    value="{{ old('quantity', $paymentRequest->quantity) }}">
             </div>
 
             <div class="form-group mb-3">
-                <label for="unit_and_qty">Unit and Quantity</label>
-                <input type="text" name="unit_and_qty" class="form-control"
-                    value="{{ old('unit_and_qty', $paymentRequest->unit_and_qty) }}">
+                <label for="unit">Unit</label>
+                <input type="text" name="unit" class="form-control" value="{{ old('unit', $paymentRequest->unit) }}">
             </div>
 
             <div class="form-group mb-3">
@@ -39,15 +62,17 @@
             </div>
 
             <div class="form-group mb-3">
-                <label for="country_cost_recharge">Country Cost Recharge</label>
-                <input type="number" name="country_cost_recharge" class="form-control"
-                    value="{{ old('country_cost_recharge', $paymentRequest->country_cost_recharge) }}">
+                <label for="currency">Currency</label>
+                <input type="text" name="currency" class="form-control"
+                    value="{{ old('currency', $paymentRequest->currency) }}">
             </div>
 
             <div class="form-group mb-3">
-                <label for="allocation_for_country">Allocation for Country</label>
-                <input type="number" name="allocation_for_country" class="form-control"
-                    value="{{ old('allocation_for_country', $paymentRequest->allocation_for_country) }}">
+                <label for="vat_inclusive">Include VAT?</label>
+                <select name="vat_inclusive" class="form-control" required>
+                    <option value="1" {{ $paymentRequest->vat_inclusive ? 'selected' : '' }}>Yes</option>
+                    <option value="0" {{ !$paymentRequest->vat_inclusive ? 'selected' : '' }}>No</option>
+                </select>
             </div>
 
             <button type="submit" class="btn btn-success btn-lg w-100">

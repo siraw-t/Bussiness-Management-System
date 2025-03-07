@@ -42,15 +42,27 @@
             </div>
 
             <div class="form-group mb-3">
+                <label for="currency">Currency</label>
+                <select name="currency" class="form-control" required>
+                    <option value="">-- Select Currency --</option>
+                    @foreach ($currencies as $currency)
+                        <option value="{{ $currency }}">{{ $currency }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="form-group mb-3">
                 <label for="transport_allowance">Transport Allowance</label>
-                <input type="number" name="transport_allowance" class="form-control" value="0" step="0.01"
-                    placeholder="Enter transport allowance">
+                <input type="number" name="transport_allowance" id="transport_allowance" class="form-control"
+                    value="0" step="0.01" placeholder="Enter transport allowance"
+                    @if ($company->country === 'Uganda') disabled @endif>
             </div>
 
             <div class="form-group mb-3">
                 <label for="taxable_transport_allowance">Taxable Transport Allowance</label>
-                <input type="number" name="taxable_transport_allowance" class="form-control" value="0" step="0.01"
-                    placeholder="Enter taxable transport allowance">
+                <input type="number" name="taxable_transport_allowance" id="taxable_transport_allowance"
+                    class="form-control" value="0" step="0.01" placeholder="Enter taxable transport allowance"
+                    @if ($company->country === 'Uganda') disabled @endif>
             </div>
 
             <div class="form-group mb-3">
@@ -91,15 +103,11 @@
         </form>
     </div>
 
-    <!-- Optional: Add Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
-
-    <!-- Optional: Add custom CSS for additional effects -->
     <style>
         .form-control:focus {
             box-shadow: none;
             border-color: #80bdff;
-            /* Bootstrap primary color */
         }
 
         .btn-primary {
@@ -108,7 +116,6 @@
 
         .btn-primary:hover {
             background-color: #007bff;
-            /* Darker shade for hover */
         }
     </style>
 @endsection

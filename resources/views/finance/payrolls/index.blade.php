@@ -2,7 +2,7 @@
 
 @section('content')
     <div class="container mt-5">
-        <h1 class="text-center text-primary mb-4">{{ Auth::user()->full_name }}'s Payroll Records</h1>
+        <h1 class="text-center text-primary mb-4">Payroll Records</h1>
 
         <div class="text-center mb-3">
             <a href="{{ route('finance.payrolls.create') }}" class="btn btn-primary btn-lg">
@@ -10,11 +10,11 @@
             </a>
         </div>
 
-        @if (session('success'))
+        {{-- @if (session('success'))
             <div class="alert alert-success fade show" role="alert">
                 {{ session('success') }}
             </div>
-        @endif
+        @endif --}}
 
         <div class="table-responsive">
             <table class="table table-striped table-hover table-bordered mt-3">
@@ -23,6 +23,7 @@
                         <th>Employee</th>
                         <th>Pay Period</th>
                         <th>Job Title</th>
+                        <th>Reference Number</th>
                         <th>Basic Salary</th>
                         <th>No of Days</th>
                         <th>Transport Allowance</th>
@@ -38,26 +39,29 @@
                         <th>Status</th>
                         <th>Approved By</th>
                         <th>Manager Comments</th>
+                        <th>Company Country</th>
                         <th class="text-center">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse ($payrolls as $payroll)
-                        <tr class="align-middle" style="transition: background-color 0.3s;">
+                        <tr class="align-middle">
                             <td>{{ $payroll->employee->username }}</td>
                             <td>{{ $payroll->pay_period }}</td>
                             <td>{{ $payroll->job_title }}</td>
-                            <td>${{ number_format($payroll->basic_salary, 2) }}</td>
+                            <td>{{ $payroll->reference_number }}</td>
+                            <td>{{ number_format($payroll->basic_salary, 2) }} {{ $payroll->currency }}</td>
                             <td>{{ $payroll->no_of_days }}</td>
-                            <td>${{ number_format($payroll->transport_allowance, 2) }}</td>
-                            <td>${{ number_format($payroll->taxable_transport_allowance, 2) }}</td>
-                            <td>${{ number_format($payroll->position_allowance, 2) }}</td>
-                            <td>${{ number_format($payroll->total_taxable_earnings, 2) }}</td>
-                            <td>${{ number_format($payroll->income_tax, 2) }}</td>
-                            <td>${{ number_format($payroll->pension_fund_7, 2) }}</td>
-                            <td>${{ number_format($payroll->pension_fund_11, 2) }}</td>
-                            <td>${{ number_format($payroll->salary_advance, 2) }}</td>
-                            <td>${{ number_format($payroll->net_payment, 2) }}</td>
+                            <td>{{ number_format($payroll->transport_allowance, 2) }} {{ $payroll->currency }}</td>
+                            <td>{{ number_format($payroll->taxable_transport_allowance, 2) }} {{ $payroll->currency }}
+                            </td>
+                            <td>{{ number_format($payroll->position_allowance, 2) }} {{ $payroll->currency }}</td>
+                            <td>{{ number_format($payroll->total_taxable_earnings, 2) }} {{ $payroll->currency }}</td>
+                            <td>{{ number_format($payroll->income_tax, 2) }} {{ $payroll->currency }}</td>
+                            <td>{{ number_format($payroll->pension_fund_7, 2) }} {{ $payroll->currency }}</td>
+                            <td>{{ number_format($payroll->pension_fund_11, 2) }} {{ $payroll->currency }}</td>
+                            <td>{{ number_format($payroll->salary_advance, 2) }} {{ $payroll->currency }}</td>
+                            <td>{{ number_format($payroll->net_payment, 2) }} {{ $payroll->currency }}</td>
                             <td>{{ optional(\App\Models\User::find($payroll->prepared_by))->full_name ?? 'N/A' }}</td>
                             <td>
                                 <span
@@ -67,20 +71,32 @@
                             </td>
                             <td>{{ optional(\App\Models\User::find($payroll->approved_by))->full_name ?? 'N/A' }}</td>
                             <td>{{ $payroll->manager_comment ?? 'N/A' }}</td>
+                            <td>{{ $payroll->company_country }}</td>
                             <td>
                                 <div class="btn-group" role="group">
-                                    <a href="{{ route('finance.payrolls.edit', $payroll) }}"
-                                        class="btn btn-warning btn-sm me-2">
-                                        <i class="bi bi-pencil"></i>
-                                    </a>
-                                    <form action="{{ route('finance.payrolls.destroy', $payroll) }}" method="POST"
-                                        style="display:inline;">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-danger btn-sm me-2">
+                                    @if ($payroll->status !== 'approved')
+                                        <a href="{{ route('finance.payrolls.edit', $payroll) }}"
+                                            class="btn btn-warning btn-sm">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <form action="{{ route('finance.payrolls.destroy', $payroll) }}" method="POST"
+                                            style="display:inline;"
+                                            onsubmit="return confirm('Are you sure you want to delete this payroll record?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-danger btn-sm">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    @else
+                                        <span class="btn btn-warning btn-sm disabled" title="Cannot edit approved payrolls">
+                                            <i class="bi bi-pencil"></i>
+                                        </span>
+                                        <span class="btn btn-danger btn-sm disabled"
+                                            title="Cannot delete approved payrolls">
                                             <i class="bi bi-trash"></i>
-                                        </button>
-                                    </form>
+                                        </span>
+                                    @endif
                                     <a href="{{ route('finance.payrolls.downloadPdf', $payroll) }}"
                                         class="btn btn-info btn-sm">
                                         <i class="bi bi-file-earmark-pdf"></i>
@@ -90,7 +106,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="15" class="text-center">No payroll records found.</td>
+                            <td colspan="20" class="text-center">No payroll records found.</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -98,16 +114,11 @@
         </div>
     </div>
 
-    <!-- Optional: Add Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
-
-    <!-- Optional: Add custom CSS for additional effects -->
     <style>
         .table-hover tr:hover {
             background-color: #f8f9fa;
-            /* Light grey on hover */
             cursor: pointer;
-            /* Pointer cursor on hover */
         }
     </style>
 @endsection

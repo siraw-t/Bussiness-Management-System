@@ -20,17 +20,19 @@
             <div class="form-group mb-3">
                 <label for="item_type">Item Type</label>
                 <select name="item_type" class="form-control" required>
-                    <option value="fixed asset" {{ $inventory->item_type == 'fixed asset' ? 'selected' : '' }}>Fixed Asset
+                    <option value="fixed asset" {{ $inventory->item_type == 'fixed asset' ? 'selected' : '' }}>
+                        Fixed Asset
                     </option>
-                    <option value="consumable" {{ $inventory->item_type == 'consumable' ? 'selected' : '' }}>Consumable
+                    <option value="consumable" {{ $inventory->item_type == 'consumable' ? 'selected' : '' }}>
+                        Consumable
                     </option>
                 </select>
             </div>
-            <div class="form-group mb-3">
+            {{-- <div class="form-group mb-3">
                 <label for="reference_number">Reference Number</label>
                 <input type="text" name="reference_number" class="form-control"
-                    value="{{ $inventory->reference_number }}" required>
-            </div>
+                    value="{{ $inventory->reference_number }}" readonly>
+            </div> --}}
             <div class="form-group mb-3">
                 <label for="quantity">Quantity</label>
                 <input type="number" name="quantity" class="form-control" value="{{ $inventory->quantity }}" required
@@ -49,7 +51,33 @@
                 <label for="stock_in_date">Stock In Date</label>
                 <input type="date" name="stock_in_date" class="form-control" value="{{ $inventory->stock_in_date }}">
             </div>
-
+            <div class="form-group mb-3">
+                <label for="currency">Currency</label>
+                <select name="currency" class="form-control" required>
+                    <option value="USD" {{ $inventory->currency == 'USD' ? 'selected' : '' }}>USD</option>
+                    <option value="EUR" {{ $inventory->currency == 'EUR' ? 'selected' : '' }}>EUR</option>
+                    <option value="UGX" {{ $inventory->currency == 'UGX' ? 'selected' : '' }}>UGX</option>
+                    <option value="ETB" {{ $inventory->currency == 'ETB' ? 'selected' : '' }}>ETB</option>
+                    <option value="AUD" {{ $inventory->currency == 'AUD' ? 'selected' : '' }}>AUD</option>
+                    <!-- Add more currencies as needed -->
+                </select>
+            </div>
+            <div class="form-group mb-3">
+                <label for="unit">Unit</label>
+                <select name="unit" class="form-control" required>
+                    <option value="pcs" {{ $inventory->unit == 'pcs' ? 'selected' : '' }}>Pieces</option>
+                    <option value="kg" {{ $inventory->unit == 'kg' ? 'selected' : '' }}>Kilograms</option>
+                    <option value="liters" {{ $inventory->unit == 'liters' ? 'selected' : '' }}>Liters</option>
+                    <option value="m" {{ $inventory->unit == 'm' ? 'selected' : '' }}>Meters</option>
+                    <option value="box" {{ $inventory->unit == 'box' ? 'selected' : '' }}>Boxes</option>
+                    <!-- Add more units as needed -->
+                </select>
+            </div>
+            {{-- <div class="form-group mb-3">
+                <label for="company_country">Company Country</label>
+                <input type="text" name="company_country" class="form-control" value="{{ $inventory->company_country }}"
+                    required>
+            </div> --}}
             <button type="submit" class="btn btn-warning w-100">
                 <i class="fas fa-sync-alt"></i> Update Item
             </button>

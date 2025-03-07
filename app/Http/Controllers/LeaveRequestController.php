@@ -6,13 +6,13 @@ use App\Models\LeaveRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
+use App\Models\Company;
 use PDF;
 
 class LeaveRequestController extends Controller
 {
     public function index()
     {
-        
         $requests = LeaveRequest::where('user_id', Auth::id())->get();
         return view('leave-requests.index', compact('requests'));
     }
@@ -24,16 +24,76 @@ class LeaveRequestController extends Controller
 
     public function store(Request $request)
 {
+    // Validate request inputs
     $request->validate([
         'start_date' => 'required|date',
         'end_date' => 'required|date|after_or_equal:start_date',
         'leave_type' => 'required|string|in:annual_leave,bereavement_leave,maternity_leave,sick_leave,unpaid_leave,parental_leave,other',
         'other_reason' => 'nullable|string|max:255',
-        'employee_signature' => 'nullable|file|mimes:jpg,jpeg,png|max:1024', // Validate as an image file
+        'employee_signature' => 'nullable|file|mimes:jpg,jpeg,png|max:1024',
         'attachment' => 'nullable|file|mimes:pdf,jpg,png,jpeg|max:2048',
     ]);
 
-    // Create a new LeaveRequest
+    $employee = Auth::user();
+    $country = $employee->company->country;
+
+    // Set the annual leave limit based on the company country
+    $annualLeaveLimit = ($country === 'Ethiopia') ? 16 : (($country === 'Uganda') ? 21 : 0);
+
+    // Calculate the number of days requested
+    $daysRequested = (new \DateTime($request->start_date))->diff(new \DateTime($request->end_date))->days + 1;
+
+    // Count approved annual leave days taken by the user
+    $totalAnnualLeaveTaken = LeaveRequest::where('user_id', $employee->user_id)
+        ->where('leave_type', 'annual_leave')
+        ->where('status', 'approved')
+        ->get()
+        ->sum(function ($leave) {
+            return (new \DateTime($leave->end_date))->diff(new \DateTime($leave->start_date))->days + 1;
+        });
+
+    // Check if the user can request the leave
+    if ($request->leave_type === 'annual_leave' && ($totalAnnualLeaveTaken + $daysRequested > $annualLeaveLimit)) {
+        return redirect()->back()->withErrors(['error' => 'You cannot request more than ' . $annualLeaveLimit . ' days of annual leave.']);
+    }
+
+    $company = Company::find($employee->company_id);
+
+         // Function to create an acronym from the company name
+    function createAcronym($companyName)
+    {
+        $words = explode(' ', $companyName);
+        $acronym = '';
+
+        foreach ($words as $word) {
+            if (!empty($word)) {
+                $acronym .= strtoupper($word[0]); // Take the first letter of each word
+            }
+        }
+
+        return $acronym;
+    }
+
+    // Generate the acronym for the company name
+    $companyAcronym = createAcronym($company->company_name);
+
+    // Format the reference number
+    $requestName = 'Leave_Req'; // Using the table name
+    $currentYear = date('Y');
+
+    // Get the last reference number for the same request name and year to increment
+    $lastRequest = LeaveRequest::where('reference_number', 'LIKE', "{$companyAcronym}/{$requestName}/{$currentYear}/%")
+        ->orderBy('created_at', 'desc')
+        ->first();
+
+    // Determine the next sequence number
+    $sequenceNumber = $lastRequest ? intval(substr($lastRequest->reference_number, strrpos($lastRequest->reference_number, '/') + 1)) + 1 : 1;
+
+    // Format the reference number
+    $reference_number = "{$companyAcronym}/{$requestName}/{$currentYear}/" . str_pad($sequenceNumber, 2, '0', STR_PAD_LEFT);
+
+
+    // Create the leave request
     $leaveRequest = new LeaveRequest();
     $leaveRequest->start_date = $request->start_date;
     $leaveRequest->end_date = $request->end_date;
@@ -43,26 +103,24 @@ class LeaveRequestController extends Controller
     // Handle employee signature file upload
     if ($request->hasFile('employee_signature')) {
         $signaturePath = $request->file('employee_signature')->store('signatures', 'public');
-        $leaveRequest->employee_signature = $signaturePath; // Save the file path to the database
+        $leaveRequest->employee_signature = $signaturePath;
     }
 
-    // Get the currently logged-in employee
-    $employee = Auth::user();
-
     // Retrieve the manager associated with the employee's company
-    $manager = User::where('company_id', $employee->company_id)
-                   ->where('role', 'manager')
-                   ->first();
-
-    // Create the leave request
-    $leaveRequest->user_id = $employee->user_id; // Use 'id' instead of 'user_id'
+    $manager = User::where('company_id', $employee->company_id)->where('role', 'manager')->first();
+    $leaveRequest->user_id = $employee->user_id;
     $leaveRequest->attachment = $request->attachment ? $request->attachment->store('attachments', 'public') : null;
-    $leaveRequest->status = 'pending'; // Default status
-    $leaveRequest->approved_by = $manager ? $manager->user_id : null; // Set approved_by to manager's ID if exists
+    $leaveRequest->status = 'pending';
+    $leaveRequest->approved_by = $manager ? $manager->user_id : null;
+    $leaveRequest->company_country = $country;
+    $leaveRequest->reference_number = $reference_number; // Assign the generated reference number
 
-    $leaveRequest->save(); // Save the leave request
-
-    return redirect()->route('leave-requests.index')->with('success', 'Leave request created successfully.');
+    // Attempt to save the leave request
+    if ($leaveRequest->save()) {
+        return redirect()->route('leave-requests.index')->with('success', 'Leave request created successfully.');
+    } else {
+        return redirect()->back()->withErrors(['error' => 'Failed to create leave request. Please try again.']);
+    }
 }
 
     public function edit(LeaveRequest $leaveRequest)
@@ -71,36 +129,30 @@ class LeaveRequestController extends Controller
     }
 
     public function update(Request $request, LeaveRequest $leaveRequest)
-{
-    $request->validate([
-        'start_date' => 'required|date',
-        'end_date' => 'required|date|after_or_equal:start_date',
-        'leave_type' => 'required|string|in:annual_leave,bereavement_leave,maternity_leave,sick_leave,unpaid_leave,parental_leave,other',
-        'other_reason' => 'nullable|string|max:255',
-        'attachment' => 'nullable|file|mimes:pdf,jpg,png,jpeg|max:2048',
-        'employee_signature' => 'nullable|file|mimes:jpg,jpeg,png|max:1024', // Added for signature upload
-    ]);
+    {
+        $request->validate([
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+            'leave_type' => 'required|string|in:annual_leave,bereavement_leave,maternity_leave,sick_leave,unpaid_leave,parental_leave,other',
+            'other_reason' => 'nullable|string|max:255',
+            'attachment' => 'nullable|file|mimes:pdf,jpg,png,jpeg|max:2048',
+            'employee_signature' => 'nullable|file|mimes:jpg,jpeg,png|max:1024',
+        ]);
 
-    // Update basic fields
-    $leaveRequest->fill($request->only([
-        'start_date', 
-        'end_date', 
-        'leave_type', 
-        'other_reason'
-    ]));
+        $leaveRequest->fill($request->only(['start_date', 'end_date', 'leave_type', 'other_reason']));
 
-    // Handle employee signature upload
-    if ($request->hasFile('employee_signature')) {
-        // Store the new signature
-        $signaturePath = $request->file('employee_signature')->store('signatures', 'public');
-        $leaveRequest->employee_signature = $signaturePath; // Update the signature path
-    }
-
-        if ($request->hasFile('attachment')) {
-            $leaveRequest->attachment = $request->attachment->store('attachments', 'public'); // Store in public disk
+        // Handle employee signature upload
+        if ($request->hasFile('employee_signature')) {
+            $signaturePath = $request->file('employee_signature')->store('signatures', 'public');
+            $leaveRequest->employee_signature = $signaturePath;
         }
 
-        $leaveRequest->save(); // Ensure the changes are saved
+        // Handle attachment update
+        if ($request->hasFile('attachment')) {
+            $leaveRequest->attachment = $request->attachment->store('attachments', 'public');
+        }
+
+        $leaveRequest->save();
 
         return redirect()->route('leave-requests.index')->with('success', 'Leave request updated successfully.');
     }
@@ -114,24 +166,22 @@ class LeaveRequestController extends Controller
     public function downloadPdf($id)
     {
         $request = LeaveRequest::findOrFail($id);
-        
-        // Generate PDF with A4 size and portrait orientation
-        $pdf = PDF::loadView('leave-requests.pdf', compact('request'))
+        $company = Auth::user()->company;
+
+        $pdf = PDF::loadView('leave-requests.pdf', compact('request', 'company'))
                     ->setPaper('A4', 'portrait');
 
-        return $pdf->download('leave-request_' . $request->id . '.pdf');
+        return $pdf->download('leave-request_' . $request->leave_request_id . '.pdf');
     }
 
     public function showPendingRequests()
     {
-        $userId = Auth::id(); // Get the currently logged-in user's ID
-    
-        // Fetch pending leave requests for the authenticated user
+        $userId = Auth::id();
         $pendingLeaveRequests = LeaveRequest::where('status', 'pending')
             ->where('user_id', $userId)
-            ->with('user') // Load the user relationship if needed
+            ->with('user')
             ->get();
-    
+
         return view('display.pending', compact('pendingLeaveRequests'));
     }
 }

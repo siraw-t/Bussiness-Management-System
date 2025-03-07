@@ -8,14 +8,33 @@ class PaymentRequest extends Model
 {
     protected $table = 'payment_requests'; // Define the table name
     protected $primaryKey = 'payment_request_id'; // Define the primary key
-    public $incrementing = true; // This should be true for auto-incrementing IDs
-    protected $keyType = 'int'; // Assuming you're using integers for IDs
+    public $incrementing = true; // Auto-incrementing ID
+    protected $keyType = 'int'; // Integer type for primary key
 
     protected $fillable = [
-        'user_id', 'amount', 'description', 'status', 'finance_comment', 'manager_comment',
-        'approved_by', 'reviewed_by', 'unit_and_qty', 'cost_center', 'account_code',
-        'country_cost_recharge', 'allocation_for_country', 'vat', 'total', 'net_payment', 'with_holding',
-        'ref_no', 'request_date', 'from'
+        'user_id',
+        'reference_no',
+        'request_date',
+        'department',
+        'finance_comment',
+        'item_description',
+        'item_name',
+        'unit',
+        'quantity',
+        'amount',
+        'vat_inclusive', // New field for VAT inclusion
+        'vat',
+        'total',
+        'net_payment',
+        'with_holding',
+        'cost_center',
+        'account_code',
+        'company_country',
+        'currency',
+        'status',
+        'manager_comment',
+        'reviewed_by',
+        'approved_by',
     ];
 
     public function user()
@@ -23,17 +42,18 @@ class PaymentRequest extends Model
         return $this->belongsTo(User::class, 'user_id'); // Relate to the User model
     }
 
-    public function checkedBy()
-{
-    return $this->belongsTo(User::class, 'reviewed_by');
-}
+    public function reviewedBy()
+    {
+        return $this->belongsTo(User::class, 'reviewed_by');
+    }
 
-public function approvedBy()
-{
-    return $this->belongsTo(User::class, 'approved_by');
-}
+    public function approvedBy()
+    {
+        return $this->belongsTo(User::class, 'approved_by');
+    }
 
     protected $casts = [
         'request_date' => 'datetime', // Cast to DateTime
+        'vat_inclusive' => 'boolean', // Ensure boolean casting for VAT inclusion
     ];
 }

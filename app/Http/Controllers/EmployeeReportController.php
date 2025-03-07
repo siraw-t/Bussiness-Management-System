@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\EmployeeReport;
 use App\Models\User; // Import User model
+use App\Models\Company;
 use App\Models\EmployeePlan; // Import EmployeePlan model
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -13,8 +14,10 @@ class EmployeeReportController extends Controller
 {
     public function index()
     {
+        $user = Auth::user();
+
         $reports = EmployeeReport::where('employee_id', Auth::id())->get();
-        return view('weekly-reports.index', compact('reports'));
+        return view('weekly-reports.index', compact('reports', 'user'));
     }
 
     public function create()
@@ -49,12 +52,50 @@ $lastWeekPlanId = $lastWeekPlan ? $lastWeekPlan->plan_id : null;
                        ->where('role', 'manager')
                        ->first();
 
+                       
+                       
+        $company = Company::find($employee->company_id);
+
+                       // Function to create an acronym from the company name
+                  function createAcronym($companyName)
+                  {
+                      $words = explode(' ', $companyName);
+                      $acronym = '';
+              
+                      foreach ($words as $word) {
+                          if (!empty($word)) {
+                              $acronym .= strtoupper($word[0]); // Take the first letter of each word
+                          }
+                      }
+              
+                      return $acronym;
+                  }
+              
+                  // Generate the acronym for the company name
+                  $companyAcronym = createAcronym($company->company_name);
+              
+                  // Format the reference number
+                  $requestName = 'ER_Req'; // Using the table name
+                  $currentYear = date('Y');
+              
+                  // Get the last reference number for the same request name and year to increment
+                  $lastRequest = EmployeeReport::where('reference_number', 'LIKE', "{$companyAcronym}/{$requestName}/{$currentYear}/%")
+                      ->orderBy('created_at', 'desc')
+                      ->first();
+              
+                  // Determine the next sequence number
+                  $sequenceNumber = $lastRequest ? intval(substr($lastRequest->reference_number, strrpos($lastRequest->reference_number, '/') + 1)) + 1 : 1;
+              
+                  // Format the reference number
+                  $reference_number = "{$companyAcronym}/{$requestName}/{$currentYear}/" . str_pad($sequenceNumber, 2, '0', STR_PAD_LEFT);
+              
+
         EmployeeReport::create([
     'employee_id' => Auth::id(),
     'week' => $request->week,
     'report' => $request->report,
     'status' => 'pending', // Default status
-    'reference_number' => uniqid('RGV/ER/2025/'), // Ensure this line is executed
+    'reference_number' => $reference_number, // Ensure this line is executed
     'submitted_at' => now(),
     'approved_by' => $manager ? $manager->user_id : null, // Set approved_by if manager exists
     'tasks_in_progress' => $request->tasks_in_progress,
@@ -95,15 +136,26 @@ $lastWeekPlanId = $lastWeekPlan ? $lastWeekPlan->plan_id : null;
     }
 
     public function downloadPdf($id)
-    {
-        $report = EmployeeReport::findOrFail($id);
+{
+    $report = EmployeeReport::findOrFail($id);
+    
+    // Retrieve the employee (user) associated with the report
+    $employee = User::findOrFail($report->employee_id);
+    
+    // Get the company associated with the employee
+    $company = Company::find($employee->company_id);
 
-        // Generate PDF with A4 size and portrait orientation
-        $pdf = PDF::loadView('weekly-reports.pdf', compact('report'))
-                    ->setPaper('A4', 'portrait');
-
-        return $pdf->download('weekly-report_' . $report->report_id . '.pdf');
+    // Handle the case where the company is not found
+    if (!$company) {
+        return redirect()->back()->withErrors(['message' => 'Company not found.']);
     }
+
+    // Generate PDF
+    $pdf = PDF::loadView('weekly-reports.pdf', compact('report', 'company'))
+                ->setPaper('A4', 'portrait');
+
+    return $pdf->download('weekly-report_' . $report->id . '.pdf');
+}
 
     public function showPendingRequests()
     {

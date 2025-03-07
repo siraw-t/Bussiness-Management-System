@@ -12,10 +12,10 @@ class Payroll extends Model
     protected $keyType = 'int'; // Assuming you're using integers for IDs
 
     protected $fillable = [
-        'employee_id', 'job_title', 'no_of_days', 'basic_salary', 'transport_allowance',
+        'employee_id', 'reference_number', 'job_title', 'no_of_days', 'basic_salary', 'transport_allowance',
         'taxable_transport_allowance', 'position_allowance', 'total_taxable_earnings',
         'income_tax', 'pension_fund_7', 'pension_fund_11', 'salary_advance', 'net_payment',
-        'pay_period', 'status', 'prepared_by', 'approved_by',
+        'pay_period', 'company_country', 'status', 'prepared_by', 'approved_by',
     ];
 
     public function employee()

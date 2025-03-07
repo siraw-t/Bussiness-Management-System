@@ -2,7 +2,7 @@
 
 @section('content')
     <div class="container-fluid mt-5">
-        <h2 class="text-center text-primary mb-4">{{ Auth::user()->company->company_name }} Employee Plans</h2>
+        <h2 class="text-center text-primary mb-4"> Employee Plans</h2>
 
         <div class="table-responsive">
             <table class="table table-bordered table-striped table-hover">

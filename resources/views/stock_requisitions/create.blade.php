@@ -8,17 +8,29 @@
             style="max-width: 500px; margin: auto;">
             @csrf
             <div class="form-group mb-3">
-                <label for="item_name_with_description">Item Name & Description</label>
-                <select name="item_name_with_description" class="form-control" required>
+                <label for="item_name">Item Name</label>
+                <select name="item_name" class="form-control" required>
                     <option value="" disabled selected>Select an item</option>
                     @foreach ($inventories as $inventory)
-                        <option value="{{ $inventory->item_name }}">{{ $inventory->item_name }}</option>
+                        <option value="{{ $inventory->item_name }}">{{ $inventory->item_name }} -
+                            {{ $inventory->description }}</option>
                     @endforeach
                 </select>
             </div>
+
+            <div class="form-group mb-3">
+                <label for="description">Description</label>
+                <textarea name="description" class="form-control" rows="3" placeholder="Optional"></textarea>
+            </div>
+
             <div class="form-group mb-3">
                 <label for="quantity_requested">Quantity Requested</label>
                 <input type="number" name="quantity_requested" class="form-control" required min="1">
+            </div>
+
+            <div class="form-group mb-3">
+                <label for="unit_requested">Unit Requested</label>
+                <input type="text" name="unit_requested" class="form-control" placeholder="e.g., pcs, kg">
             </div>
 
             <button type="submit" class="btn btn-primary w-100">

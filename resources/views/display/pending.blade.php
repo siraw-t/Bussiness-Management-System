@@ -62,10 +62,143 @@
 <body>
 
     <div class="container mb-5">
-        <h2 class="header text-center">{{ Auth::user()->company->company_name }} Pending Requests</h2>
+        <h2 class="header text-center"> Pending Requests</h2>
         <a class="btn btn-outline-primary" href="{{ route('manager.dashboard') }}">
             <i class="fas fa-arrow-left"></i> Back to Dashboard
         </a>
+
+        {{-- @if (session('success'))
+            <div class="alert alert-success">
+                {{ session('success') }}
+            </div>
+        @endif
+        @if (session('error'))
+            <div class="alert alert-danger">
+                {{ session('error') }}
+            </div>
+        @endif --}}
+
+        <div class="table-container">
+            <h5 class="text-primary mt-5">Pending Stock Requisition Requests</h5>
+            @if ($pendingStockRequisitionRequests->isEmpty())
+                <p class="no-requests">No pending stock requisition requests at this time.</p>
+            @else
+                <table class="table table-striped table-hover">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>Item Name</th>
+                            <th>Description</th>
+                            <th>Quantity Requested</th>
+                            <th>Status</th>
+                            <th>Requested By</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($pendingStockRequisitionRequests as $request)
+                            <tr>
+                                <td>{{ $request->item_name }}</td>
+                                <td>{{ $request->description ?? 'N/A' }}</td>
+                                <td>{{ $request->quantity_requested }} {{ $request->unit_requested ?? 'N/A' }}</td>
+                                <td>
+                                    <span class="badge bg-warning">{{ ucfirst($request->status) }}</span>
+                                </td>
+                                <td>{{ optional($request->user)->full_name ?? 'N/A' }}</td>
+                                <td class="action-buttons">
+                                    <!-- Approve Button -->
+                                    <button class="btn btn-success btn-sm" data-toggle="modal"
+                                        data-target="#approveModal{{ $request->stock_requisition_id }}">
+                                        <i class="fas fa-check"></i> Approve
+                                    </button>
+
+                                    <!-- Reject Button -->
+                                    <button class="btn btn-danger btn-sm" data-toggle="modal"
+                                        data-target="#rejectModal{{ $request->stock_requisition_id }}">
+                                        <i class="fas fa-times"></i> Reject
+                                    </button>
+                                </td>
+                            </tr>
+
+                            <!-- Approval Modal -->
+                            <div class="modal fade" id="approveModal{{ $request->stock_requisition_id }}" tabindex="-1"
+                                role="dialog" aria-labelledby="approveModalLabel{{ $request->stock_requisition_id }}"
+                                aria-hidden="true">
+                                <div class="modal-dialog" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Approve Stock Requisition</h5>
+                                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                        </div>
+                                        <form
+                                            action="{{ route('manager.stock_requisition.approve', $request->stock_requisition_id) }}"
+                                            method="POST">
+                                            @csrf
+                                            <div class="modal-body">
+                                                <div class="form-group">
+                                                    <label
+                                                        for="approved_quantity{{ $request->stock_requisition_id }}">Approved
+                                                        Quantity:</label>
+                                                    <input type="number" class="form-control"
+                                                        id="approved_quantity{{ $request->stock_requisition_id }}"
+                                                        name="approved_quantity" min="1"
+                                                        max="{{ $request->quantity_requested }}" required>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label
+                                                        for="comment-approve{{ $request->stock_requisition_id }}">Comments:</label>
+                                                    <textarea class="form-control" id="comment-approve{{ $request->stock_requisition_id }}" name="manager_comment"
+                                                        rows="3" required></textarea>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary"
+                                                    data-dismiss="modal">Close</button>
+                                                <button type="submit" class="btn btn-success">Approve</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Rejection Modal -->
+                            <div class="modal fade" id="rejectModal{{ $request->stock_requisition_id }}" tabindex="-1"
+                                role="dialog" aria-labelledby="rejectModalLabel{{ $request->stock_requisition_id }}"
+                                aria-hidden="true">
+                                <div class="modal-dialog" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Reject Stock Requisition</h5>
+                                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                        </div>
+                                        <form
+                                            action="{{ route('manager.stock_requisition.reject', $request->stock_requisition_id) }}"
+                                            method="POST">
+                                            @csrf
+                                            <div class="modal-body">
+                                                <div class="form-group">
+                                                    <label
+                                                        for="comment-reject{{ $request->stock_requisition_id }}">Comments:</label>
+                                                    <textarea class="form-control" id="comment-reject{{ $request->stock_requisition_id }}" name="manager_comment"
+                                                        rows="3" required></textarea>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary"
+                                                    data-dismiss="modal">Close</button>
+                                                <button type="submit" class="btn btn-danger">Reject</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </tbody>
+                </table>
+            @endif
+        </div>
+
+
+
 
         <!-- Pending Employee Plans -->
         <div class="table-container">
@@ -114,13 +247,15 @@
                             </tr>
 
                             <!-- Approval Modal -->
-                            <div class="modal fade" id="approveModal{{ $plan->plan_id }}" tabindex="-1" role="dialog"
-                                aria-labelledby="approveModalLabel{{ $plan->plan_id }}" aria-hidden="true">
+                            <div class="modal fade" id="approveModal{{ $plan->plan_id }}" tabindex="-1"
+                                role="dialog" aria-labelledby="approveModalLabel{{ $plan->plan_id }}"
+                                aria-hidden="true">
                                 <div class="modal-dialog" role="document">
                                     <div class="modal-content">
                                         <div class="modal-header">
                                             <h5 class="modal-title">Approve Employee Plan</h5>
-                                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                            <button type="button" class="close"
+                                                data-dismiss="modal">&times;</button>
                                         </div>
                                         <form action="{{ route('manager.plan.approve', $plan->plan_id) }}"
                                             method="POST">
@@ -129,8 +264,8 @@
                                                 <div class="form-group">
                                                     <label for="manager-comments-approve{{ $plan->plan_id }}">Manager
                                                         Comments:</label>
-                                                    <textarea class="form-control" id="manager-comments-approve{{ $plan->plan_id }}" name="manager_comments" rows="3"
-                                                        required></textarea>
+                                                    <textarea class="form-control" id="manager-comments-approve{{ $plan->plan_id }}" name="manager_comments"
+                                                        rows="3" required></textarea>
                                                 </div>
                                             </div>
                                             <div class="modal-footer">
@@ -144,13 +279,15 @@
                             </div>
 
                             <!-- Rejection Modal -->
-                            <div class="modal fade" id="rejectModal{{ $plan->plan_id }}" tabindex="-1" role="dialog"
-                                aria-labelledby="rejectModalLabel{{ $plan->plan_id }}" aria-hidden="true">
+                            <div class="modal fade" id="rejectModal{{ $plan->plan_id }}" tabindex="-1"
+                                role="dialog" aria-labelledby="rejectModalLabel{{ $plan->plan_id }}"
+                                aria-hidden="true">
                                 <div class="modal-dialog" role="document">
                                     <div class="modal-content">
                                         <div class="modal-header">
                                             <h5 class="modal-title">Reject Employee Plan</h5>
-                                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                            <button type="button" class="close"
+                                                data-dismiss="modal">&times;</button>
                                         </div>
                                         <form action="{{ route('manager.plan.reject', $plan->plan_id) }}"
                                             method="POST">
@@ -159,8 +296,8 @@
                                                 <div class="form-group">
                                                     <label for="manager-comments-reject{{ $plan->plan_id }}">Manager
                                                         Comments:</label>
-                                                    <textarea class="form-control" id="manager-comments-reject{{ $plan->plan_id }}" name="manager_comments" rows="3"
-                                                        required></textarea>
+                                                    <textarea class="form-control" id="manager-comments-reject{{ $plan->plan_id }}" name="manager_comments"
+                                                        rows="3" required></textarea>
                                                 </div>
                                             </div>
                                             <div class="modal-footer">
@@ -321,6 +458,8 @@
                             <th>Start Date</th>
                             <th>End Date</th>
                             <th>Status</th>
+                            <th>Company Country</th>
+                            <th>Reference Number</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -343,6 +482,8 @@
                                 <td>
                                     <span class="badge bg-warning">{{ ucfirst($request->status) }}</span>
                                 </td>
+                                <td>{{ $request->company_country }}</td>
+                                <td>{{ $request->reference_number }}</td>
                                 <td class="action-buttons">
                                     <!-- Approve Button -->
                                     <button class="btn btn-success btn-sm" data-toggle="modal"
@@ -431,7 +572,6 @@
             @endif
         </div>
 
-
         <!-- Pending Purchase Requests -->
         <div class="table-container">
             <h5 class="text-primary">Pending Purchase Requests</h5>
@@ -442,9 +582,13 @@
                     <thead class="thead-dark">
                         <tr>
                             <th>Reference Number</th>
-                            <th>Item Info</th>
+                            <th>Item Name</th>
+                            <th>Item Description</th>
                             <th>Quantity</th>
+                            <th>Unit</th>
                             <th>Price</th>
+                            <th>Total Price</th>
+                            <th>Company Country</th>
                             <th>Requested By</th>
                             <th>Finance Comment</th>
                             <th>Checked By</th>
@@ -456,13 +600,16 @@
                         @foreach ($pendingPurchaseRequests as $request)
                             <tr>
                                 <td>{{ $request->reference_number }}</td>
-                                <td>{{ $request->item_info }}</td>
-                                <td>{{ $request->quantity_with_unit }}</td>
-                                <td>{{ $request->price_with_currency }}</td>
+                                <td>{{ $request->item_name }}</td>
+                                <td>{{ $request->item_description ?? 'N/A' }}</td>
+                                <td>{{ $request->quantity }}</td>
+                                <td>{{ $request->unit }}</td>
+                                <td>{{ $request->price }} {{ $request->currency }}</td>
+                                <td>{{ $request->total_price }} {{ $request->currency }}</td>
+                                <td>{{ $request->company_country }}</td>
                                 <td>{{ $request->user->full_name }}</td>
                                 <td>{{ $request->finance_comment ?? 'N/A' }}</td>
-                                <td>
-                                    {{ $request->checkedBy ? $request->checkedBy->full_name : 'Not Checked' }}
+                                <td>{{ optional(\App\Models\User::find($request->checked_by))->full_name ?? 'N/A' }}
                                 </td>
                                 <td>
                                     <span class="badge bg-warning">{{ ucfirst($request->status) }}</span>
@@ -478,7 +625,6 @@
                                             <i class="fas fa-times"></i> Reject
                                         </button>
                                     @else
-                                        <!-- Existing modal buttons -->
                                         <button class="btn btn-success btn-sm" data-toggle="modal"
                                             data-target="#approveModal{{ $request->purchase_request_id }}">
                                             <i class="fas fa-check"></i> Approve
@@ -553,8 +699,8 @@
                                                     <label
                                                         for="manager-comment-reject{{ $request->purchase_request_id }}">Manager
                                                         Comments:</label>
-                                                    <textarea class="form-control" id="manager-comment-reject{{ $request->purchase_request_id }}" name="manager_comment"
-                                                        rows="3" required></textarea>
+                                                    <textarea class="form-control" id="manager-comment-reject{{ $request->purchase_request_id }}"
+                                                        name="manager_comment" rows="3" required></textarea>
                                                 </div>
                                             </div>
                                             <div class="modal-footer">
@@ -581,41 +727,56 @@
                 <table class="table table-striped table-hover">
                     <thead class="thead-dark">
                         <tr>
-                            <th>Reference Number</th>
+                            {{-- <th>Reference Number</th> --}}
                             <th>Request Date</th>
-                            <th>From</th>
-                            <th>Description</th>
-                            <th>Unit & Qty</th>
+                            <th>Department</th>
+                            <th>Finance Comment</th>
+                            {{-- <th>Item Description</th> --}}
+                            <th>Item Name</th>
+                            <th>Quantity</th>
                             <th>Amount</th>
                             <th>VAT</th>
                             <th>Total</th>
                             <th>Net Payment</th>
                             <th>Withholding</th>
                             <th>Status</th>
-                            <th>Finance Comment</th>
+                            <th>Manager Comment</th>
+                            <th>Checked By</th>
+                            {{-- <th>Approved By</th> --}}
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach ($pendingPaymentRequests as $request)
                             <tr>
-                                <td>{{ $request->ref_no }}</td>
-                                <td>{{ $request->request_date ? $request->request_date->format('Y-m-d') : 'N/A' }}</td>
-                                <td>{{ $request->from }}</td>
-                                <td>{{ $request->description }}</td>
-                                <td>{{ $request->unit_and_qty }}</td>
-                                <td>${{ number_format($request->amount, 2) }}</td>
-                                <td>${{ number_format($request->vat, 2) ?? '0.00' }}</td>
-                                <td>${{ number_format($request->total, 2) }}</td>
-                                <td>${{ number_format($request->net_payment, 2) }}</td>
-                                <td>${{ number_format($request->with_holding, 2) ?? '0.00' }}</td>
+                                {{-- <td>{{ $request->reference_no ?? 'N/A' }}</td> --}}
+                                <td>{{ $request->request_date ? $request->request_date->format('Y-m-d') : 'N/A' }}
+                                </td>
+                                <td>{{ $request->department ?? 'N/A' }}</td>
+                                <td>{{ $request->finance_comment ?? 'N/A' }}</td>
+                                {{-- <td>{{ $request->item_description }}</td> --}}
+                                <td>{{ $request->item_name ?? 'N/A' }}</td>
+                                <td>{{ $request->quantity ?? 'N/A' }} {{ $request->unit ?? 'N/A' }}</td>
+                                <td>{{ number_format($request->amount, 2) }} {{ $request->currency ?? 'N/A' }}</td>
+                                <td>{{ number_format($request->vat, 2) ?? '0.00' }}
+                                    {{ $request->currency ?? 'N/A' }}
+                                </td>
+                                <td>{{ number_format($request->total, 2) }} {{ $request->currency ?? 'N/A' }}</td>
+                                <td>{{ number_format($request->net_payment, 2) }} {{ $request->currency ?? 'N/A' }}
+                                </td>
+                                <td>{{ number_format($request->with_holding, 2) ?? '0.00' }}
+                                    {{ $request->currency ?? 'N/A' }}</td>
                                 <td>
                                     <span
                                         class="badge {{ $request->status === 'approved' ? 'bg-success' : ($request->status === 'pending' ? 'bg-warning' : 'bg-danger') }}">
                                         {{ ucfirst($request->status) }}
                                     </span>
                                 </td>
-                                <td>{{ $request->finance_comment ?? 'N/A' }}</td>
+                                <td>{{ $request->manager_comment ?? 'N/A' }}</td>
+                                <td>{{ $request->reviewed_by ? optional(\App\Models\User::find($request->reviewed_by))->full_name : 'Not Checked' }}
+                                </td>
+                                {{-- <td>{{ optional(\App\Models\User::find($request->approved_by))->full_name ?? 'N/A' }}
+                                </td> --}}
                                 <td class="action-buttons">
                                     @if (empty($request->finance_comment))
                                         <button class="btn btn-success btn-sm" disabled
@@ -658,8 +819,8 @@
                                                     <label
                                                         for="manager-comment-approve{{ $request->payment_request_id }}">Manager
                                                         Comments:</label>
-                                                    <textarea class="form-control" id="manager-comment-approve{{ $request->payment_request_id }}" name="manager_comment"
-                                                        rows="3" required></textarea>
+                                                    <textarea class="form-control" id="manager-comment-approve{{ $request->payment_request_id }}"
+                                                        name="manager_comment" rows="3" required></textarea>
                                                 </div>
                                             </div>
                                             <div class="modal-footer">
@@ -742,16 +903,21 @@
                                 <td>{{ $payroll->employee->full_name }}</td>
                                 <td>{{ $payroll->job_title }}</td>
                                 <td>{{ $payroll->pay_period }}</td>
-                                <td>${{ number_format($payroll->basic_salary, 2) }}</td>
-                                <td>${{ number_format($payroll->transport_allowance ?? 0, 2) }}</td>
-                                <td>${{ number_format($payroll->taxable_transport_allowance ?? 0, 2) }}</td>
-                                <td>${{ number_format($payroll->position_allowance ?? 0, 2) }}</td>
-                                <td>${{ number_format($payroll->total_taxable_earnings, 2) }}</td>
-                                <td>${{ number_format($payroll->income_tax, 2) }}</td>
-                                <td>${{ number_format($payroll->pension_fund_7, 2) }}</td>
-                                <td>${{ number_format($payroll->pension_fund_11, 2) }}</td>
-                                <td>${{ number_format($payroll->salary_advance ?? 0, 2) }}</td>
-                                <td>${{ number_format($payroll->net_payment, 2) }}</td>
+                                <td>{{ number_format($payroll->basic_salary, 2) }} {{ $payroll->currency }}</td>
+                                <td>{{ number_format($payroll->transport_allowance ?? 0, 2) }}
+                                    {{ $payroll->currency }}</td>
+                                <td>{{ number_format($payroll->taxable_transport_allowance ?? 0, 2) }}
+                                    {{ $payroll->currency }}</td>
+                                <td>{{ number_format($payroll->position_allowance ?? 0, 2) }}
+                                    {{ $payroll->currency }}</td>
+                                <td>{{ number_format($payroll->total_taxable_earnings, 2) }}
+                                    {{ $payroll->currency }}</td>
+                                <td>{{ number_format($payroll->income_tax, 2) }} {{ $payroll->currency }}</td>
+                                <td>{{ number_format($payroll->pension_fund_7, 2) }} {{ $payroll->currency }}</td>
+                                <td>{{ number_format($payroll->pension_fund_11, 2) }} {{ $payroll->currency }}</td>
+                                <td>{{ number_format($payroll->salary_advance ?? 0, 2) }} {{ $payroll->currency }}
+                                </td>
+                                <td>{{ number_format($payroll->net_payment, 2) }} {{ $payroll->currency }}</td>
                                 <td>{{ ucfirst($payroll->status) }}</td>
                                 <td class="action-buttons">
                                     <!-- Approve Button -->
@@ -854,10 +1020,9 @@
                             <th>Budget Description</th>
                             <th>Department</th>
                             <th>Budget Source</th>
-                            <th>Quantity with Unit</th>
+                            <th>Quantity</th>
                             <th>Unit Cost</th>
                             <th>Total Budget</th>
-                            <th>Approved By</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -868,10 +1033,9 @@
                                 <td>{{ $forecast->budget_description }}</td>
                                 <td>{{ $forecast->department }}</td>
                                 <td>{{ $forecast->budget_source }}</td>
-                                <td>{{ $forecast->quantity_with_unit }}</td>
-                                <td>${{ number_format($forecast->unit_cost, 2) }}</td>
-                                <td>${{ number_format($forecast->total_budget, 2) }}</td>
-                                <td>{{ optional($forecast->approver)->full_name ?? 'N/A' }}</td>
+                                <td>{{ $forecast->quantity }} {{ $forecast->unit }}</td>
+                                <td>{{ number_format($forecast->unit_cost, 2) }} {{ $forecast->currency }}</td>
+                                <td>{{ number_format($forecast->total_budget, 2) }} {{ $forecast->currency }}</td>
                                 <td class="action-buttons">
                                     <!-- Approve Button -->
                                     <button class="btn btn-success btn-sm" data-toggle="modal"
@@ -963,126 +1127,7 @@
 
 
 
-        <div class="table-container">
-            <h5 class="text-primary mt-5">Pending Stock Requisition Requests</h5>
-            @if ($pendingStockRequisitionRequests->isEmpty())
-                <p class="no-requests">No pending stock requisition requests at this time.</p>
-            @else
-                <table class="table table-striped table-hover">
-                    <thead class="thead-dark">
-                        <tr>
-                            <th>Item Name</th>
-                            <th>Quantity Requested</th>
-                            <th>Requested By</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($pendingStockRequisitionRequests as $request)
-                            <tr>
-                                <td>{{ $request->item_name_with_description }}</td>
-                                <td>{{ $request->quantity_requested }}</td>
-                                <td>{{ optional($request->user)->full_name }}</td>
-                                <td>
-                                    <span class="badge bg-warning">{{ ucfirst($request->status) }}</span>
-                                </td>
-                                <td class="action-buttons">
-                                    <!-- Approve Button -->
-                                    <button class="btn btn-success btn-sm" data-toggle="modal"
-                                        data-target="#approveModal{{ $request->stock_requisition_id }}">
-                                        <i class="fas fa-check"></i> Approve
-                                    </button>
 
-                                    <!-- Reject Button -->
-                                    <button class="btn btn-danger btn-sm" data-toggle="modal"
-                                        data-target="#rejectModal{{ $request->stock_requisition_id }}">
-                                        <i class="fas fa-times"></i> Reject
-                                    </button>
-                                </td>
-                            </tr>
-
-                            <!-- Approval Modal -->
-                            <div class="modal fade" id="approveModal{{ $request->stock_requisition_id }}"
-                                tabindex="-1" role="dialog"
-                                aria-labelledby="approveModalLabel{{ $request->stock_requisition_id }}"
-                                aria-hidden="true">
-                                <div class="modal-dialog" role="document">
-                                    <div class="modal-content">
-                                        <div class="modal-header">
-                                            <h5 class="modal-title">Approve Stock Requisition</h5>
-                                            <button type="button" class="close"
-                                                data-dismiss="modal">&times;</button>
-                                        </div>
-                                        <form
-                                            action="{{ route('manager.stock_requisition.approve', $request->stock_requisition_id) }}"
-                                            method="POST">
-                                            @csrf
-                                            <div class="modal-body">
-                                                <div class="form-group">
-                                                    <label
-                                                        for="approved_quantity{{ $request->stock_requisition_id }}">Approved
-                                                        Quantity:</label>
-                                                    <input type="number" class="form-control"
-                                                        id="approved_quantity{{ $request->stock_requisition_id }}"
-                                                        name="approved_quantity" min="1"
-                                                        max="{{ $request->quantity_requested }}" required>
-                                                </div>
-                                                <div class="form-group">
-                                                    <label
-                                                        for="comment-approve{{ $request->stock_requisition_id }}">Comments:</label>
-                                                    <textarea class="form-control" id="comment-approve{{ $request->stock_requisition_id }}" name="manager_comment"
-                                                        rows="3" required></textarea>
-                                                </div>
-                                            </div>
-                                            <div class="modal-footer">
-                                                <button type="button" class="btn btn-secondary"
-                                                    data-dismiss="modal">Close</button>
-                                                <button type="submit" class="btn btn-success">Approve</button>
-                                            </div>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Rejection Modal -->
-                            <div class="modal fade" id="rejectModal{{ $request->stock_requisition_id }}"
-                                tabindex="-1" role="dialog"
-                                aria-labelledby="rejectModalLabel{{ $request->stock_requisition_id }}"
-                                aria-hidden="true">
-                                <div class="modal-dialog" role="document">
-                                    <div class="modal-content">
-                                        <div class="modal-header">
-                                            <h5 class="modal-title">Reject Stock Requisition</h5>
-                                            <button type="button" class="close"
-                                                data-dismiss="modal">&times;</button>
-                                        </div>
-                                        <form
-                                            action="{{ route('manager.stock_requisition.reject', $request->stock_requisition_id) }}"
-                                            method="POST">
-                                            @csrf
-                                            <div class="modal-body">
-                                                <div class="form-group">
-                                                    <label
-                                                        for="comment-reject{{ $request->stock_requisition_id }}">Comments:</label>
-                                                    <textarea class="form-control" id="comment-reject{{ $request->stock_requisition_id }}" name="manager_comment"
-                                                        rows="3" required></textarea>
-                                                </div>
-                                            </div>
-                                            <div class="modal-footer">
-                                                <button type="button" class="btn btn-secondary"
-                                                    data-dismiss="modal">Close</button>
-                                                <button type="submit" class="btn btn-danger">Reject</button>
-                                            </div>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-                        @endforeach
-                    </tbody>
-                </table>
-            @endif
-        </div>
         <!-- Optional: Add Bootstrap Icons -->
 
         <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>

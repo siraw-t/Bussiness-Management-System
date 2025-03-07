@@ -2,13 +2,14 @@
 
 @section('content')
     <div class="container-fluid mt-5">
-        <h2 class="text-center text-info mb-4">{{ Auth::user()->company->company_name }} Payroll Records</h2>
+        <h2 class="text-center text-info mb-4">Payroll Records</h2>
 
         <div class="table-responsive">
             <table class="table table-bordered table-striped table-hover">
                 <thead class="thead-dark">
                     <tr>
                         <th>Employee</th>
+                        <th>Company Country</th>
                         <th>Job Title</th>
                         <th>Pay Period</th>
                         <th>Basic Salary</th>
@@ -48,18 +49,21 @@
                         @foreach ($filteredPayrolls as $payroll)
                             <tr class="align-middle" style="transition: background-color 0.3s;">
                                 <td>{{ $payroll->employee->full_name }}</td>
+                                <td>{{ $payroll->company_country }}</td>
                                 <td>{{ $payroll->job_title }}</td>
                                 <td>{{ $payroll->pay_period }}</td>
-                                <td>${{ number_format($payroll->basic_salary, 2) }}</td>
-                                <td>${{ number_format($payroll->transport_allowance ?? 0, 2) }}</td>
-                                <td>${{ number_format($payroll->taxable_transport_allowance ?? 0, 2) }}</td>
-                                <td>${{ number_format($payroll->position_allowance ?? 0, 2) }}</td>
-                                <td>${{ number_format($payroll->total_taxable_earnings, 2) }}</td>
-                                <td>${{ number_format($payroll->income_tax, 2) }}</td>
-                                <td>${{ number_format($payroll->pension_fund_7, 2) }}</td>
-                                <td>${{ number_format($payroll->pension_fund_11, 2) }}</td>
-                                <td>${{ number_format($payroll->salary_advance ?? 0, 2) }}</td>
-                                <td>${{ number_format($payroll->net_payment, 2) }}</td>
+                                <td>{{ number_format($payroll->basic_salary, 2) }} {{ $payroll->currency }}</td>
+                                <td>{{ number_format($payroll->transport_allowance ?? 0, 2) }} {{ $payroll->currency }}</td>
+                                <td>{{ number_format($payroll->taxable_transport_allowance ?? 0, 2) }}
+                                    {{ $payroll->currency }}</td>
+                                <td>{{ number_format($payroll->position_allowance ?? 0, 2) }} {{ $payroll->currency }}
+                                </td>
+                                <td>{{ number_format($payroll->total_taxable_earnings, 2) }} {{ $payroll->currency }}</td>
+                                <td>{{ number_format($payroll->income_tax, 2) }} {{ $payroll->currency }}</td>
+                                <td>{{ number_format($payroll->pension_fund_7, 2) }} {{ $payroll->currency }}</td>
+                                <td>{{ number_format($payroll->pension_fund_11, 2) }} {{ $payroll->currency }}</td>
+                                <td>{{ number_format($payroll->salary_advance ?? 0, 2) }} {{ $payroll->currency }}</td>
+                                <td>{{ number_format($payroll->net_payment, 2) }} {{ $payroll->currency }}</td>
                                 <td>
                                     <span
                                         class="badge {{ $payroll->status === 'approved' ? 'bg-success' : ($payroll->status === 'pending' ? 'bg-warning' : 'bg-danger') }}">

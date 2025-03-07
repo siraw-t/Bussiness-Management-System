@@ -28,7 +28,12 @@ class CreateLeaveRequestsTable extends Migration
             $table->string('attachment')->nullable();
             $table->string('status')->default('pending');
             $table->unsignedBigInteger('approved_by')->nullable();
-            $table->text('manager_comments')->nullable(); // Add this line
+            $table->text('manager_comments')->nullable();
+            
+            // New fields
+            $table->string('company_country'); // Country of the company
+            $table->string('reference_number')->unique(); // Unique reference number
+        
             $table->timestamps();
         });
     }

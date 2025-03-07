@@ -6,6 +6,7 @@ use App\Models\PurchaseRequest;
 use App\Models\User; // Import the User model
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Company; 
 use PDF;
 
 class PurchaseRequestController extends Controller
@@ -18,73 +19,114 @@ class PurchaseRequestController extends Controller
 
     public function create()
     {
-        return view('purchase-requests.create');
+        $currencies = ['USD', 'ETB', 'UGX']; // Add more currencies as needed
+        $units = ['kg', 'pcs', 'ltr']; // Add more units as needed
+        return view('purchase-requests.create', compact('currencies', 'units'));
     }
 
     public function store(Request $request)
-    {
-        $request->validate([
-            'item_info' => 'required|string|max:255',
-            'quantity_with_unit' => 'required|string',
-            'price_with_currency' => 'required|string',
-            'attachments.*' => 'nullable|file|mimes:jpg,png,pdf,docx|max:2048', // Adjust as needed
-        ]);
+{
+    $request->validate([
+        'item_name' => 'required|string|max:255',
+        'item_description' => 'nullable|string',
+        'quantity' => 'required|integer',
+        'unit' => 'required|string',
+        'price' => 'required|numeric',
+        'currency' => 'required|string',
+        'attachments.*' => 'nullable|file|mimes:jpg,png,pdf,docx|max:2048',
+    ]);
 
-        // Get the currently logged-in user
-        $employee = Auth::user();
+    // Get the currently logged-in user
+    $employee = Auth::user();
+    $company = Company::find($employee->company_id);
 
-        // Retrieve the manager associated with the employee's company
-        $manager = User::where('company_id', $employee->company_id)
-                       ->where('role', 'manager') // Ensure we get the manager
-                       ->first();
 
-        $finance = User::where('company_id', $employee->company_id)
-                       ->where('role', 'finance') // Ensure we get the manager
-                       ->first();
+    // Function to create an acronym from the company name
+function createAcronym($companyName)
+{
+   $words = explode(' ', $companyName);
+   $acronym = '';
 
-        // Check if a manager exists for the company
-        if (!$manager) {
-            return redirect()->route('purchase-requests.index')->with('error', 'No manager found for your company.');
+   foreach ($words as $word) {
+       if (!empty($word)) {
+           $acronym .= strtoupper($word[0]); // Take the first letter of each word
+       }
+   }
+
+   return $acronym;
+}
+
+// Generate the acronym for the company name
+$companyAcronym = createAcronym($company->company_name);
+
+// Format the reference number
+$requestName = 'Purchase_Req'; // Using the table name
+$currentYear = date('Y');
+
+// Get the last reference number for the same request name and year to increment
+$lastRequest = PurchaseRequest::where('reference_number', 'LIKE', "{$companyAcronym}/{$requestName}/{$currentYear}/%")
+   ->orderBy('created_at', 'desc')
+   ->first();
+
+// Determine the next sequence number
+$sequenceNumber = $lastRequest ? intval(substr($lastRequest->reference_number, strrpos($lastRequest->reference_number, '/') + 1)) + 1 : 1;
+
+// Format the reference number
+$reference_number = "{$companyAcronym}/{$requestName}/{$currentYear}/" . str_pad($sequenceNumber, 2, '0', STR_PAD_LEFT);
+
+
+
+
+    $attachments = [];
+    if ($request->hasFile('attachments')) {
+        foreach ($request->file('attachments') as $file) {
+            $path = $file->store('attachments', 'public');
+            $attachments[] = $path;
         }
-
-        // Handle attachments
-        $attachments = [];
-        if ($request->hasFile('attachments')) {
-            foreach ($request->file('attachments') as $file) {
-                $path = $file->store('attachments', 'public');
-                $attachments[] = $path;
-            }
-        }
-
-        // Create the purchase request
-        PurchaseRequest::create([
-            'user_id' => Auth::id(),
-            'reference_number' => uniqid('RGV/PR/2025/'), // Generate a unique reference number
-            'item_info' => $request->item_info,
-            'quantity_with_unit' => $request->quantity_with_unit,
-            'price_with_currency' => $request->price_with_currency,
-            'status' => 'pending', // Default status
-            'approved_by' => $manager->user_id, // Set approved_by to manager's ID
-            'checked_by' => $finance->user_id, // Initially set to null until checked by finance
-            'attachments' => json_encode($attachments), // Store attachments as JSON
-        ]);
-
-        return redirect()->route('purchase-requests.index')->with('success', 'Purchase request created successfully.');
     }
+
+    $manager = User::where('company_id', $employee->company_id)->where('role', 'manager')->first();
+    $finance = User::where('company_id', $employee->company_id)->where('role', 'finance')->first();
+
+
+    // Create the purchase request
+    PurchaseRequest::create([
+        'user_id' => Auth::id(),
+        'reference_number' => $reference_number, // Generate a unique reference number
+        'item_name' => $request->item_name,
+        'item_description' => $request->item_description,
+        'quantity' => $request->quantity,
+        'unit' => $request->unit,
+        'price' => $request->price,
+        'currency' => $request->currency,
+        'total_price' => $request->quantity * $request->price, // Calculate total price
+        'company_country' => $company->country, // Get country from company
+        'status' => 'pending', // Default status
+        'attachments' => json_encode($attachments), // Store attachments as JSON
+        'checked_by' => $finance ? $finance->user_id : null,
+        'approved_by' => $manager ? $manager->user_id : null,
+    ]);
+
+    return redirect()->route('purchase-requests.index')->with('success', 'Purchase request created successfully.');
+}
 
     public function edit(PurchaseRequest $purchaseRequest)
     {
-        return view('purchase-requests.edit', compact('purchaseRequest'));
+        $currencies = ['USD', 'ETB', 'UGX']; // Add more currencies as needed
+        $units = ['kg', 'pcs', 'ltr']; // Add more units as needed
+        return view('purchase-requests.edit', compact('purchaseRequest', 'currencies', 'units'));
     }
 
     public function update(Request $request, PurchaseRequest $purchaseRequest)
     {
         $request->validate([
-            'item_info' => 'required|string|max:255',
-            'quantity_with_unit' => 'required|string',
-            'price_with_currency' => 'required|string',
-            'status' => 'nullable|string', // Validate status
-            'attachments.*' => 'nullable|file|mimes:jpg,png,pdf,docx|max:2048', // Adjust as needed
+            'item_name' => 'required|string|max:255',
+            'item_description' => 'nullable|string',
+            'quantity' => 'required|integer',
+            'unit' => 'required|string',
+            'price' => 'required|numeric',
+            'currency' => 'required|string',
+            'attachments.*' => 'nullable|file|mimes:jpg,png,pdf,docx|max:2048',
         ]);
 
         // Handle attachments
@@ -98,10 +140,13 @@ class PurchaseRequestController extends Controller
 
         // Update the purchase request
         $purchaseRequest->update([
-            'item_info' => $request->item_info,
-            'quantity_with_unit' => $request->quantity_with_unit,
-            'price_with_currency' => $request->price_with_currency,
-            'status' => $request->status ?? $purchaseRequest->status, // Use existing status if not provided
+            'item_name' => $request->item_name,
+            'item_description' => $request->item_description,
+            'quantity' => $request->quantity,
+            'unit' => $request->unit,
+            'price' => $request->price,
+            'currency' => $request->currency,
+            'total_price' => $request->quantity * $request->price, // Update total price
             'attachments' => json_encode($attachments), // Update attachments
         ]);
 
@@ -139,8 +184,8 @@ class PurchaseRequestController extends Controller
     public function check(Request $request, PurchaseRequest $purchaseRequest)
     {
         // Ensure the logged-in user is in the finance department
-        $financeUser = Auth::user();
-        if ($financeUser->role !== 'finance') {
+        $finance = Auth::user();
+        if ($finance->role !== 'finance') {
             return redirect()->route('purchase-requests.index')->with('error', 'You are not authorized to check purchase requests.');
         }
 
@@ -161,39 +206,38 @@ class PurchaseRequestController extends Controller
     public function downloadPdf($id)
     {
         $request = PurchaseRequest::findOrFail($id);
-        
+        $company = Auth::user()->company;
+
         // Generate PDF with A4 size and portrait orientation
-        $pdf = PDF::loadView('purchase-requests.pdf', compact('request'))
+        $pdf = PDF::loadView('purchase-requests.pdf', compact('request', 'company'))
                     ->setPaper('A4', 'portrait');
 
-        return $pdf->download('purchase-request_' . $request->id . '.pdf');
+        return $pdf->download('purchase-request_' . $request->purchase_request_id . '.pdf');
     }
 
     public function showPendingRequests()
-    {
-        $userId = Auth::id(); // Get the currently logged-in user's ID
-    
-        // Fetch pending leave requests for the authenticated user
-        $pendingPurchaseRequests = PurchaseRequest::where('status', 'pending')
-            ->where('user_id', $userId)
-            ->with('user') // Load the user relationship if needed
-            ->get();
-    
-        return view('display.pending', compact('pendingPurchaseRequests'));
-    }
+{
+    $userId = Auth::id(); // Get the currently logged-in user's ID
 
-    
+    // Fetch pending purchase requests for the authenticated user
+    $pendingPurchaseRequests = PurchaseRequest::where('status', 'pending')
+            ->where('user_id', $userId)
+            ->with('user')
+            ->get();
+
+    return view('display.pending', compact('pendingPurchaseRequests'));
+}
 
     public function addFinanceComment(Request $request, $purchase_request_id)
-{
-    $request->validate([
-        'finance_comment' => 'required|string|max:255',
-    ]);
+    {
+        $request->validate([
+            'finance_comment' => 'required|string|max:255',
+        ]);
 
-    $purchaseRequest = PurchaseRequest::findOrFail($purchase_request_id);
-    $purchaseRequest->finance_comment = $request->finance_comment;
-    $purchaseRequest->save();
+        $purchaseRequest = PurchaseRequest::findOrFail($purchase_request_id);
+        $purchaseRequest->finance_comment = $request->finance_comment;
+        $purchaseRequest->save();
 
-    return redirect()->back()->with('success', 'Finance comment added successfully.');
-}
+        return redirect()->back()->with('success', 'Finance comment added successfully.');
+    }
 }

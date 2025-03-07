@@ -4,7 +4,7 @@
     <div class="container-fluid">
         <div class="row">
             <!-- Sidebar -->
-            <nav class="col-2 bg-dark text-white sidebar position-fixed pr-30" style="height: 100vh; top: 0; z-index: 1000;">
+            <nav class="col-md-2 col-lg-2 bg-dark text-white sidebar position-fixed" style="height: 100vh; z-index: 1000;">
                 <div class="position-sticky">
                     <div class="scrollable-links"
                         style="max-height: calc(100vh - 130px); overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none;">
@@ -189,38 +189,40 @@
                         }
                     }
 
-                    /* Button Hover Effect */
-                    .btn-light:hover {
-                        background-color: #f8f9fa;
-                        color: #343a40;
-                        transform: scale(1.05);
-                        transition: transform 0.2s;
+                    .nav-link {
+                        display: flex;
+                        align-items: center;
+                        padding: 10px 15px;
+                        transition: background-color 0.3s ease, transform 0.3s ease;
                     }
 
-                    /* Responsive Text */
-                    h1 {
-                        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+                    .nav-link i {
+                        margin-right: 10px;
+                        transition: transform 0.3s ease;
+                    }
+
+                    .nav-link:hover {
+                        background-color: rgba(255, 255, 255, 0.1);
+                        transform: scale(1.02);
+                    }
+
+                    .nav-link:hover i {
+                        transform: rotate(360deg);
                     }
 
                     /* Sidebar Toggle Button */
                     .sidebar-toggle {
                         display: none;
-                        /* Hide by default */
                         position: fixed;
-                        top: 5px;
-                        /* Adjust vertical position */
-                        left: 300px;
-                        /* Adjust horizontal position */
-
+                        top: 60px;
+                        left: 15px;
                         z-index: 1100;
-                        /* Ensure it's above other elements */
                     }
 
                     /* Mobile Styles */
                     @media (max-width: 768px) {
                         .sidebar-toggle {
                             display: block;
-                            /* Show toggle button on mobile */
                         }
 
                         .sidebar {
@@ -228,22 +230,21 @@
                             width: 250px;
                             height: 100vh;
                             left: -250px;
-                            /* Hide off-screen */
+                            top: 30px;
                             transition: left 0.3s ease;
                             z-index: 1000;
                         }
 
                         .sidebar.show {
                             left: 0;
-                            /* Show sidebar */
                         }
 
                         main {
                             margin-left: 0;
-                            /* No margin on mobile */
                         }
                     }
                 </style>
+
 
                 <!-- Sidebar Toggle Button -->
                 <button class="btn btn-primary sidebar-toggle" onclick="toggleSidebar()">
