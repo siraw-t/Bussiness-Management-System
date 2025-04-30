@@ -94,9 +94,14 @@ return [
         'users' => [
             'provider' => 'users',
             'table' => env('password_resets', 'password_resets'),
-            'expire' => 60,
+            'expire' => 10080,
             'throttle' => 60,
         ],
+    ],
+
+
+    'verification' => [
+        'expire' => 10080, // <-- Add this section for 1 week expiration
     ],
 
     /*

@@ -17,6 +17,23 @@
                 <i class="fas fa-plus-circle"></i> Add New Item
             </a>
         </div>
+        <a href="{{ route('inventory.combinedSummary') }}" class="btn btn-primary mt-3">View Combined Summary</a>
+
+        <div class="text-right">
+            <p class="mb-0"><strong>Quantity Legend:</strong></p>
+            <p class="mb-0">
+                <span style="background-color: red; padding: 2px 8px; color: #fff;">&nbsp;</span>
+                Critical (≤ 3)
+            </p>
+            <p class="mb-0">
+                <span style="background-color: yellow; padding: 2px 8px;">&nbsp;</span>
+                Low (≤ 10)
+            </p>
+            <p class="mb-0">
+                <span style="background-color: green; padding: 2px 8px; color: #fff;">&nbsp;</span>
+                Sufficient (> 10)
+            </p>
+        </div>
 
         <div class="table-responsive">
             <table class="table table-striped table-hover table-bordered mt-3">
@@ -27,9 +44,7 @@
                         <th>Item Type</th>
                         <th>Reference Number</th>
                         <th>Quantity</th>
-                        <th>Unit</th>
                         <th>Unit Price</th>
-                        <th>Currency</th>
                         <th>Total Price</th>
                         <th>Description</th>
                         <th>Stock In Date</th>
@@ -48,12 +63,10 @@
                             <td>{{ ucfirst($inventory->item_type) }}</td>
                             <td>{{ $inventory->reference_number }}</td>
                             <td
-                                style="color: {{ $inventory->quantity <= 3 ? 'red' : ($inventory->quantity <= 10 ? 'yellow' : 'green') }};">
-                                {{ $inventory->quantity }}
+                                style="background-color: {{ $inventory->quantity <= 3 ? 'red' : ($inventory->quantity <= 10 ? 'yellow' : 'green') }};">
+                                {{ $inventory->quantity }} {{ $inventory->unit }}
                             </td>
-                            <td>{{ $inventory->unit }}</td>
-                            <td>{{ number_format($inventory->unit_price, 2) }}</td>
-                            <td>{{ $inventory->currency }}</td>
+                            <td>{{ number_format($inventory->unit_price, 2) }} {{ $inventory->currency }}</td>
                             <td>{{ number_format($inventory->total_price, 2) }} {{ $inventory->currency }}</td>
                             <td>{{ $inventory->description }}</td>
                             <td>{{ $inventory->stock_in_date }}</td>

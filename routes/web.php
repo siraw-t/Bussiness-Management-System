@@ -28,7 +28,8 @@ use App\Http\Controllers\Auth\EmailVerificationNotificationController;
 use App\Http\Controllers\Auth\EmailVerificationPromptController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use App\Http\Controllers\RequestFormTemplateController;
-
+use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\PettyCashRequestController;
 
 
 
@@ -37,6 +38,13 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+Route::middleware('auth')->group(function () {
+    Route::put('/notifications/{notification}/read', [NotificationController::class, 'markAsRead'])->name('notifications.markAsRead');
+
+    // Optional: Route to mark all notifications as read
+    Route::put('/notifications/mark-all-read', [NotificationController::class, 'markAllRead'])->name('notifications.markAllRead');
+
+});
 
 
 // Authentication routes
@@ -70,10 +78,10 @@ Route::get('/forgot-password', [PasswordResetLinkController::class, 'create'])->
 Route::post('/forgot-password', [PasswordResetLinkController::class, 'store'])->name('password.email');
 Route::get('/reset-password/{token}', [NewPasswordController::class, 'create'])->name('password.reset');
 Route::post('/reset-password', [NewPasswordController::class, 'store'])->name('password.update');
+
+
 // Protected routes
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-
-
 
 
 
@@ -106,6 +114,30 @@ Route::resource('payment-requests', PaymentRequestController::class);
 
 // Purchase Requests Routes
 Route::resource('purchase-requests', PurchaseRequestController::class);
+
+         // Petty Cash Requests Resource
+Route::resource('petty_cash_requests', PettyCashRequestController::class);
+
+// Show Pending Petty Cash Requests
+Route::get('/finance/petty_cash_requests/pending', [DashboardController::class, 'showPendingPettyCashRequests'])
+    ->name('display.pending_petty_cash');
+
+// Approve Petty Cash Request
+Route::post('/manager/petty_cash_requests/{petty_cash_request_id}/approve', [DashboardController::class, 'approvePettyCash'])
+    ->name('manager.petty_cash.approve');
+
+// Reject Petty Cash Request
+Route::post('/manager/petty_cash_requests/{petty_cash_request_id}/reject', [DashboardController::class, 'rejectPettyCash'])
+    ->name('manager.petty_cash.reject');
+
+// Check Petty Cash Request
+Route::post('/finance/petty_cash_requests/{pettyCashRequest}/check', [PettyCashRequestController::class, 'check'])
+    ->name('petty_cash_requests.check');
+Route::post('/finance/petty_cash_requests/comment/{petty_cash_request_id}', [PettyCashRequestController::class, 'addFinanceComment'])->name('finance.petty_cash.comment');
+Route::post('/finance/petty_cash_requests/attach/{petty_cash_request_id}', [PettyCashRequestController::class, 'addFinanceCheque'])->name('finance.petty_cash.attach');
+
+
+
 
 Route::prefix('weekly-plan')->group(function () {
     Route::get('/', [EmployeePlanController::class, 'index'])->name('weekly-plan.index'); // List all weekly plans
@@ -152,6 +184,7 @@ Route::prefix('inventory')->group(function () {
     Route::put('/{inventory}', [InventoryController::class, 'update'])->name('inventory.update'); // Update the inventory item
     Route::delete('/{inventory}', [InventoryController::class, 'destroy'])->name('inventory.destroy'); // Delete the inventory item
     Route::post('/inventory/{inventory}/stock-out', [InventoryController::class, 'stockOut'])->name('inventory.stockOut');
+    Route::get('inventory/combined-summary', [InventoryController::class, 'combinedSummary'])->name('inventory.combinedSummary');
 });
 
 
@@ -180,10 +213,28 @@ Route::get('/display/index', function () {
     return view('display.index', compact('inventories'));
     })->name('display.index');
 
-Route::get('/display/leave', function () {
-    $leaveRequests = \App\Models\LeaveRequest::with('user')->get(); // Fetch leave requests
-    return view('display.leave', compact('leaveRequests')); // Pass the data to the view
-})->name('display.leave');
+    Route::get('/display/leave', function () {
+        $leaveRequests = \App\Models\LeaveRequest::with('user')->get(); // Fetch leave requests
+        $employee = auth()->user();
+        $country = $employee->company->country;
+    
+        // Set the annual leave limit based on the company country
+        $annualLeaveLimit = ($country === 'Ethiopia') ? 16 : (($country === 'Uganda') ? 21 : 0);
+    
+        // Count approved annual leave days taken by the user
+        $totalAnnualLeaveTaken = \App\Models\LeaveRequest::where('user_id', $employee->id)
+            ->where('leave_type', 'annual_leave')
+            ->where('status', 'approved')
+            ->get()
+            ->sum(function ($leave) {
+                return (new \DateTime($leave->end_date))->diff(new \DateTime($leave->start_date))->days + 1;
+            });
+    
+        // Calculate remaining leave days
+        $remainingLeaveDays = $annualLeaveLimit - $totalAnnualLeaveTaken;
+    
+        return view('display.leave', compact('leaveRequests', 'remainingLeaveDays')); // Pass the data to the view
+    })->name('display.leave');
 
 Route::get('/display/payment', function () {
     $paymentRequests = \App\Models\PaymentRequest::with('user')->get(); // Fetch leave requests
@@ -194,6 +245,10 @@ Route::get('/display/purchase', function () {
     $purchaseRequests = \App\Models\PurchaseRequest::with('user')->get(); // Fetch leave requests
     return view('display.purchase', compact('purchaseRequests')); // Pass the data to the view
 })->name('display.purchase');
+Route::get('/display/petty_cash', function () {
+    $pettyCashRequests = \App\Models\PettyCashRequest::with('user')->get(); // Fetch leave requests
+    return view('display.petty_cash', compact('pettyCashRequests')); // Pass the data to the view
+})->name('display.petty_cash');
 
 Route::get('/display/plan', function () {
     $employeePlans = \App\Models\EmployeePlan::with('user')->get(); // Fetch employee plans
@@ -424,5 +479,12 @@ Route::get('/finance/payrolls/{payroll}/download-pdf', [FinanceController::class
 Route::get('/finance/budgets/{budget}/download-pdf', [FinanceController::class, 'downloadBudgetPdf'])->name('finance.budgets.downloadBudgetPdf');
 Route::get('/stock_requisitions/{requisition}/download-pdf', [StockRequisitionController::class, 'downloadPdf'])->name('stock_requisitions.downloadPdf');
 Route::get('/inventory/{id}/download-pdf', [InventoryController::class, 'downloadPdf'])->name('inventory.downloadPdf');
+Route::get('petty_cash_requests/{id}/download', [PettyCashRequestController::class, 'downloadPdf'])->name('petty_cash_requests.downloadPdf');
+  
+// Summaries for manager and finance
+Route::get('/manager-summary', [PaymentRequestController::class, 'managerSummary'])
+->name('summaries.manager');
 
+Route::get('/finance-summary', [PaymentRequestController::class, 'financeSummary'])
+->name('summaries.finance');
 

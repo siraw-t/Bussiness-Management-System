@@ -38,7 +38,8 @@ return new class extends Migration
             $table->string('manager_comment')->nullable(); // Manager's comment
             $table->unsignedBigInteger('reviewed_by')->nullable(); // Finance reviewer
             $table->unsignedBigInteger('approved_by')->nullable(); // Reference to users table
-            
+            $table->enum('cash_type', ['petty_cash', 'account_payable']); // Cash type
+
             $table->timestamps(); // Created at and Updated at
         });
     }

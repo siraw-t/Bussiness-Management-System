@@ -19,6 +19,7 @@ class PaymentRequest extends Model
         'finance_comment',
         'item_description',
         'item_name',
+        'item_name_manual', // Add this line
         'unit',
         'quantity',
         'amount',
@@ -35,6 +36,8 @@ class PaymentRequest extends Model
         'manager_comment',
         'reviewed_by',
         'approved_by',
+        'item_type', // Add item_type to fillable fields
+        'unit_price',
     ];
 
     public function user()

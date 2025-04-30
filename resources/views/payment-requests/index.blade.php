@@ -2,13 +2,8 @@
 
 @section('content')
     <div class="container mt-5">
-        <h1 class="text-center text-primary mb-4"> Payment Requests</h1>
+        <h1 class="text-center text-primary mb-4">Payment Requests</h1>
 
-        {{-- @if (session('success'))
-            <div class="alert alert-success fade show" role="alert">
-                {{ session('success') }}
-            </div>
-        @endif --}}
 
         <div class="text-center mb-4">
             <a href="{{ route('payment-requests.create') }}" class="btn btn-primary btn-sm">
@@ -24,8 +19,11 @@
                         <th>Reference No</th>
                         <th>Full Name</th>
                         <th>Department</th>
+                        <th>Cash Type</th>
                         <th>Item Name</th>
+                        <th>Item Type</th> <!-- New Column for Item Type -->
                         <th>Quantity</th>
+                        <th>Unit Price</th> <!-- New Column for Unit Price -->
                         <th>Amount</th>
                         <th>VAT</th>
                         <th>Total</th>
@@ -49,8 +47,18 @@
                             <td>{{ $request->reference_no ?? 'N/A' }}</td>
                             <td>{{ optional($request->user)->full_name }}</td>
                             <td>{{ $request->department ?? 'N/A' }}</td>
-                            <td>{{ $request->item_name }}</td>
+                            <td>{{ ucfirst(str_replace('_', ' ', $request->cash_type)) }}</td>
+                            <td>
+                                @if ($request->item_type === 'service')
+                                    {{ $request->item_name_manual ?? 'N/A' }} <!-- Display manual item name if service -->
+                                @else
+                                    {{ $request->item_name }}
+                                @endif
+                            </td>
+                            <td>{{ $request->item_type ?? 'N/A' }}</td> <!-- Display Item Type -->
                             <td>{{ $request->quantity ?? 'N/A' }} {{ $request->unit ?? 'N/A' }}</td>
+                            <td>{{ number_format($request->unit_price, 2) }} {{ $request->currency ?? 'N/A' }}</td>
+                            <!-- Display Unit Price -->
                             <td>{{ number_format($request->amount, 2) }} {{ $request->currency ?? 'N/A' }}</td>
                             <td>{{ number_format($request->vat, 2) }} {{ $request->currency ?? 'N/A' }}</td>
                             <td>{{ number_format($request->total, 2) }} {{ $request->currency ?? 'N/A' }}</td>
@@ -69,6 +77,7 @@
                             <td>{{ $request->manager_comment ?? 'N/A' }}</td>
                             <td>{{ $request->reviewed_by ? optional(\App\Models\User::find($request->reviewed_by))->full_name : 'Not Checked' }}
                             </td>
+
                             <td>{{ $request->approved_by ? optional(\App\Models\User::find($request->approved_by))->full_name : 'Not Approved' }}
                             </td>
                             <td>

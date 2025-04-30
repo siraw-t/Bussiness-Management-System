@@ -36,9 +36,12 @@
         }
 
         .company-info {
-            text-align: left;
+            text-align: right;
+            /* Align text to the right */
             font-size: 14px;
             color: #555;
+            flex: 1;
+            /* Allow it to take remaining space */
         }
 
         .company-name {
@@ -108,14 +111,16 @@
     <div class="container">
         <!-- Header Section -->
         <header>
+            <img src="{{ public_path('storage/' . Auth::user()->company->logo) }}" alt="Company Logo">
             <div class="company-info">
-                <img src="{{ public_path('storage/' . Auth::user()->company->logo) }}" alt="Company Logo">
                 <p>{{ $company->city }}, {{ $company->country }}</p>
                 <p>Date: {{ date('Y-m-d') }}</p>
                 <p>Reference Number: {{ $plan->reference_number }}</p>
             </div>
             <h1 class="company-name">{{ $company->company_name }}</h1>
+
         </header>
+
 
         <h2 class="employee-plan-title">Employee Plan</h2>
 

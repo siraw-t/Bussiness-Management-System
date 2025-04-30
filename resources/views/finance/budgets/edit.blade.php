@@ -75,6 +75,18 @@
                     <option value="UGX" {{ $budget->currency == 'UGX' ? 'selected' : '' }}>UGX</option>
                 </select>
             </div>
+            <div class="form-group mb-3">
+                <label for="approved_by">Select Manager</label>
+                <select name="approved_by" class="form-control" required>
+                    <option value="" disabled selected>Select a manager</option>
+                    @foreach ($managers as $manager)
+                        <option value="{{ $manager->user_id }}"
+                            {{ $manager->user_id == $budget->approved_by ? 'selected' : '' }}>
+                            {{ $manager->full_name }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
 
             <button type="submit" class="btn btn-warning btn-lg w-100">Update Budget</button>
             <a href="{{ route('finance.budgets.index') }}" class="btn btn-secondary btn-lg w-100 mt-3">Cancel</a>

@@ -40,5 +40,11 @@ public function company()
         return $this->belongsTo(Company::class, 'company_id', 'company_id'); // Relate to the Company model
     }
 
+
+    public function employee()
+{
+    return $this->belongsTo(User::class, 'employee_id', 'user_id'); // Adjust as necessary
+}
+
     
 }

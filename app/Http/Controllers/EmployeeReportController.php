@@ -21,9 +21,12 @@ class EmployeeReportController extends Controller
     }
 
     public function create()
-    {
-        return view('weekly-reports.create');
-    }
+{
+    $managers = User::where('company_id', Auth::user()->company_id)
+                    ->where('role', 'manager')
+                    ->get();
+    return view('weekly-reports.create', compact('managers'));
+}
 
     public function store(Request $request)
     {
@@ -33,6 +36,7 @@ class EmployeeReportController extends Controller
             'tasks_in_progress' => 'nullable|string',
             'tasks_completed' => 'nullable|string',
             'self_assessment' => 'nullable|string',
+            'approved_by' => 'required|exists:users,user_id', // Validate that the selected manager exists
             // Removed last_week_plan_id validation; it will be assigned in the controller
         ]);
 
@@ -90,27 +94,39 @@ $lastWeekPlanId = $lastWeekPlan ? $lastWeekPlan->plan_id : null;
                   $reference_number = "{$companyAcronym}/{$requestName}/{$currentYear}/" . str_pad($sequenceNumber, 2, '0', STR_PAD_LEFT);
               
 
-        EmployeeReport::create([
+        $employeeReport = EmployeeReport::create([
     'employee_id' => Auth::id(),
     'week' => $request->week,
     'report' => $request->report,
     'status' => 'pending', // Default status
     'reference_number' => $reference_number, // Ensure this line is executed
     'submitted_at' => now(),
-    'approved_by' => $manager ? $manager->user_id : null, // Set approved_by if manager exists
+    'approved_by' => $request->approved_by, // Use the selected manager's ID
     'tasks_in_progress' => $request->tasks_in_progress,
     'tasks_completed' => $request->tasks_completed,
     'self_assessment' => $request->self_assessment,
     'last_week_plan_id' => $lastWeekPlanId, // Use retrieved last week's plan ID
 ]);
 
+// if ($manager) {
+//     $manager->notify(new \App\Notifications\EmployeeReportRequestNotification($employeeReport));
+// }
+
+$selectedManager = User::find($request->approved_by);
+if ($selectedManager) {
+    $selectedManager->notify(new \App\Notifications\EmployeeReportRequestNotification($employeeReport));
+}
+
         return redirect()->route('weekly-reports.index')->with('success', 'Weekly report submitted successfully.');
     }
 
     public function edit(EmployeeReport $weeklyReport)
-    {
-        return view('weekly-reports.edit', compact('weeklyReport'));
-    }
+{
+    $managers = User::where('company_id', Auth::user()->company_id)
+                    ->where('role', 'manager')
+                    ->get();
+    return view('weekly-reports.edit', compact('weeklyReport', 'managers'));
+}
 
     public function update(Request $request, EmployeeReport $weeklyReport)
     {
@@ -122,9 +138,11 @@ $lastWeekPlanId = $lastWeekPlan ? $lastWeekPlan->plan_id : null;
             'self_assessment' => 'nullable|string',
             'last_week_plan_id' => 'nullable|exists:employee_plan,plan_id', // Ensure it exists in employee_plan table
             'manager_comment' => 'nullable|string',
+            'approved_by' => 'required|exists:users,user_id', // Validate that the selected manager exists
+
         ]);
 
-        $weeklyReport->update($request->only(['week', 'report', 'tasks_in_progress', 'tasks_completed', 'self_assessment', 'last_week_plan_id']));
+        $weeklyReport->update($request->only(['week', 'report', 'tasks_in_progress', 'tasks_completed', 'self_assessment', 'last_week_plan_id', 'approved_by']));
 
         return redirect()->route('weekly-reports.index')->with('success', 'Weekly report updated successfully.');
     }

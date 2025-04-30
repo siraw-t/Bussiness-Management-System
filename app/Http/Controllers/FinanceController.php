@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use App\Models\Company;
 use PDF;
+// use App\Notifications\BudgetForecastingApprovedNotification;
+// use App\Notifications\BudgetForecastingRejectedNotification;
 
 
 class FinanceController extends Controller
@@ -20,9 +22,12 @@ class FinanceController extends Controller
     }
 
     public function createBudget()
-    {
-        return view('finance.budgets.create');
-    }
+{
+    $managers = User::where('company_id', Auth::user()->company_id)
+                    ->where('role', 'manager')
+                    ->get();
+    return view('finance.budgets.create', compact('managers'));
+}
 
     public function storeBudget(Request $request)
     {
@@ -37,6 +42,8 @@ class FinanceController extends Controller
             'unit' => 'nullable|string',
             'unit_cost' => 'nullable|numeric',
             'status' => 'nullable|string',
+            'approved_by' => 'required|exists:users,user_id', // Validate that the selected manager exists
+
         ]);
 
         $employee = Auth::user();
@@ -81,7 +88,7 @@ class FinanceController extends Controller
     $reference_number = "{$companyAcronym}/{$requestName}/{$currentYear}/" . str_pad($sequenceNumber, 2, '0', STR_PAD_LEFT);
 
 
-        BudgetForecasting::create([
+        $budget = BudgetForecasting::create([
             'created_by' => Auth::id(),
             'forecast_period' => $request->forecast_period,
             'budget_description' => $request->budget_description,
@@ -95,18 +102,29 @@ class FinanceController extends Controller
             'total_budget' => $total_budget,
             'status' => $request->status ?? 'pending',
             'manager_comment' => null,
-            'approved_by' => $manager->user_id ?? null,
+            'approved_by' => $request->approved_by, // Use the selected manager's ID
             'reference_number' => $reference_number,
             'company_country' => $employee->company->country ?? 'N/A',
             'currency' => $request->currency,
         ]);
+
+        // if ($manager) {
+        //     $manager->notify(new \App\Notifications\BudgetForecastingRequestNotification($budget));
+        // }
+        $selectedManager = User::find($request->approved_by);
+        if ($selectedManager) {
+            $selectedManager->notify(new \App\Notifications\BudgetForecastingRequestNotification($budget));
+        }
 
         return redirect()->route('finance.budgets.index')->with('success', 'Budget forecasting created successfully.');
     }
 
     public function editBudget(BudgetForecasting $budget)
     {
-        return view('finance.budgets.edit', compact('budget'));
+        $managers = User::where('company_id', Auth::user()->company_id)
+                        ->where('role', 'manager')
+                        ->get();
+        return view('finance.budgets.edit', compact('budget', 'managers'));
     }
 
     public function updateBudget(Request $request, BudgetForecasting $budget)
@@ -122,6 +140,8 @@ class FinanceController extends Controller
             'unit' => 'nullable|string',
             'unit_cost' => 'nullable|numeric',
             'status' => 'nullable|string',
+            'approved_by' => 'required|exists:users,user_id', // Validate that the selected manager exists
+
         ]);
 
         // Calculate total budget
@@ -139,6 +159,8 @@ class FinanceController extends Controller
             'unit_cost' => $request->unit_cost,
             'total_budget' => $total_budget,
             'status' => $request->status ?? $budget->status,
+            'approved_by' => $request->approved_by, // Update the selected manager's ID
+
         ]);
 
         return redirect()->route('finance.budgets.index')->with('success', 'Budget forecasting updated successfully.');
@@ -178,8 +200,11 @@ class FinanceController extends Controller
         $employee = Auth::user();
         $company = Company::find($employee->company_id); // Fetch the company
         $currencies = ['USD', 'ETB', 'UGX']; // Replace with your currency fetching logic
+        $managers = User::where('company_id', Auth::user()->company_id)
+                    ->where('role', 'manager')
+                    ->get();
 
-        return view('finance.payrolls.create', compact('employees', 'currencies','company'));
+        return view('finance.payrolls.create', compact('employees', 'currencies','company','managers'));
     }
 
     public function storePayroll(Request $request)
@@ -196,6 +221,8 @@ class FinanceController extends Controller
             'status' => 'nullable|string',
             'transport_allowance' => 'nullable|numeric',
             'taxable_transport_allowance' => 'nullable|numeric',
+            'approved_by' => 'required|exists:users,user_id', // Validate that the selected manager exists
+
         ]);
          
         $employee = Auth::user();
@@ -293,7 +320,7 @@ if ($company->country === 'Ethiopia') {
         $netPayment = $totalTaxableEarnings - $incomeTax - $pensionFund7 - ($request->salary_advance ?? 0) + $transportAllowance;
 
         // Create payroll record
-        Payroll::create([
+        $payroll = Payroll::create([
             'employee_id' => $request->employee_id,
             'reference_number' => $reference_number,
             'job_title' => $request->job_title,
@@ -312,9 +339,18 @@ if ($company->country === 'Ethiopia') {
             'pay_period' => $pay_period_date,
             'status' => $request->status ?? 'Pending',
             'prepared_by' => Auth::id(),
-            'approved_by' => $manager->user_id ?? null,
+            'approved_by' => $request->approved_by, // Use the selected manager's ID
             'company_country' => $company->country ?? 'N/A',
         ]);
+
+        // if ($manager) {
+        //     $manager->notify(new \App\Notifications\PayrollRequestNotification($payroll));
+        // }
+
+        $selectedManager = User::find($request->approved_by);
+        if ($selectedManager) {
+            $selectedManager->notify(new \App\Notifications\PayrollRequestNotification($payroll));
+        }
 
         return redirect()->route('finance.payrolls.index')->with('success', 'Payroll created successfully.');
     }
@@ -323,8 +359,12 @@ if ($company->country === 'Ethiopia') {
     {
         $employees = User::where('company_id', Auth::user()->company_id)->get();
         $currencies = ['USD', 'ETB', 'UGX']; // Replace with your currency fetching logic
+        
+        $managers = User::where('company_id', Auth::user()->company_id)
+                        ->where('role', 'manager')
+                        ->get();
 
-        return view('finance.payrolls.edit', compact('payroll', 'employees', 'currencies'));
+        return view('finance.payrolls.edit', compact('payroll', 'employees', 'currencies','managers'));
     }
 
     public function updatePayroll(Request $request, Payroll $payroll)
@@ -341,6 +381,8 @@ if ($company->country === 'Ethiopia') {
             'status' => 'nullable|string',
             'transport_allowance' => 'nullable|numeric',
             'taxable_transport_allowance' => 'nullable|numeric',
+            'approved_by' => 'required|exists:users,user_id', // Validate that the selected manager exists
+
         ]);
 
         $employee = Auth::user();
@@ -422,6 +464,8 @@ if ($company->country === 'Ethiopia') {
             'net_payment' => $netPayment,
             'pay_period' => $request->pay_period,
             'status' => $request->status ?? 'Pending',
+            'approved_by' => $request->approved_by, // Update the selected manager's ID
+
         ]);
 
         return redirect()->route('finance.payrolls.index')->with('success', 'Payroll updated successfully.');

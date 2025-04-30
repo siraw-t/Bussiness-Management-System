@@ -89,10 +89,13 @@
                     placeholder="Enter pension fund 11%">
             </div>
 
-            <div class="form-group mb-4">
-                <label for="status">Status</label>
-                <select name="status" class="form-control">
-                    <option value="pending" selected>Pending</option>
+            <div class="form-group mb-3">
+                <label for="approved_by">Select Manager</label>
+                <select name="approved_by" class="form-control" required>
+                    <option value="" disabled selected>Select a manager</option>
+                    @foreach ($managers as $manager)
+                        <option value="{{ $manager->user_id }}">{{ $manager->full_name }}</option>
+                    @endforeach
                 </select>
             </div>
 

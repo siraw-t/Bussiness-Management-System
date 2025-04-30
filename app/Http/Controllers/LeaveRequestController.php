@@ -12,15 +12,36 @@ use PDF;
 class LeaveRequestController extends Controller
 {
     public function index()
-    {
-        $requests = LeaveRequest::where('user_id', Auth::id())->get();
-        return view('leave-requests.index', compact('requests'));
-    }
+{
+    $requests = LeaveRequest::where('user_id', Auth::id())->get();
+    $employee = Auth::user();
+    $country = $employee->company->country;
+
+    // Set the annual leave limit based on the company country
+    $annualLeaveLimit = ($country === 'Ethiopia') ? 16 : (($country === 'Uganda') ? 21 : 0);
+
+    // Count approved annual leave days taken by the user
+    $totalAnnualLeaveTaken = LeaveRequest::where('user_id', $employee->user_id)
+        ->where('leave_type', 'annual_leave')
+        ->where('status', 'approved')
+        ->get()
+        ->sum(function ($leave) {
+            return (new \DateTime($leave->end_date))->diff(new \DateTime($leave->start_date))->days + 1;
+        });
+
+    // Calculate remaining leave days
+    $remainingLeaveDays = $annualLeaveLimit - $totalAnnualLeaveTaken;
+
+    return view('leave-requests.index', compact('requests', 'remainingLeaveDays'));
+}
 
     public function create()
-    {
-        return view('leave-requests.create');
-    }
+{
+    $managers = User::where('company_id', Auth::user()->company_id)
+                    ->where('role', 'manager')
+                    ->get();
+    return view('leave-requests.create', compact('managers'));
+}
 
     public function store(Request $request)
 {
@@ -32,6 +53,8 @@ class LeaveRequestController extends Controller
         'other_reason' => 'nullable|string|max:255',
         'employee_signature' => 'nullable|file|mimes:jpg,jpeg,png|max:1024',
         'attachment' => 'nullable|file|mimes:pdf,jpg,png,jpeg|max:2048',
+        'approved_by' => 'required|exists:users,user_id', // Validate that the selected manager exists
+
     ]);
 
     $employee = Auth::user();
@@ -51,6 +74,9 @@ class LeaveRequestController extends Controller
         ->sum(function ($leave) {
             return (new \DateTime($leave->end_date))->diff(new \DateTime($leave->start_date))->days + 1;
         });
+
+        // Calculate remaining leave days
+    // $remainingLeaveDays = $annualLeaveLimit - $totalAnnualLeaveTaken;
 
     // Check if the user can request the leave
     if ($request->leave_type === 'annual_leave' && ($totalAnnualLeaveTaken + $daysRequested > $annualLeaveLimit)) {
@@ -111,22 +137,34 @@ class LeaveRequestController extends Controller
     $leaveRequest->user_id = $employee->user_id;
     $leaveRequest->attachment = $request->attachment ? $request->attachment->store('attachments', 'public') : null;
     $leaveRequest->status = 'pending';
-    $leaveRequest->approved_by = $manager ? $manager->user_id : null;
+    $leaveRequest->approved_by = $request->approved_by; // Use the selected manager's ID
     $leaveRequest->company_country = $country;
     $leaveRequest->reference_number = $reference_number; // Assign the generated reference number
 
+    // if ($manager) {
+    //     $manager->notify(new \App\Notifications\LeaveRequestNotification($leaveRequest));
+    // }
+
+    $selectedManager = User::find($request->approved_by);
+        if ($selectedManager) {
+            $selectedManager->notify(new \App\Notifications\LeaveRequestNotification($leaveRequest));
+        }
+
     // Attempt to save the leave request
     if ($leaveRequest->save()) {
-        return redirect()->route('leave-requests.index')->with('success', 'Leave request created successfully.');
+        return redirect()->route('leave-requests.index')->with('success', 'Leave request created successfully. ');
     } else {
         return redirect()->back()->withErrors(['error' => 'Failed to create leave request. Please try again.']);
     }
 }
 
-    public function edit(LeaveRequest $leaveRequest)
-    {
-        return view('leave-requests.edit', compact('leaveRequest'));
-    }
+public function edit(LeaveRequest $leaveRequest)
+{
+    $managers = User::where('company_id', Auth::user()->company_id)
+                    ->where('role', 'manager')
+                    ->get();
+    return view('leave-requests.edit', compact('leaveRequest', 'managers'));
+}
 
     public function update(Request $request, LeaveRequest $leaveRequest)
     {
@@ -137,6 +175,8 @@ class LeaveRequestController extends Controller
             'other_reason' => 'nullable|string|max:255',
             'attachment' => 'nullable|file|mimes:pdf,jpg,png,jpeg|max:2048',
             'employee_signature' => 'nullable|file|mimes:jpg,jpeg,png|max:1024',
+            'approved_by' => 'required|exists:users,user_id', // Validate that the selected manager exists
+
         ]);
 
         $leaveRequest->fill($request->only(['start_date', 'end_date', 'leave_type', 'other_reason']));
@@ -151,6 +191,8 @@ class LeaveRequestController extends Controller
         if ($request->hasFile('attachment')) {
             $leaveRequest->attachment = $request->attachment->store('attachments', 'public');
         }
+        $leaveRequest->approved_by = $request->approved_by; // Update the selected manager's ID
+
 
         $leaveRequest->save();
 
@@ -164,15 +206,32 @@ class LeaveRequestController extends Controller
     }
 
     public function downloadPdf($id)
-    {
-        $request = LeaveRequest::findOrFail($id);
-        $company = Auth::user()->company;
+{
+    $request = LeaveRequest::findOrFail($id);
+    $company = Auth::user()->company;
+    $employee = Auth::user();
+    $country = $employee->company->country;
 
-        $pdf = PDF::loadView('leave-requests.pdf', compact('request', 'company'))
-                    ->setPaper('A4', 'portrait');
+    // Set the annual leave limit based on the company country
+    $annualLeaveLimit = ($country === 'Ethiopia') ? 16 : (($country === 'Uganda') ? 21 : 0);
 
-        return $pdf->download('leave-request_' . $request->leave_request_id . '.pdf');
-    }
+    // Count approved annual leave days taken by the user
+    $totalAnnualLeaveTaken = LeaveRequest::where('user_id', $employee->id)
+        ->where('leave_type', 'annual_leave')
+        ->where('status', 'approved')
+        ->get()
+        ->sum(function ($leave) {
+            return (new \DateTime($leave->end_date))->diff(new \DateTime($leave->start_date))->days + 1;
+        });
+
+    // Calculate remaining leave days
+    $remainingLeaveDays = $annualLeaveLimit - $totalAnnualLeaveTaken;
+
+    $pdf = PDF::loadView('leave-requests.pdf', compact('request', 'company', 'remainingLeaveDays'))
+                ->setPaper('A4', 'portrait');
+
+    return $pdf->download('leave-request_' . $request->id . '.pdf');
+}
 
     public function showPendingRequests()
     {
@@ -184,4 +243,11 @@ class LeaveRequestController extends Controller
 
         return view('display.pending', compact('pendingLeaveRequests'));
     }
+
+//     public function markAsRead($id)
+// {
+//     $notification = Auth::user()->notifications()->findOrFail($id);
+//     $notification->markAsRead();
+//     return response()->json(['success' => true]);
+// }
 }

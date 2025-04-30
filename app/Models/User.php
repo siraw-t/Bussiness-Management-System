@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use Illuminate\Contracts\Auth\MustVerifyEmail; // Import the email verification contract
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -10,10 +10,10 @@ class User extends Authenticatable implements MustVerifyEmail
 {
     use Notifiable;
 
-    protected $table = 'users'; // Define the table name
-    protected $primaryKey = 'user_id'; // Define the primary key
-    public $incrementing = true; // Auto-incrementing IDs
-    protected $keyType = 'int'; // Using integers for IDs
+    protected $table = 'users';
+    protected $primaryKey = 'user_id';
+    public $incrementing = true;
+    protected $keyType = 'int';
 
     protected $fillable = [
         'username', 
@@ -23,7 +23,6 @@ class User extends Authenticatable implements MustVerifyEmail
         'role', 
         'company_id',
         'profile_image',
-        // Adding the new fields to allow mass assignment (optional)
         'email_verified_at',
         'email_verification_hash',
     ];
@@ -31,33 +30,27 @@ class User extends Authenticatable implements MustVerifyEmail
     protected $hidden = [
         'password', 
         'remember_token',
-        // You may choose to hide the verification hash if it should remain confidential
-        // 'email_verification_hash',
     ];
 
-    // Cast email_verified_at to a datetime instance
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
 
     public function company()
     {
-        return $this->belongsTo(Company::class, 'company_id', 'company_id'); // Relate to the Company model
+        return $this->belongsTo(Company::class, 'company_id', 'company_id');
     }
 
-    // Relationship to payrolls as an employee
     public function payrolls()
     {
         return $this->hasMany(Payroll::class, 'employee_id', 'user_id');
     }
 
-    // Relationship to payrolls as a preparer
     public function preparedPayrolls()
     {
         return $this->hasMany(Payroll::class, 'prepared_by', 'user_id');
     }
 
-    // Relationship to payrolls as an approver
     public function approvedPayrolls()
     {
         return $this->hasMany(Payroll::class, 'approved_by', 'user_id');
@@ -87,6 +80,4 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasMany(EmployeePlan::class, 'employee_id', 'user_id');
     }
-
-    
 }

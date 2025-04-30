@@ -57,11 +57,15 @@
         }
 
         .company-info {
-            text-align: left;
+            text-align: right;
+            /* Align text to the right */
             font-size: 14px;
             /* Font size */
             color: #555;
             /* Text color */
+            flex: 1;
+
+            /* Allow it to take remaining space */
         }
 
         .company-name {
@@ -139,14 +143,16 @@
     <div class="container">
         <!-- Header Section -->
         <header>
+            <img src="{{ public_path('storage/' . Auth::user()->company->logo) }}" alt="Company Logo">
             <div class="company-info">
-                <img src="{{ public_path('storage/' . Auth::user()->company->logo) }}" alt="Company Logo">
                 <p>{{ $company->city }}, {{ $company->country }}</p>
                 <p>Date: {{ date('Y-m-d') }}</p>
                 <p>Ref: {{ $inventory->reference_number }}</p>
             </div>
             <h1 class="company-name">{{ $company->company_name }}</h1>
+
         </header>
+
 
         <h2 class="inventory-title">Inventory Details</h2>
 
@@ -172,7 +178,6 @@
                 <td class="label"><strong>Item Type:</strong></td>
                 <td class="value">{{ ucfirst($inventory->item_type) }}</td>
             </tr>
-
             <tr>
                 <td class="label"><strong>Quantity:</strong></td>
                 <td class="value">{{ $inventory->quantity }} {{ $inventory->unit }}</td>
@@ -185,13 +190,11 @@
                 <td class="label"><strong>Total Price:</strong></td>
                 <td class="value">{{ number_format($inventory->total_price, 2) }} {{ $inventory->currency }}</td>
             </tr>
-
             <tr>
                 <td class="label"><strong>Stock In Date:</strong></td>
                 <td class="value">{{ $inventory->stock_in_date ? $inventory->stock_in_date->format('Y-m-d') : 'N/A' }}
                 </td>
             </tr>
-
             <tr>
                 <td class="label"><strong>Issued Quantity:</strong></td>
                 <td class="value">{{ $inventory->issued_quantity ?? 'N/A' }} {{ $inventory->issued_unit }}</td>
@@ -205,7 +208,6 @@
                 <td class="label"><strong>Issued Department:</strong></td>
                 <td class="value">{{ $inventory->issued_department ?? 'N/A' }}</td>
             </tr>
-
             <tr>
                 <td class="label"><strong>Balance Quantity:</strong></td>
                 <td class="value">{{ $inventory->balance_quantity ?? 'N/A' }} {{ $inventory->unit }}</td>
@@ -227,7 +229,6 @@
 
         <!-- Bottom Section with Finance Comments -->
         <div class="bottom-section">
-
             <div>
                 <p><strong>Received By:</strong>
                     {{ optional(\App\Models\User::find($inventory->received_by))->full_name ?? 'N/A' }}</p>

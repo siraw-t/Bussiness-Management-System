@@ -28,13 +28,15 @@ class StockFulfilledNotification extends Notification
         return (new MailMessage)
                     ->subject('Stock Request Fulfilled')
                     ->line($this->data['message'])
-                    ->action('View Inventory', url('/inventory'));
+                    ->action('View Inventory', url('/stock_requisitions'));
     }
 
     public function toArray($notifiable)
     {
         return [
+            'requisition_id' => $this->data['id'], // Changed to array access
             'message' => $this->data['message'],
+            'url' => url('/stock_requisitions'),
         ];
     }
 }

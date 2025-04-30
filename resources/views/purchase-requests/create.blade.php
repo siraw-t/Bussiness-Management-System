@@ -50,6 +50,26 @@
                 <label for="attachments">Attachments</label>
                 <input type="file" name="attachments[]" class="form-control" multiple required>
             </div>
+            <div class="form-group mb-3">
+                <label for="approved_by">Select Manager (Approve)</label>
+                <select name="approved_by" class="form-control" required>
+                    <option value="" disabled selected>Select a manager</option>
+                    @foreach ($managers as $manager)
+                        <option value="{{ $manager->user_id }}">{{ $manager->full_name }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="form-group mb-3">
+                <label for="checked_by">Select Finance (Check)</label>
+                <select name="checked_by" class="form-control" required>
+                    <option value="" disabled selected>Select a finance person</option>
+                    @foreach ($finances as $finance)
+                        <option value="{{ $finance->user_id }}">{{ $finance->full_name }}</option>
+                    @endforeach
+                </select>
+            </div>
+
 
             <button type="submit" class="btn btn-success w-100">
                 <i class="bi bi-check-lg"></i> Submit

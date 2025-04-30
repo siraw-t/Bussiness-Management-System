@@ -56,6 +56,7 @@
     <div class="container-fluid mt-5">
         <h2 class="text-center text-primary mb-4">Leave Requests</h2>
 
+
         <div class="table-responsive">
             <table class="table table-bordered table-striped table-hover">
                 <thead class="thead-dark">
@@ -74,6 +75,7 @@
                         <th>Reference Number</th>
                         <th>Created At</th>
                         <th>Updated At</th>
+                        <th>Remaining Annual Leave Days</th> <!-- New column -->
                         <th>Action</th>
                     </tr>
                 </thead>
@@ -97,7 +99,7 @@
                         @else
                             @foreach ($filteredLeaveRequests as $request)
                                 <tr class="align-middle">
-                                    <td>{{ $request->employee->full_name ?? 'N/A' }}</td>
+                                    <td>{{ $request->user->full_name }}</td>
                                     <td>{{ $request->start_date }}</td>
                                     <td>{{ $request->end_date }}</td>
                                     <td>{{ ucfirst(str_replace('_', ' ', $request->leave_type)) }}</td>
@@ -130,6 +132,8 @@
                                     <td>{{ $request->reference_number }}</td>
                                     <td>{{ $request->created_at->format('Y-m-d H:i:s') }}</td>
                                     <td>{{ $request->updated_at->format('Y-m-d H:i:s') }}</td>
+                                    <td>{{ $remainingLeaveDays }}</td> <!-- Display remaining leave days -->
+
                                     <td>
                                         <a href="{{ route('leave-requests.downloadPdf', $request) }}"
                                             class="btn btn-info">Download PDF</a>

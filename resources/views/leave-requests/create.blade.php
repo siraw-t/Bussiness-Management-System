@@ -58,6 +58,15 @@
                 <label for="attachment">Attach File</label>
                 <input type="file" name="attachment" class="form-control">
             </div>
+            <div class="form-group mb-3">
+                <label for="approved_by">Select Manager</label>
+                <select name="approved_by" class="form-control" required>
+                    <option value="" disabled selected>Select a manager</option>
+                    @foreach ($managers as $manager)
+                        <option value="{{ $manager->user_id }}">{{ $manager->full_name }}</option>
+                    @endforeach
+                </select>
+            </div>
 
             <button type="submit" class="btn btn-success btn-lg w-100">Submit</button>
         </form>

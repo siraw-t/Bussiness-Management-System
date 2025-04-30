@@ -6,6 +6,8 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use App\Notifications\UserRegisteredNotification;
+
 
 class UserController extends Controller
 {
@@ -26,35 +28,45 @@ class UserController extends Controller
         return view('users.create'); // Show the form for creating a new user
     }
 
+
+    
+
     public function store(Request $request)
-{
-    $request->validate([
-        'username' => 'required|string|max:255',
-        'full_name' => 'required|string|max:255',
-        'email' => 'required|string|email|max:255|unique:users,email',
-        'password' => 'required|string|min:8|confirmed',
-        'role' => 'required|in:admin,employee,finance,manager,storekeeper',
-        'company_id' => 'required|exists:companies,company_id',
-        'profile_image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048', // Validation for profile image
-    ]);
-
-    $user = User::create([
-        'username' => $request->username,
-        'full_name' => $request->full_name,
-        'email' => $request->email,
-        'password' => bcrypt($request->password),
-        'role' => $request->role,
-        'company_id' => $request->company_id,
-    ]);
-
-    if ($request->hasFile('profile_image')) {
-        $filePath = $request->file('profile_image')->store('profile_images', 'public');
-        $user->profile_image = $filePath;
-        $user->save();
+    {
+        $request->validate([
+            'username' => 'required|string|max:255',
+            'full_name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users,email',
+            'password' => 'required|string|min:8|confirmed',
+            'role' => 'required|in:admin,employee,finance,manager,storekeeper',
+            'company_id' => 'required|exists:companies,company_id',
+            'profile_image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+        ]);
+    
+        $user = User::create([
+            'username' => $request->username,
+            'full_name' => $request->full_name,
+            'email' => $request->email,
+            'password' => bcrypt($request->password),
+            'role' => $request->role,
+            'company_id' => $request->company_id,
+        ]);
+    
+        if ($request->hasFile('profile_image')) {
+            $filePath = $request->file('profile_image')->store('profile_images', 'public');
+            $user->profile_image = $filePath;
+            $user->save();
+        }
+    
+        // Notify the user of successful registration and their company information
+        $user->notify(new UserRegisteredNotification($user));
+    
+        return redirect()->route('users.index')->with('success', 'User created successfully.');
     }
 
-    return redirect()->route('users.index')->with('success', 'User created successfully.');
-}
+
+
+
     public function edit(User $user)
 {
     // Allow users to edit their own information
@@ -69,11 +81,11 @@ public function update(Request $request, User $user)
     $request->validate([
         'username' => 'required|string|max:255',
         'full_name' => 'required|string|max:255',
-        'email' => 'required|string|email|max:255|unique:users,email,' . $user->user_id . ',user_id', // Correct
+        'email' => 'required|string|email|max:255|unique:users,email,' . $user->user_id . ',user_id',
         'password' => 'nullable|string|min:8|confirmed',
         'role' => 'required|in:admin,employee,finance,manager,storekeeper',
         'company_id' => 'required|exists:companies,company_id',
-        'profile_image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048', // Validation for profile image
+        'profile_image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
     ]);
 
     $user->username = $request->username;
@@ -93,7 +105,21 @@ public function update(Request $request, User $user)
     $user->company_id = $request->company_id;
     $user->save();
 
-    return redirect()->route('users.index')->with('success', 'User updated successfully.');
+    // Redirect based on user role
+    switch ($user->role) {
+        case 'admin':
+            return redirect()->route('admin.dashboard')->with('success', 'User updated successfully.');
+        case 'employee':
+            return redirect()->route('employee.dashboard')->with('success', 'User updated successfully.');
+        case 'finance':
+            return redirect()->route('finance.dashboard')->with('success', 'User updated successfully.');
+        case 'manager':
+            return redirect()->route('manager.dashboard')->with('success', 'User updated successfully.');
+        case 'storekeeper':
+            return redirect()->route('storekeeper.dashboard')->with('success', 'User updated successfully.');
+        default:
+            return redirect()->route('users.index')->with('success', 'User updated successfully.'); // Fallback
+    }
 }
 
     public function destroy(User $user)

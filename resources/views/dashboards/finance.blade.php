@@ -4,7 +4,8 @@
     <div class="container-fluid">
         <div class="row">
             <!-- Sidebar -->
-            <nav class="col-md-2 col-lg-2 bg-dark text-white sidebar position-fixed" style="height: 100vh; z-index: 1000;">
+            <nav class="col-md-2 col-lg-2 bg-dark text-white sidebar position-fixed p-0 m-0"
+                style="height: 100vh; z-index: 1000;">
                 <div class="position-sticky">
                     <div class="scrollable-links"
                         style="max-height: calc(100vh - 130px); overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none;">
@@ -57,6 +58,11 @@
                                 </a>
                             </li>
                             <li class="nav-item">
+                                <a class="nav-link text-white" href="{{ route('petty_cash_requests.index') }}">
+                                    <i class="bi bi-file-earmark-text"></i> Request Petty Cash
+                                </a>
+                            </li>
+                            <li class="nav-item">
                                 <a class="nav-link text-white" href="{{ route('finance.budgets.index') }}">
                                     <i class="bi bi-wallet"></i>
                                     <span class="link-text">Budget Forecasting</span>
@@ -79,6 +85,11 @@
                                 </a>
                             </li>
                             <li class="nav-item">
+                                <a class="nav-link text-white" href="{{ route('display.petty_cash') }}">
+                                    <i class="bi bi-file-earmark-text"></i> View Petty Cash Requests
+                                </a>
+                            </li>
+                            <li class="nav-item">
                                 <a class="nav-link text-white" href="{{ route('display.finance-pending') }}">
                                     <i class="bi bi-file-earmark-text"></i> Purchase Pending Requests
                                 </a>
@@ -86,6 +97,11 @@
                             <li class="nav-item">
                                 <a class="nav-link text-white" href="{{ route('display.payment-pending') }}">
                                     <i class="bi bi-file-earmark-text"></i> Payment Pending Requests
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-white" href="{{ route('display.pending_petty_cash') }}">
+                                    <i class="bi bi-file-earmark-text"></i> Pending Petty Cash Request
                                 </a>
                             </li>
                         </ul>
@@ -219,6 +235,18 @@
                         z-index: 1100;
                     }
 
+                    .sidebar {
+                        background-image: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQARDFQTdFiAwH8zVOpv6JWkWak9AUqMj1hOw&s');
+                        background-size: cover;
+                        /* Ensure the image covers the entire sidebar */
+                    }
+
+                    @media (min-width: 768px) {
+                        .sidebar {
+                            left: 0 !important;
+                        }
+                    }
+
                     /* Mobile Styles */
                     @media (max-width: 768px) {
                         .sidebar-toggle {
@@ -239,6 +267,10 @@
                             left: 0;
                         }
 
+                        .sidebar-toggle {
+                            display: block;
+                        }
+
                         main {
                             margin-left: 0;
                         }
@@ -253,6 +285,10 @@
 
                 <!-- Analytics Section -->
                 <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h5>All Pending Requests Overview</h5>
+                        <canvas id="pendingRequestsChart" class="chart"></canvas>
+                    </div>
                     <div class="col-md-6">
                         <h5>Leave Requests Overview</h5>
                         <canvas id="leaveRequestsChart" class="chart"></canvas>
@@ -275,22 +311,45 @@
                     </div>
                     <div class="col-md-6">
                         <h5>Inventory Management Overview</h5>
-                        <canvas class="chart " id="inventoryChart"></canvas>
+                        <canvas id="inventoryChart" class="chart"></canvas>
                     </div>
                 </div>
 
-                <!-- Include Chart.js from CDN -->
                 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
                 <script>
+                    // Pending Requests Chart
+                    const pendingRequestsData = {
+                        labels: ['Leave Requests', 'Payment Requests', 'Purchase Requests', 'Weekly Plans', 'Weekly Reports'],
+                        datasets: [{
+                            label: 'Pending Requests',
+                            data: [
+                                {{ $pendingCounts['leave_requests'] }},
+                                {{ $pendingCounts['payment_requests'] }},
+                                {{ $pendingCounts['purchase_requests'] }},
+                                {{ $pendingCounts['weekly_plans'] }},
+                                {{ $pendingCounts['weekly_reports'] }}
+                            ],
+                            backgroundColor: [
+                                'rgba(75, 192, 192, 0.8)',
+                                'rgba(255, 99, 132, 0.8)',
+                                'rgba(255, 206, 86, 0.8)',
+                                'rgba(54, 162, 235, 0.8)',
+                                'rgba(153, 102, 255, 0.8)'
+                            ],
+                            borderColor: 'rgba(0, 0, 0, 0.2)',
+                            borderWidth: 1,
+                        }]
+                    };
+
                     // Prepare data for the charts
                     const leaveRequestsData = {
                         labels: ['Approved', 'Pending', 'Rejected'],
                         datasets: [{
                             label: 'Leave Requests',
                             data: [
-                                {{ $leaveCounts['Approved'] ?? 0 }},
-                                {{ $leaveCounts['Pending'] ?? 0 }},
-                                {{ $leaveCounts['Rejected'] ?? 0 }}
+                                {{ $leaveCounts['approved'] ?? 0 }},
+                                {{ $leaveCounts['pending'] ?? 0 }},
+                                {{ $leaveCounts['rejected'] ?? 0 }}
                             ],
                             backgroundColor: [
                                 'rgba(75, 192, 192, 0.8)',
@@ -307,9 +366,9 @@
                         datasets: [{
                             label: 'Payment Requests',
                             data: [
-                                {{ $paymentCounts['Approved'] ?? 0 }},
-                                {{ $paymentCounts['Pending'] ?? 0 }},
-                                {{ $paymentCounts['Rejected'] ?? 0 }}
+                                {{ $paymentCounts['approved'] ?? 0 }},
+                                {{ $paymentCounts['pending'] ?? 0 }},
+                                {{ $paymentCounts['rejected'] ?? 0 }}
                             ],
                             backgroundColor: [
                                 'rgba(153, 102, 255, 0.8)',
@@ -326,9 +385,9 @@
                         datasets: [{
                             label: 'Purchase Requests',
                             data: [
-                                {{ $purchaseCounts['Approved'] ?? 0 }},
-                                {{ $purchaseCounts['Pending'] ?? 0 }},
-                                {{ $purchaseCounts['Rejected'] ?? 0 }}
+                                {{ $purchaseCounts['approved'] ?? 0 }},
+                                {{ $purchaseCounts['pending'] ?? 0 }},
+                                {{ $purchaseCounts['rejected'] ?? 0 }}
                             ],
                             backgroundColor: [
                                 'rgba(54, 162, 235, 0.8)',
@@ -341,16 +400,12 @@
                     };
 
                     const weeklyPlansData = {
-                        labels: ['Submitted', 'Not Submitted'],
+                        labels: Object.keys({!! json_encode($planCounts) !!}),
                         datasets: [{
                             label: 'Weekly Plans',
-                            data: [
-                                {{ $planCounts['Submitted'] ?? 0 }},
-                                {{ $planCounts['Not Submitted'] ?? 0 }}
-                            ],
+                            data: Object.values({!! json_encode($planCounts) !!}),
                             backgroundColor: [
                                 'rgba(75, 192, 192, 0.8)',
-                                'rgba(255, 99, 132, 0.8)'
                             ],
                             borderColor: 'rgba(0, 0, 0, 0.2)',
                             borderWidth: 1,
@@ -358,81 +413,69 @@
                     };
 
                     const weeklyReportsData = {
-                        labels: ['Submitted', 'Not Submitted'],
+                        labels: Object.keys({!! json_encode($reportCounts) !!}),
                         datasets: [{
                             label: 'Weekly Reports',
-                            data: [
-                                {{ $reportCounts['Submitted'] ?? 0 }},
-                                {{ $reportCounts['Not Submitted'] ?? 0 }}
-                            ],
+                            data: Object.values({!! json_encode($reportCounts) !!}),
                             backgroundColor: [
                                 'rgba(54, 162, 235, 0.8)',
-                                'rgba(255, 99, 132, 0.8)'
                             ],
                             borderColor: 'rgba(0, 0, 0, 0.2)',
                             borderWidth: 1,
                         }]
                     };
 
-                    const inventoryData = {
-                        labels: @json($inventories->pluck('item_name')),
-                        datasets: [{
-                            label: 'Inventory Quantity',
-                            data: @json($inventories->pluck('quantity')),
-                            backgroundColor: [
-                                'rgba(54, 162, 235, 0.8)', // Example color for each item
-                                'rgba(255, 206, 86, 0.8)',
-                                'rgba(255, 99, 132, 0.8)',
-                                'rgba(75, 192, 192, 0.8)',
-                                'rgba(153, 102, 255, 0.8)',
-                                'rgba(255, 159, 64, 0.8)'
-                            ],
-                            borderColor: 'rgba(0, 0, 0, 0.2)',
-                            borderWidth: 1,
-                        }]
-                    };
+                    // Create Charts
+                    new Chart(document.getElementById('pendingRequestsChart').getContext('2d'), {
+                        type: 'bar',
+                        data: pendingRequestsData,
+                    });
 
-                    // Create Leave Requests Chart
-                    const ctxLeave = document.getElementById('leaveRequestsChart').getContext('2d');
-                    new Chart(ctxLeave, {
+                    new Chart(document.getElementById('leaveRequestsChart').getContext('2d'), {
                         type: 'pie',
                         data: leaveRequestsData,
                     });
 
-                    // Create Payment Requests Chart
-                    const ctxPayment = document.getElementById('paymentRequestsChart').getContext('2d');
-                    new Chart(ctxPayment, {
+                    new Chart(document.getElementById('paymentRequestsChart').getContext('2d'), {
                         type: 'bar',
                         data: paymentRequestsData,
                     });
 
-                    // Create Purchase Requests Chart
-                    const ctxPurchase = document.getElementById('purchaseRequestsChart').getContext('2d');
-                    new Chart(ctxPurchase, {
+                    new Chart(document.getElementById('purchaseRequestsChart').getContext('2d'), {
                         type: 'bar',
                         data: purchaseRequestsData,
                     });
 
-                    // Create Weekly Plans Chart
-                    const ctxPlans = document.getElementById('weeklyPlansChart').getContext('2d');
-                    new Chart(ctxPlans, {
+                    new Chart(document.getElementById('weeklyPlansChart').getContext('2d'), {
                         type: 'bar',
                         data: weeklyPlansData,
                     });
 
-                    // Create Weekly Reports Chart
-                    const ctxReports = document.getElementById('weeklyReportsChart').getContext('2d');
-                    new Chart(ctxReports, {
+                    new Chart(document.getElementById('weeklyReportsChart').getContext('2d'), {
                         type: 'bar',
                         data: weeklyReportsData,
                     });
-
-
                     // Create Inventory Chart
                     const ctxInventory = document.getElementById('inventoryChart').getContext('2d');
                     new Chart(ctxInventory, {
                         type: 'bar',
-                        data: inventoryData,
+                        data: {
+                            labels: @json($inventories->pluck('item_name')),
+                            datasets: [{
+                                label: 'Inventory Quantity',
+                                data: @json($inventories->pluck('quantity')),
+                                backgroundColor: [
+                                    'rgba(54, 162, 235, 0.8)',
+                                    'rgba(255, 206, 86, 0.8)',
+                                    'rgba(255, 99, 132, 0.8)',
+                                    'rgba(75, 192, 192, 0.8)',
+                                    'rgba(153, 102, 255, 0.8)',
+                                    'rgba(255, 159, 64, 0.8)'
+                                ],
+                                borderColor: 'rgba(0, 0, 0, 0.2)',
+                                borderWidth: 1,
+                            }]
+                        },
                         options: {
                             responsive: true,
                             scales: {

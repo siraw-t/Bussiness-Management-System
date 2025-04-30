@@ -445,6 +445,7 @@
         <!-- Pending Leave Requests -->
         <div class="table-container">
             <h5 class="text-primary mt-5">Pending Leave Requests</h5>
+
             @if ($pendingLeaveRequests->isEmpty())
                 <p class="no-requests">No pending leave requests at this time.</p>
             @else
@@ -1124,7 +1125,192 @@
             @endif
         </div>
 
+        <div class="table-container">
+            <h5 class="text-primary mt-5">Pending Petty Cash Requests</h5>
+            @if ($pendingPettyCashRequests->isEmpty())
+                <p class="no-requests">No pending petty cash requests at this time.</p>
+            @else
+                <table class="table table-striped table-hover">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>Title</th>
+                            <th>Description</th>
+                            <th>Amount Requested</th>
+                            <th>Currency</th>
+                            <th>Status</th>
+                            <th>Requested By</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($pendingPettyCashRequests as $request)
+                            <tr>
+                                <td>{{ $request->title }}</td>
+                                <td>{{ $request->description ?? 'N/A' }}</td>
+                                <td>{{ number_format($request->amount_requested, 2) }} {{ $request->currency }}</td>
+                                <td>{{ $request->currency }}</td>
+                                <td>
+                                    <span class="badge bg-warning">{{ ucfirst($request->status) }}</span>
+                                </td>
+                                <td>{{ optional($request->user)->full_name ?? 'N/A' }}</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-success btn-sm" data-toggle="modal"
+                                        data-target="#approveModal{{ $request->petty_cash_request_id }}">
+                                        <i class="fas fa-check"></i> Approve
+                                    </button>
 
+                                    <button class="btn btn-danger btn-sm" data-toggle="modal"
+                                        data-target="#rejectModal{{ $request->petty_cash_request_id }}">
+                                        <i class="fas fa-times"></i> Reject
+                                    </button>
+                                </td>
+                            </tr>
+
+                            <!-- Approval Modal -->
+                            <div class="modal fade" id="approveModal{{ $request->petty_cash_request_id }}"
+                                tabindex="-1" role="dialog"
+                                aria-labelledby="approveModalLabel{{ $request->petty_cash_request_id }}"
+                                aria-hidden="true">
+                                <div class="modal-dialog" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Approve Petty Cash Request</h5>
+                                            <button type="button" class="close"
+                                                data-dismiss="modal">&times;</button>
+                                        </div>
+                                        <form
+                                            action="{{ route('manager.petty_cash.approve', $request->petty_cash_request_id) }}"
+                                            method="POST">
+                                            @csrf
+                                            <div class="modal-body">
+                                                <div class="form-group">
+                                                    <label
+                                                        for="amount_approved{{ $request->petty_cash_request_id }}">Approved
+                                                        Amount:</label>
+                                                    <input type="number" class="form-control"
+                                                        id="amount_approved{{ $request->petty_cash_request_id }}"
+                                                        name="amount_approved" min="1" required
+                                                        oninput="convertToWords(this.value, '{{ $request->petty_cash_request_id }}')">
+                                                </div>
+                                                <div class="form-group">
+                                                    <label
+                                                        for="amount_approved_in_words{{ $request->petty_cash_request_id }}">Approved
+                                                        Amount in Words:</label>
+                                                    <input type="text" class="form-control"
+                                                        id="amount_approved_in_words{{ $request->petty_cash_request_id }}"
+                                                        name="amount_approved_in_words" readonly required>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label
+                                                        for="comment-approve{{ $request->petty_cash_request_id }}">Comments:</label>
+                                                    <textarea class="form-control" id="comment-approve{{ $request->petty_cash_request_id }}" name="manager_comment"
+                                                        rows="3" required></textarea>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary"
+                                                    data-dismiss="modal">Close</button>
+                                                <button type="submit" class="btn btn-success">Approve</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Rejection Modal -->
+                            <div class="modal fade" id="rejectModal{{ $request->petty_cash_request_id }}"
+                                tabindex="-1" role="dialog"
+                                aria-labelledby="rejectModalLabel{{ $request->petty_cash_request_id }}"
+                                aria-hidden="true">
+                                <div class="modal-dialog" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Reject Petty Cash Request</h5>
+                                            <button type="button" class="close"
+                                                data-dismiss="modal">&times;</button>
+                                        </div>
+                                        <form
+                                            action="{{ route('manager.petty_cash.reject', $request->petty_cash_request_id) }}"
+                                            method="POST">
+                                            @csrf
+                                            <div class="modal-body">
+                                                <div class="form-group">
+                                                    <label
+                                                        for="comment-reject{{ $request->petty_cash_request_id }}">Comments:</label>
+                                                    <textarea class="form-control" id="comment-reject{{ $request->petty_cash_request_id }}" name="manager_comment"
+                                                        rows="3" required></textarea>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary"
+                                                    data-dismiss="modal">Close</button>
+                                                <button type="submit" class="btn btn-danger">Reject</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </tbody>
+                </table>
+            @endif
+        </div>
+
+        <script>
+            function convertToWords(amount, requestId) {
+                const words = [
+                    '', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine',
+                    'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen',
+                    'seventeen', 'eighteen', 'nineteen', 'twenty', 'thirty', 'forty', 'fifty',
+                    'sixty', 'seventy', 'eighty', 'ninety'
+                ];
+
+                const scales = ['', 'thousand', 'million', 'billion'];
+
+                if (amount < 0) {
+                    return 'minus ' + convertToWords(Math.abs(amount), requestId);
+                }
+
+                if (amount === 0) {
+                    return 'zero';
+                }
+
+                let numberInWords = '';
+                let scaleIndex = 0;
+
+                while (amount > 0) {
+                    let chunk = amount % 1000;
+                    if (chunk > 0) {
+                        let chunkInWords = '';
+
+                        if (chunk >= 100) {
+                            chunkInWords += words[Math.floor(chunk / 100)] + ' hundred';
+                            chunk %= 100;
+                            if (chunk > 0) {
+                                chunkInWords += ' and ';
+                            }
+                        }
+
+                        if (chunk < 20) {
+                            chunkInWords += words[chunk];
+                        } else {
+                            chunkInWords += words[Math.floor(chunk / 10) * 10];
+                            if (chunk % 10 > 0) {
+                                chunkInWords += ' ' + words[chunk % 10];
+                            }
+                        }
+
+                        numberInWords = chunkInWords + (scales[scaleIndex] ? ' ' + scales[scaleIndex] : '') + ' ' +
+                            numberInWords;
+                    }
+                    amount = Math.floor(amount / 1000);
+                    scaleIndex++;
+                }
+
+                // Update the input for approved amount in words
+                document.getElementById('amount_approved_in_words' + requestId).value = numberInWords.trim();
+            }
+        </script>
 
 
 

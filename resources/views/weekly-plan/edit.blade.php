@@ -21,6 +21,18 @@
                 <label for="urgent_issues">Urgent Issues</label>
                 <textarea name="urgent_issues" class="form-control">{{ old('urgent_issues', $weeklyPlan->urgent_issues) }}</textarea>
             </div>
+            <div class="form-group mb-3">
+                <label for="manager_id">Select Manager</label>
+                <select name="approved_by" class="form-control" required>
+                    <option value="">Select a manager</option>
+                    @foreach ($managers as $manager)
+                        <option value="{{ $manager->user_id }}"
+                            {{ $manager->user_id == $weeklyPlan->approved_by ? 'selected' : '' }}>
+                            {{ $manager->full_name }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
             <button type="submit" class="btn btn-success w-100">
                 <i class="bi bi-check-lg"></i> Update
             </button>

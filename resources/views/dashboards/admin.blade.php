@@ -69,6 +69,18 @@
             font-size: 1.5rem;
         }
 
+        .sidebar {
+            background-image: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRLIGP_-tS-u1qrCfysubtykcG_guPBj4CDLw&s');
+            background-size: cover;
+            /* Ensure the image covers the entire sidebar */
+        }
+
+        @media (min-width: 768px) {
+            .sidebar {
+                left: 0 !important;
+            }
+        }
+
         /* Mobile Styles */
         @media (max-width: 768px) {
             .sidebar-toggle {
@@ -86,6 +98,10 @@
 
             .sidebar.show {
                 left: 0;
+            }
+
+            .sidebar-toggle {
+                display: block;
             }
 
             main {
@@ -112,7 +128,8 @@
     <div class="container-fluid">
         <div class="row">
             <!-- Sidebar -->
-            <nav class="col-md-2 col-lg-2 bg-dark text-white sidebar position-fixed" style="height: 100vh; z-index: 1000;">
+            <nav class="col-md-2 col-lg-2 bg-dark text-white sidebar position-fixed p-0 m-0"
+                style="height: 100vh; z-index: 1000;">
                 <div class="position-sticky">
                     <h5 class="sidebar-title text-center mt-5">Admin Menu</h5>
                     <a class="nav-link text-white" href="{{ route('display.users') }}">

@@ -27,6 +27,7 @@
                         <th>Urgent Issues</th>
                         <th>Reference Number</th>
                         <th>Status</th>
+                        <th>Approved By</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -47,6 +48,8 @@
                                     {{ ucfirst($plan->status) }}
                                 </span>
                             </td>
+                            <td>{{ optional(\App\Models\User::find($plan->approved_by))->full_name ?? 'N/A' }}</td>
+
                             <td>
                                 <div class="btn-group" role="group">
                                     @if ($plan->status === 'approved')

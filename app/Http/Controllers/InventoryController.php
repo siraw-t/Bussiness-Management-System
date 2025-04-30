@@ -7,6 +7,7 @@ use App\Models\Inventory;
 use App\Models\User;
 use App\Models\Company;
 use App\Models\StockRequisition;
+use App\Models\PaymentRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Notifications\StockFulfilledNotification;
@@ -27,7 +28,13 @@ class InventoryController extends Controller
 
     public function create()
     {
-        return view('inventory.create');
+
+         // Fetch approved payment items for dropdown
+         $approvedPaymentItems = PaymentRequest::where('status', 'approved')
+         ->get(['item_name']);
+     
+
+        return view('inventory.create', compact('approvedPaymentItems'));
     }
 
     public function store(Request $request)
@@ -114,7 +121,11 @@ class InventoryController extends Controller
 
     public function edit(Inventory $inventory)
     {
-        return view('inventory.edit', compact('inventory'));
+        $approvedPaymentItems = PaymentRequest::where('status', 'approved')
+    ->get(['item_name']);
+
+
+        return view('inventory.edit', compact('inventory','approvedPaymentItems'));
     }
 
     public function update(Request $request, Inventory $inventory)
@@ -183,23 +194,25 @@ class InventoryController extends Controller
             // Save the inventory
             $inventory->save();
 
-            // Notify the requester
-            $employee = User::find($request->received_by);
-            if ($employee) {
-                Notification::send($employee, new StockFulfilledNotification([
-                    'message' => 'Your stock request for ' . $inventory->item_name . ' has been fulfilled.'
+           // Notify the requester
+        $employee = User::find($request->received_by);
+        if ($employee) {
+            Notification::send($employee, new StockFulfilledNotification([
+                'id' => $inventory->id, // Include the inventory ID
+                'message' => 'Your stock request for ' . $inventory->item_name . ' has been fulfilled.'
+            ]));
+        }
+
+             // Notify storekeeper if stock is low
+        if ($inventory->quantity <= 5) {
+            $storekeeper = User::where('role', 'storekeeper')->first();
+            if ($storekeeper) {
+                $storekeeper->notify(new LowStockNotification([
+                    'id' => $inventory->id, // Include the inventory ID
+                    'message' => 'Stock for ' . $inventory->item_name . ' is low. Only ' . $inventory->quantity . ' left.'
                 ]));
             }
-
-            // Notify storekeeper if stock is low
-            if ($inventory->quantity <= 5) {
-                $storekeeper = User::where('role', 'storekeeper')->first();
-                if ($storekeeper) {
-                    $storekeeper->notify(new LowStockNotification([
-                        'message' => 'Stock for ' . $inventory->item_name . ' is low. Only ' . $inventory->quantity . ' left.'
-                    ]));
-                }
-            }
+        }
 
             return redirect()->route('inventory.index')->with('success', 'Stock-out recorded successfully.');
         } else {
@@ -217,4 +230,87 @@ class InventoryController extends Controller
 
         return $pdf->download('inventory_' . $inventory->inventory_id . '.pdf');
     }
+
+    public function combinedSummary()
+{
+    // Retrieve inventory items
+    $inventories = Inventory::select(
+        'item_name', 
+        'item_type', 
+        'quantity', 
+        'unit_price', 
+        'balance_quantity', 
+        'balance_total_price', 
+        'stock_in_date', 
+        'stock_out_date', 
+        'currency', 
+        'unit'
+    )->get();
+
+    // Prepare combined data
+    $combinedData = [];
+    $totalValue = 0; // Initialize total value
+
+    // Loop through inventories and calculate total prices
+    foreach ($inventories as $inventory) {
+        $totalPrice = $inventory->quantity * $inventory->unit_price; // Calculate total price for this item
+        $totalValue += $totalPrice; // Add to overall total value
+
+        // Add inventory item to combined data
+        $combinedData[$inventory->item_name] = [
+            'item_name' => $inventory->item_name,
+            'item_type' => $inventory->item_type,
+            'quantity' => $inventory->quantity,
+            'unit_price' => $inventory->unit_price,
+            'total_price' => $totalPrice,
+            'stock_in_date' => $inventory->stock_in_date,
+            'stock_out_date' => $inventory->stock_out_date,
+            'currency' => $inventory->currency,
+            'unit' => $inventory->unit,
+            'balance_quantity' => $inventory->balance_quantity,
+            'balance_total_price' => $inventory->balance_total_price,
+            'quantity_requested' => 0, // Initialize for requisition
+            // 'unit_requested' => null, // Initialize for requisition
+            'quantity_approved' => 0, // Initialize for requisition
+        ];
+    }
+
+    // Retrieve stock requisitions
+    $stockRequisitions = StockRequisition::select(
+        'item_name', 
+        'quantity_requested', 
+        'quantity_approved'
+    )->get();
+
+    // Add stock requisition data to combined summary
+    foreach ($stockRequisitions as $requisition) {
+        if (isset($combinedData[$requisition->item_name])) {
+            // If the item already exists, update the quantities
+            $combinedData[$requisition->item_name]['quantity_requested'] += $requisition->quantity_requested;
+            $combinedData[$requisition->item_name]['quantity_approved'] += $requisition->quantity_approved;
+        } else {
+            // If the item does not exist in inventory, create a new entry
+            $combinedData[$requisition->item_name] = [
+                'item_name' => $requisition->item_name,
+                'item_type' => null,
+                'quantity' => 0, // No inventory quantity
+                'unit_price' => null,
+                'total_price' => null,
+                'stock_in_date' => null,
+                'stock_out_date' => null,
+                'currency' => null,
+                'unit' => null,
+                'balance_quantity' => null,
+                'balance_total_price' => null,
+                'quantity_requested' => $requisition->quantity_requested,
+                'quantity_approved' => $requisition->quantity_approved,
+            ];
+        }
+    }
+
+    // Reset combinedData to a simple array
+    $combinedData = array_values($combinedData);
+
+    return view('inventory.combined_summary', compact('combinedData', 'totalValue'));
+}
 }

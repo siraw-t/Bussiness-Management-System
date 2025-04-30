@@ -9,7 +9,13 @@
             @csrf
             <div class="form-group mb-3">
                 <label for="item_name">Item Name</label>
-                <input type="text" name="item_name" class="form-control" required>
+                <select name="item_name" class="form-control" required>
+                    <option value="" disabled selected>Select an item</option>
+                    @foreach ($approvedPaymentItems as $paymentItem)
+                        <option value="{{ $paymentItem->item_name }}">{{ $paymentItem->item_name }} -
+                            {{ $paymentItem->description }}</option>
+                    @endforeach
+                </select>
             </div>
             <div class="form-group mb-3">
                 <label for="tag_number">Tag Number</label>
@@ -43,8 +49,8 @@
                 <select name="currency" class="form-control" required>
                     <option value="USD">USD</option>
                     <option value="EUR">EUR</option>
-                    <option value="GBP">UGX</option>
-                    <option value="JPY">ETB</option>
+                    <option value="UGX">UGX</option>
+                    <option value="ETB">ETB</option>
                     <option value="AUD">AUD</option>
                     <!-- Add more currencies as needed -->
                 </select>

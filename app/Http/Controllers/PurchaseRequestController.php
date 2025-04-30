@@ -18,11 +18,14 @@ class PurchaseRequestController extends Controller
     }
 
     public function create()
-    {
-        $currencies = ['USD', 'ETB', 'UGX']; // Add more currencies as needed
-        $units = ['kg', 'pcs', 'ltr']; // Add more units as needed
-        return view('purchase-requests.create', compact('currencies', 'units'));
-    }
+{
+    $currencies = ['USD', 'ETB', 'UGX'];
+    $units = ['kg', 'pcs', 'ltr'];
+    $managers = User::where('company_id', Auth::user()->company_id)->where('role', 'manager')->get();
+    $finances = User::where('company_id', Auth::user()->company_id)->where('role', 'finance')->get();
+
+    return view('purchase-requests.create', compact('currencies', 'units', 'managers', 'finances'));
+}
 
     public function store(Request $request)
 {
@@ -34,6 +37,8 @@ class PurchaseRequestController extends Controller
         'price' => 'required|numeric',
         'currency' => 'required|string',
         'attachments.*' => 'nullable|file|mimes:jpg,png,pdf,docx|max:2048',
+        'approved_by' => 'required|exists:users,user_id', // Validate that the selected manager exists
+        'checked_by' => 'required|exists:users,user_id', // Validate that the selected finance exists
     ]);
 
     // Get the currently logged-in user
@@ -90,7 +95,7 @@ $reference_number = "{$companyAcronym}/{$requestName}/{$currentYear}/" . str_pad
 
 
     // Create the purchase request
-    PurchaseRequest::create([
+    $purchaseRequest = PurchaseRequest::create([
         'user_id' => Auth::id(),
         'reference_number' => $reference_number, // Generate a unique reference number
         'item_name' => $request->item_name,
@@ -103,19 +108,31 @@ $reference_number = "{$companyAcronym}/{$requestName}/{$currentYear}/" . str_pad
         'company_country' => $company->country, // Get country from company
         'status' => 'pending', // Default status
         'attachments' => json_encode($attachments), // Store attachments as JSON
-        'checked_by' => $finance ? $finance->user_id : null,
-        'approved_by' => $manager ? $manager->user_id : null,
+        'approved_by' => $request->approved_by, // Use the selected manager's ID
+        'checked_by' => $request->checked_by, // Use the selected finance user's ID
     ]);
+
+    // if ($finance) {
+    //     $finance->notify(new \App\Notifications\PurchaseRequestNotification($purchaseRequest));
+    // }
+
+    $selectedFinance = User::find($request->checked_by);
+    if ($selectedFinance) {
+        $selectedFinance->notify(new \App\Notifications\PurchaseRequestNotification($purchaseRequest));
+    }
 
     return redirect()->route('purchase-requests.index')->with('success', 'Purchase request created successfully.');
 }
 
-    public function edit(PurchaseRequest $purchaseRequest)
-    {
-        $currencies = ['USD', 'ETB', 'UGX']; // Add more currencies as needed
-        $units = ['kg', 'pcs', 'ltr']; // Add more units as needed
-        return view('purchase-requests.edit', compact('purchaseRequest', 'currencies', 'units'));
-    }
+public function edit(PurchaseRequest $purchaseRequest)
+{
+    $currencies = ['USD', 'ETB', 'UGX'];
+    $units = ['kg', 'pcs', 'ltr'];
+    $managers = User::where('company_id', Auth::user()->company_id)->where('role', 'manager')->get();
+    $finances = User::where('company_id', Auth::user()->company_id)->where('role', 'finance')->get();
+
+    return view('purchase-requests.edit', compact('purchaseRequest', 'currencies', 'units', 'managers', 'finances'));
+}
 
     public function update(Request $request, PurchaseRequest $purchaseRequest)
     {
@@ -127,6 +144,8 @@ $reference_number = "{$companyAcronym}/{$requestName}/{$currentYear}/" . str_pad
             'price' => 'required|numeric',
             'currency' => 'required|string',
             'attachments.*' => 'nullable|file|mimes:jpg,png,pdf,docx|max:2048',
+            'approved_by' => 'required|exists:users,user_id', // Validate that the selected manager exists
+            'checked_by' => 'required|exists:users,user_id', // Validate that the selected finance exists
         ]);
 
         // Handle attachments
@@ -148,6 +167,8 @@ $reference_number = "{$companyAcronym}/{$requestName}/{$currentYear}/" . str_pad
             'currency' => $request->currency,
             'total_price' => $request->quantity * $request->price, // Update total price
             'attachments' => json_encode($attachments), // Update attachments
+            'approved_by' => $request->approved_by, // Update the selected manager's ID
+            'checked_by' => $request->checked_by, // Update the selected finance user's ID
         ]);
 
         return redirect()->route('purchase-requests.index')->with('success', 'Purchase request updated successfully.');
@@ -200,6 +221,8 @@ $reference_number = "{$companyAcronym}/{$requestName}/{$currentYear}/" . str_pad
             'finance_comment' => $request->finance_comment, // Store finance's comment
         ]);
 
+       
+
         return redirect()->route('purchase-requests.index')->with('success', 'Purchase request checked successfully.');
     }
 
@@ -233,10 +256,24 @@ $reference_number = "{$companyAcronym}/{$requestName}/{$currentYear}/" . str_pad
         $request->validate([
             'finance_comment' => 'required|string|max:255',
         ]);
+        $employee = Auth::user();
+    // $company = Company::find($employee->company_id);
+
+    //     $manager = User::where('company_id', $employee->company_id)->where('role', 'manager')->first();
+
 
         $purchaseRequest = PurchaseRequest::findOrFail($purchase_request_id);
         $purchaseRequest->finance_comment = $request->finance_comment;
         $purchaseRequest->save();
+
+        // if ($manager) {
+        //     $manager->notify(new \App\Notifications\PurchaseRequestReviewedNotification($purchaseRequest));
+        // }
+
+        $manager = User::find($purchaseRequest->approved_by);
+        if ($manager) {
+            $manager->notify(new \App\Notifications\PurchaseRequestReviewedNotification($purchaseRequest));
+        }
 
         return redirect()->back()->with('success', 'Finance comment added successfully.');
     }

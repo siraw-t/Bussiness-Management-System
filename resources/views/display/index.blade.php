@@ -113,7 +113,10 @@
                                 <td>{{ ucfirst($inventory->item_type) }}</td>
                                 <td>{{ $inventory->reference_number }}</td>
                                 <td>{{ $inventory->company_country }}</td>
-                                <td>{{ $inventory->quantity }} {{ $inventory->unit }}</td>
+                                <td
+                                    style="background-color: {{ $inventory->quantity <= 3 ? 'red' : ($inventory->quantity <= 10 ? 'yellow' : 'green') }};">
+                                    {{ $inventory->quantity }} {{ $inventory->unit }}
+                                </td>
                                 <td>{{ number_format($inventory->unit_price, 2) }} {{ $inventory->currency }}</td>
                                 <td>{{ number_format($inventory->total_price, 2) }} {{ $inventory->currency }}</td>
                                 <td>{{ $inventory->description ?? 'N/A' }}</td>

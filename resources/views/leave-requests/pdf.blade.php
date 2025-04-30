@@ -36,9 +36,13 @@
         }
 
         .company-info {
-            text-align: left;
+            text-align: right;
+            /* Align text to the right */
             font-size: 14px;
             color: #555;
+            flex: 1;
+
+            /* Allow it to take remaining space */
         }
 
         .company-name {
@@ -113,13 +117,14 @@
 <body>
     <div class="container">
         <header>
+            <img src="{{ public_path('storage/' . Auth::user()->company->logo) }}" alt="Company Logo">
             <div class="company-info">
-                <img src="{{ public_path('storage/' . Auth::user()->company->logo) }}" alt="Company Logo">
                 <p>{{ $company->city }}, {{ $company->country }}</p>
                 <p>Date: {{ date('Y-m-d') }}</p>
                 <p>Reference Number: {{ $request->reference_number }}</p>
             </div>
             <h1 class="company-name">{{ $company->company_name }}</h1>
+
         </header>
 
         <h2 class="leave-request-title">Leave Request</h2>
@@ -173,6 +178,10 @@
                         <tr>
                             <td class="label"><strong>Updated At:</strong></td>
                             <td class="value">{{ $request->updated_at->format('Y-m-d H:i:s') }}</td>
+                        </tr>
+                        <tr>
+                            <td class="label"><strong>Remaining Annual Leave Days:</strong></td>
+                            <td class="value">{{ $remainingLeaveDays }}</td>
                         </tr>
                     </table>
                 </td>

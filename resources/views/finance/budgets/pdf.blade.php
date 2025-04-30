@@ -57,11 +57,15 @@
         }
 
         .company-info {
-            text-align: left;
+            text-align: right;
+            /* Align text to the right */
             font-size: 14px;
             /* Font size */
             color: #555;
             /* Text color */
+            flex: 1;
+
+            /* Allow it to take remaining space */
         }
 
         .company-name {
@@ -139,15 +143,17 @@
     <div class="container">
         <!-- Header Section -->
         <header>
+            <img src="{{ public_path('storage/' . $company->logo) }}" alt="Company Logo">
             <div class="company-info">
-                <img src="{{ public_path('storage/' . $company->logo) }}" alt="Company Logo">
                 <p>{{ optional($company)->city ?? 'N/A' }}, {{ optional($company)->country ?? 'N/A' }}</p>
                 <p>Date: {{ date('Y-m-d') }}</p>
                 <p>Budget Code: {{ $budget->budget_code }}</p>
                 <p>Reference Number: {{ $budget->reference_number }}</p>
             </div>
             <h1 class="company-name">{{ optional($company)->company_name ?? 'N/A' }}</h1>
+
         </header>
+
 
         <h2 class="budget-title">Budget Record</h2>
 
@@ -157,8 +163,6 @@
                 <th class="label">Detail</th>
                 <th class="value">Information</th>
             </tr>
-
-
             <tr>
                 <td class="label"><strong>Forecast Period:</strong></td>
                 <td class="value">{{ ucfirst($budget->forecast_period) }}</td>
@@ -171,8 +175,6 @@
                 <td class="label"><strong>Budget Description:</strong></td>
                 <td class="value">{{ $budget->budget_description }}</td>
             </tr>
-
-
             <tr>
                 <td class="label"><strong>Department:</strong></td>
                 <td class="value">{{ $budget->department }}</td>

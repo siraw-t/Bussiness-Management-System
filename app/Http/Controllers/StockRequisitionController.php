@@ -22,10 +22,13 @@ class StockRequisitionController extends Controller
     }
 
     public function create()
-    {
-        $inventories = Inventory::all();
-        return view('stock_requisitions.create', compact('inventories'));
-    }
+{
+    $inventories = Inventory::all();
+    $managers = User::where('company_id', Auth::user()->company_id)
+                    ->where('role', 'manager')
+                    ->get();
+    return view('stock_requisitions.create', compact('inventories', 'managers'));
+}
 
     public function store(Request $request)
     {
@@ -34,6 +37,8 @@ class StockRequisitionController extends Controller
             'description' => 'nullable|string',
             'quantity_requested' => 'required|integer|min:1',
             'unit_requested' => 'nullable|string',
+            'approved_by' => 'required|exists:users,user_id', // Validate that the selected manager exists
+
         ]);
 
    // Get the currently logged-in user
@@ -80,7 +85,7 @@ class StockRequisitionController extends Controller
          
          
                   
-        StockRequisition::create([
+        $stockRequisition = StockRequisition::create([
             'item_name' => $request->item_name,
             'description' => $request->description,
             'quantity_requested' => $request->quantity_requested,
@@ -89,17 +94,29 @@ class StockRequisitionController extends Controller
             'user_id' => $employee->user_id,
             'reference_number' => $reference_number,
             'company_country' => $employee->company->country ?? 'N/A',
-            'approved_by' => $manager ? $manager->user_id : null,
+            'approved_by' => $request->approved_by, // Use the selected manager's ID
         ]);
+
+        $selectedManager = User::find($request->approved_by);
+        if ($selectedManager) {
+            $notificationData = [
+                'id' => $stockRequisition->id, // Make sure to pass the requisition ID
+                'message' => 'A new stock requisition has been created: ' . $stockRequisition->item_name,
+            ];
+            $selectedManager->notify(new \App\Notifications\LowStockNotification($notificationData)); // Ensure the class name matches
+        }
 
         return redirect()->route('stock_requisitions.index')->with('success', 'Stock requisition submitted successfully.');
     }
 
     public function edit(StockRequisition $stockRequisition)
-    {
-        $inventories = Inventory::all();
-        return view('stock_requisitions.edit', compact('stockRequisition', 'inventories'));
-    }
+{
+    $inventories = Inventory::all();
+    $managers = User::where('company_id', Auth::user()->company_id)
+                    ->where('role', 'manager')
+                    ->get();
+    return view('stock_requisitions.edit', compact('stockRequisition', 'inventories', 'managers'));
+}
 
     public function update(Request $request, StockRequisition $stockRequisition)
     {
@@ -108,11 +125,14 @@ class StockRequisitionController extends Controller
             'description' => 'nullable|string',
             'quantity_requested' => 'required|integer|min:1',
             'unit_requested' => 'nullable|string',
+            'approved_by' => 'required|exists:users,user_id', // Validate that the selected manager exists
+
         ]);
 
         $stockRequisition->update($request->only([
             'item_name', 'description', 'quantity_requested', 'unit_requested'
         ]));
+        $stockRequisition->approved_by = $request->approved_by; // Update the selected manager's ID
 
         return redirect()->route('stock_requisitions.index')->with('success', 'Stock requisition updated successfully.');
     }

@@ -1,6 +1,5 @@
 <?php
 
-
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
@@ -32,9 +31,11 @@ class LowStockNotification extends Notification
     }
 
     public function toArray($notifiable)
-    {
-        return [
-            'message' => $this->data['message'],
-        ];
-    }
+{
+    return [
+        'requisition_id' => $this->data['id'], // Changed to array access
+        'message' => $this->data['message'],
+        'url' => url('/inventory'),
+    ];
+}
 }

@@ -27,6 +27,7 @@
                         <th>Total Budget</th>
                         <th>Status</th>
                         <th>Manager Comments</th>
+                        <th>Created_by</th>
                         <th>Approved By</th>
                         <th class="text-center">Actions</th>
                     </tr>
@@ -52,6 +53,7 @@
                                 </span>
                             </td>
                             <td>{{ $budget->manager_comment ?? 'N/A' }}</td>
+                            <td>{{ $budget->created_by }}</td>
                             <td>{{ $budget->approver ? $budget->approver->full_name : 'N/A' }}</td>
                             <td>
                                 <div class="btn-group" role="group">

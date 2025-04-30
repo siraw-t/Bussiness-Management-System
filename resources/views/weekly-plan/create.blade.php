@@ -19,6 +19,15 @@
                 <label for="urgent_issues">Urgent Issues</label>
                 <textarea name="urgent_issues" class="form-control"></textarea>
             </div>
+            <div class="form-group mb-3">
+                <label for="manager_id">Select Manager</label>
+                <select name="approved_by" class="form-control" required>
+                    <option value="">Select a manager</option>
+                    @foreach ($managers as $manager)
+                        <option value="{{ $manager->user_id }}">{{ $manager->full_name }}</option>
+                    @endforeach
+                </select>
+            </div>
             <button type="submit" class="btn btn-success w-100">
                 <i class="bi bi-check-lg"></i> Submit
             </button>

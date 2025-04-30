@@ -4,7 +4,8 @@
     <div class="container-fluid">
         <div class="row">
             <!-- Sidebar -->
-            <nav class="col-md-2 col-lg-2 bg-dark text-white sidebar position-fixed" style="height: 100vh; z-index: 1000;">
+            <nav class="col-md-2 col-lg-2 bg-dark text-white sidebar position-fixed p-0 m-0"
+                style="height: 100vh; z-index: 1000;">
                 <div class="position-sticky">
                     <div class="scrollable-links"
                         style="max-height: calc(100vh - 130px); overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none;">
@@ -59,6 +60,11 @@
                                 <li class="nav-item">
                                     <a class="nav-link text-white" href="{{ route('display.stock-requisition') }}">
                                         <i class="bi bi-file-earmark-text"></i> View Stock Requisitions
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-white" href="{{ route('display.petty_cash') }}">
+                                        <i class="bi bi-file-earmark-text"></i> View Petty Cash Requests
                                     </a>
                                 </li>
 
@@ -202,6 +208,18 @@
                         z-index: 1100;
                     }
 
+                    .sidebar {
+                        background-image: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQyU3dzidB2JiG0sKyiwVu3lqEYCvQtVA8lSQ&s');
+                        background-size: cover;
+                        /* Ensure the image covers the entire sidebar */
+                    }
+
+                    @media (min-width: 768px) {
+                        .sidebar {
+                            left: 0 !important;
+                        }
+                    }
+
                     /* Mobile Styles */
                     @media (max-width: 768px) {
                         .sidebar-toggle {
@@ -219,6 +237,10 @@
 
                         .sidebar.show {
                             left: 0;
+                        }
+
+                        .sidebar-toggle {
+                            display: block;
                         }
 
                         main {

@@ -4,9 +4,9 @@
     <div class="container mt-5">
         <h1 class="text-center text-primary mb-4">Leave Requests</h1>
 
-        {{-- @if (session('success'))
-            <div class="alert alert-success">{{ session('success') }}</div>
-        @endif --}}
+        <div class="alert alert-info">
+            Remaining Annual Leave Days: {{ $remainingLeaveDays }}
+        </div>
 
         <div class="text-center mb-4">
             <a href="{{ route('leave-requests.create') }}" class="btn btn-primary btn-sm">
@@ -38,7 +38,7 @@
                 <tbody>
                     @foreach ($requests as $request)
                         <tr>
-                            <td>{{ Auth::user()->full_name }}</td>
+                            <td>{{ $request->user->full_name }}</td>
                             <td>{{ $request->start_date }}</td>
                             <td>{{ $request->end_date }}</td>
                             <td>{{ ucfirst(str_replace('_', ' ', $request->leave_type)) }}</td>
@@ -108,24 +108,4 @@
             </table>
         </div>
     </div>
-
-    <style>
-        @media (max-width: 375px) {
-            .btn-group-vertical {
-                flex-direction: column;
-            }
-
-            .btn {
-                font-size: 0.8rem;
-                /* Smaller font size for mobile */
-                padding: 0.5rem;
-                /* Reduced padding */
-            }
-
-            img {
-                width: 50px;
-                /* Smaller image for signatures */
-            }
-        }
-    </style>
 @endsection

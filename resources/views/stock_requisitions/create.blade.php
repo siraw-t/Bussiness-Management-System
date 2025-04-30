@@ -32,6 +32,15 @@
                 <label for="unit_requested">Unit Requested</label>
                 <input type="text" name="unit_requested" class="form-control" placeholder="e.g., pcs, kg">
             </div>
+            <div class="form-group mb-3">
+                <label for="approved_by">Select Manager</label>
+                <select name="approved_by" class="form-control" required>
+                    <option value="" disabled selected>Select a manager</option>
+                    @foreach ($managers as $manager)
+                        <option value="{{ $manager->user_id }}">{{ $manager->full_name }}</option>
+                    @endforeach
+                </select>
+            </div>
 
             <button type="submit" class="btn btn-primary w-100">
                 <i class="fas fa-plus-circle"></i> Submit Requisition

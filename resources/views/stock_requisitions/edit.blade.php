@@ -30,6 +30,18 @@
                 <input type="text" name="unit_requested" class="form-control"
                     value="{{ $stockRequisition->unit_requested }}" placeholder="e.g., pcs, kg">
             </div>
+            <div class="form-group mb-3">
+                <label for="approved_by">Select Manager</label>
+                <select name="approved_by" class="form-control" required>
+                    <option value="" disabled selected>Select a manager</option>
+                    @foreach ($managers as $manager)
+                        <option value="{{ $manager->user_id }}"
+                            {{ $manager->user_id == $stockRequisition->approved_by ? 'selected' : '' }}>
+                            {{ $manager->full_name }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
 
             <button type="submit" class="btn btn-warning w-100">
                 <i class="fas fa-sync-alt"></i> Update Requisition

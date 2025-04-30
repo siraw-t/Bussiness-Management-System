@@ -14,6 +14,8 @@ use App\Models\BudgetForecasting;
 use App\Models\ArchivedDocument;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\PettyCashRequest;
+
 
 class ManagerController extends Controller
 {
@@ -39,6 +41,13 @@ class ManagerController extends Controller
             ->where('approved_by', $managerId)
             ->with('user')
             ->get();
+
+         // Get pending petty cash requests approved by this manager
+         $pendingPettyCashRequests = PettyCashRequest::where('status', 'pending')
+         ->where('approved_by', $managerId)
+         ->with('user')
+         ->get();
+ 
 
         // Get pending payrolls approved by this manager
         $pendingPayrolls = Payroll::where('status', 'pending')
@@ -77,7 +86,8 @@ class ManagerController extends Controller
             'pendingPayrolls',
             'pendingEmployeePlans',
             'pendingEmployeeReports',
-            'pendingBudgetForecasts'
+            'pendingBudgetForecasts',
+            'pendingPettyCashRequests'
         ));
     }
 
@@ -256,6 +266,52 @@ public function approveStockRequisition(Request $request, $stock_requisition_id)
     $requisition->save();
 
     return redirect()->back()->with('success', 'Stock requisition rejected successfully.');
+}
+
+public function approvePettyCash(Request $request, $petty_cash_request_id)
+{
+    // Validate the request for manager comments and approved amounts
+    $request->validate([
+        'manager_comment' => 'required|string|max:255',
+        'amount_approved' => 'required|numeric', // Ensure the approved amount is validated
+        'amount_approved_in_words' => 'required|string|max:255', // Validate the words for the approved amount
+    ]);
+
+    // Find the petty cash request
+    $pettyCashRequest = PettyCashRequest::where('petty_cash_request_id', $petty_cash_request_id)
+        ->where('status', 'pending') // Ensure it's pending
+        ->firstOrFail();
+
+    // Update the petty cash request details
+    $pettyCashRequest->status = 'approved';
+    $pettyCashRequest->approved_by = Auth::id();
+    $pettyCashRequest->manager_comment = $request->manager_comment; // Save manager comments
+    $pettyCashRequest->amount_approved = $request->amount_approved; // Store the approved amount from the request
+    $pettyCashRequest->amount_approved_in_words = $request->amount_approved_in_words; // Store the approved amount in words
+    $pettyCashRequest->save();
+
+    return redirect()->back()->with('success', 'Petty cash request approved successfully.');
+}
+
+public function rejectPettyCash(Request $request, $petty_cash_request_id)
+{
+    // Validate the request for manager comments
+    $request->validate([
+        'manager_comment' => 'required|string|max:255',
+    ]);
+
+    // Find the petty cash request
+    $pettyCashRequest = PettyCashRequest::where('petty_cash_request_id', $petty_cash_request_id)
+        ->where('status', 'pending') // Ensure it's pending
+        ->firstOrFail();
+
+    // Update the petty cash request details
+    $pettyCashRequest->status = 'rejected';
+    $pettyCashRequest->approved_by = Auth::id();
+    $pettyCashRequest->manager_comment = $request->manager_comment; // Save manager comments
+    $pettyCashRequest->save();
+
+    return redirect()->back()->with('success', 'Petty cash request rejected successfully.');
 }
 
 

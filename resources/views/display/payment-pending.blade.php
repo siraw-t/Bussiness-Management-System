@@ -124,7 +124,8 @@
                                 </td>
                                 <td>{{ $request->finance_comment ?? 'N/A' }}</td>
                                 <td>{{ $request->manager_comment ?? 'N/A' }}</td>
-                                <td>{{ optional(\App\Models\User::find($request->checked_by))->full_name ?? 'N/A' }}
+                                <td>{{ $request->reviewed_by ? optional(\App\Models\User::find($request->reviewed_by))->full_name : 'Not Checked' }}
+                                </td>
                                 </td>
                                 <td>{{ optional(\App\Models\User::find($request->approved_by))->full_name ?? 'N/A' }}
                                 </td>
