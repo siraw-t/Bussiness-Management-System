@@ -1,147 +1,125 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inventory Details</title>
+    <title>Inventory Details — {{ $inventory->reference_number }}</title>
     <style>
         @media print {
-            @page {
-                size: A4;
-                /* Set the size to A4 */
-                margin: 10mm;
-                /* Set minimal margins */
-            }
+            @page { size: A4; margin: 10mm; }
         }
-
+        * { box-sizing: border-box; }
         body {
-            font-family: Arial, sans-serif;
+            font-family: DejaVu Sans, Arial, sans-serif;
             margin: 0;
             padding: 5mm;
-            /* Reduced padding */
             background-color: #ffffff;
-            /* White background */
+            color: #1e293b;
+            font-size: 11px;
         }
-
         .container {
             width: 100%;
-            /* Full width of the A4 */
-            padding: 5mm;
-            /* Padding inside the container */
-            border: 1px solid #000;
-            /* Border for the container */
-            border-radius: 5px;
-            /* Reduced border radius */
-            box-sizing: border-box;
-            /* Include padding and border in element's width and height */
+            padding: 6mm;
+            border: 1.5px solid #1e293b;
+            border-radius: 6px;
         }
-
         header {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 5mm;
-            /* Reduced margin */
-            border-bottom: 1px solid #000;
-            /* Header border */
-            padding-bottom: 5px;
-            /* Reduced padding */
+            margin-bottom: 6mm;
+            border-bottom: 1.5px solid #1e293b;
+            padding-bottom: 8px;
         }
-
         header img {
             max-width: 90px;
-            /* Logo size */
-            margin-right: 10px;
-            /* Margin for logo */
+            max-height: 75px;
+            margin-right: 12px;
         }
-
         .company-info {
             text-align: right;
-            /* Align text to the right */
-            font-size: 14px;
-            /* Font size */
-            color: #555;
-            /* Text color */
+            font-size: 11px;
+            color: #475569;
             flex: 1;
-
-            /* Allow it to take remaining space */
+            line-height: 1.6;
         }
-
+        .company-info p { margin: 1px 0; }
         .company-name {
             text-align: center;
-            font-size: 18px;
-            /* Font size */
-            color: #007bff;
-            /* Company color */
-            margin: 5px 0;
-            /* Margin */
-            width: 100%;
-            /* Full width */
+            font-size: 15px;
+            color: #4f46e5;
+            margin: 6px 0 0;
+            font-weight: 700;
         }
-
         .inventory-title {
             text-align: center;
-            font-size: 20px;
-            /* Font size */
-            font-weight: bold;
-            /* Bold font */
-            margin: 5px 0;
-            /* Margin */
+            font-size: 16px;
+            font-weight: 700;
+            margin: 8px 0 14px;
+            letter-spacing: 0.05em;
+            color: #0f172a;
+            text-transform: uppercase;
         }
-
         .details-table {
             width: 100%;
-            /* Full width of the table */
             border-collapse: collapse;
-            /* Collapse borders */
-            margin-bottom: 10px;
-            /* Margin */
+            margin-bottom: 14px;
         }
-
-        .details-table,
-        .details-table th,
-        .details-table td {
-            border: 1px solid #000;
-            /* Table borders */
+        .details-table, .details-table th, .details-table td {
+            border: 1px solid #475569;
         }
-
-        .details-table th,
-        .details-table td {
-            padding: 5px;
-            /* Padding */
+        .details-table th {
+            background: #f1f5f9;
+            padding: 5px 8px;
             text-align: left;
-            /* Text alignment */
-            font-size: 16px;
-            /* Font size */
+            font-size: 10.5px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: #334155;
         }
-
+        .details-table td {
+            padding: 5px 8px;
+            text-align: left;
+            font-size: 11px;
+            vertical-align: top;
+        }
+        .details-table td.label {
+            width: 40%;
+            background: #f8fafc;
+            color: #334155;
+        }
+        .details-table td.value {
+            width: 60%;
+            color: #0f172a;
+            font-weight: 500;
+        }
         .bottom-section {
             display: flex;
             justify-content: space-between;
-            /* Space between sections */
-            margin-top: 5mm;
-            /* Margin */
-            font-size: 14px;
-            /* Font size */
+            gap: 16px;
+            margin-top: 14px;
+            padding: 12px 14px;
+            border: 1px dashed #cbd5e1;
+            border-radius: 5px;
         }
-
+        .bottom-section > div { flex: 1; }
+        .bottom-section p { margin: 4px 0; font-size: 11px; }
+        .bottom-section strong { color: #334155; }
         footer {
             text-align: center;
-            /* Centered footer */
             margin-top: 10mm;
-            /* Margin */
+            padding-top: 8px;
+            border-top: 1px solid #e2e8f0;
             font-style: italic;
-            /* Italic style */
-            font-size: 14px;
-            /* Font size */
+            font-size: 10.5px;
+            color: #64748b;
         }
+        footer p { margin: 2px 0; }
     </style>
 </head>
 
 <body>
     <div class="container">
-        <!-- Header Section -->
         <header>
             <img src="{{ public_path('storage/' . Auth::user()->company->logo) }}" alt="Company Logo">
             <div class="company-info">
@@ -150,99 +128,47 @@
                 <p>Ref: {{ $inventory->reference_number }}</p>
             </div>
             <h1 class="company-name">{{ $company->company_name }}</h1>
-
         </header>
-
 
         <h2 class="inventory-title">Inventory Details</h2>
 
-        <!-- Details Table -->
         <table class="details-table">
-            <tr>
-                <th class="label">Detail</th>
-                <th class="value">Information</th>
-            </tr>
-            <tr>
-                <td class="label"><strong>Item Name:</strong></td>
-                <td class="value">{{ $inventory->item_name }}</td>
-            </tr>
-            <tr>
-                <td class="label"><strong>Description:</strong></td>
-                <td class="value">{{ $inventory->description ?? 'N/A' }}</td>
-            </tr>
-            <tr>
-                <td class="label"><strong>Tag Number:</strong></td>
-                <td class="value">{{ $inventory->tag_number }}</td>
-            </tr>
-            <tr>
-                <td class="label"><strong>Item Type:</strong></td>
-                <td class="value">{{ ucfirst($inventory->item_type) }}</td>
-            </tr>
-            <tr>
-                <td class="label"><strong>Quantity:</strong></td>
-                <td class="value">{{ $inventory->quantity }} {{ $inventory->unit }}</td>
-            </tr>
-            <tr>
-                <td class="label"><strong>Unit Price:</strong></td>
-                <td class="value">{{ number_format($inventory->unit_price, 2) }} {{ $inventory->currency }}</td>
-            </tr>
-            <tr>
-                <td class="label"><strong>Total Price:</strong></td>
-                <td class="value">{{ number_format($inventory->total_price, 2) }} {{ $inventory->currency }}</td>
-            </tr>
-            <tr>
-                <td class="label"><strong>Stock In Date:</strong></td>
-                <td class="value">{{ $inventory->stock_in_date ? $inventory->stock_in_date->format('Y-m-d') : 'N/A' }}
-                </td>
-            </tr>
-            <tr>
-                <td class="label"><strong>Issued Quantity:</strong></td>
-                <td class="value">{{ $inventory->issued_quantity ?? 'N/A' }} {{ $inventory->issued_unit }}</td>
-            </tr>
-            <tr>
-                <td class="label"><strong>Stock Out Date:</strong></td>
-                <td class="value">
-                    {{ $inventory->stock_out_date ? $inventory->stock_out_date->format('Y-m-d') : 'N/A' }}</td>
-            </tr>
-            <tr>
-                <td class="label"><strong>Issued Department:</strong></td>
-                <td class="value">{{ $inventory->issued_department ?? 'N/A' }}</td>
-            </tr>
-            <tr>
-                <td class="label"><strong>Balance Quantity:</strong></td>
-                <td class="value">{{ $inventory->balance_quantity ?? 'N/A' }} {{ $inventory->unit }}</td>
-            </tr>
-            <tr>
-                <td class="label"><strong>Balance Total Price:</strong></td>
-                <td class="value">{{ number_format($inventory->balance_total_price ?? 0, 2) }}
-                    {{ $inventory->currency }}</td>
-            </tr>
-            <tr>
-                <td class="label"><strong>Created At:</strong></td>
-                <td class="value">{{ $inventory->created_at->format('Y-m-d H:i:s') }}</td>
-            </tr>
-            <tr>
-                <td class="label"><strong>Updated At:</strong></td>
-                <td class="value">{{ $inventory->updated_at->format('Y-m-d H:i:s') }}</td>
-            </tr>
+            <thead>
+                <tr>
+                    <th>Detail</th>
+                    <th>Information</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td class="label"><strong>Item Name:</strong></td><td class="value">{{ $inventory->item_name }}</td></tr>
+                <tr><td class="label"><strong>Description:</strong></td><td class="value">{{ $inventory->description ?? 'N/A' }}</td></tr>
+                <tr><td class="label"><strong>Tag Number:</strong></td><td class="value">{{ $inventory->tag_number }}</td></tr>
+                <tr><td class="label"><strong>Item Type:</strong></td><td class="value">{{ ucfirst($inventory->item_type) }}</td></tr>
+                <tr><td class="label"><strong>Quantity:</strong></td><td class="value">{{ $inventory->quantity }} {{ $inventory->unit }}</td></tr>
+                <tr><td class="label"><strong>Unit Price:</strong></td><td class="value">{{ number_format($inventory->unit_price, 2) }} {{ $inventory->currency }}</td></tr>
+                <tr><td class="label"><strong>Total Price:</strong></td><td class="value">{{ number_format($inventory->total_price, 2) }} {{ $inventory->currency }}</td></tr>
+                <tr><td class="label"><strong>Stock In Date:</strong></td><td class="value">{{ $inventory->stock_in_date ? $inventory->stock_in_date->format('Y-m-d') : 'N/A' }}</td></tr>
+                <tr><td class="label"><strong>Issued Quantity:</strong></td><td class="value">{{ $inventory->issued_quantity ?? 'N/A' }} {{ $inventory->issued_unit }}</td></tr>
+                <tr><td class="label"><strong>Stock Out Date:</strong></td><td class="value">{{ $inventory->stock_out_date ? $inventory->stock_out_date->format('Y-m-d') : 'N/A' }}</td></tr>
+                <tr><td class="label"><strong>Issued Department:</strong></td><td class="value">{{ $inventory->issued_department ?? 'N/A' }}</td></tr>
+                <tr><td class="label"><strong>Balance Quantity:</strong></td><td class="value">{{ $inventory->balance_quantity ?? 'N/A' }} {{ $inventory->unit }}</td></tr>
+                <tr><td class="label"><strong>Balance Total Price:</strong></td><td class="value">{{ number_format($inventory->balance_total_price ?? 0, 2) }} {{ $inventory->currency }}</td></tr>
+                <tr><td class="label"><strong>Created At:</strong></td><td class="value">{{ $inventory->created_at->format('Y-m-d H:i:s') }}</td></tr>
+                <tr><td class="label"><strong>Updated At:</strong></td><td class="value">{{ $inventory->updated_at->format('Y-m-d H:i:s') }}</td></tr>
+            </tbody>
         </table>
 
-        <!-- Bottom Section with Finance Comments -->
         <div class="bottom-section">
             <div>
-                <p><strong>Received By:</strong>
-                    {{ optional(\App\Models\User::find($inventory->received_by))->full_name ?? 'N/A' }}</p>
-                <p><strong>Managed By:</strong>
-                    {{ optional(\App\Models\User::find($inventory->managed_by))->full_name ?? 'N/A' }}</p>
+                <p><strong>Received By:</strong> {{ optional(\App\Models\User::find($inventory->received_by))->full_name ?? 'N/A' }}</p>
+                <p><strong>Managed By:</strong> {{ optional(\App\Models\User::find($inventory->managed_by))->full_name ?? 'N/A' }}</p>
             </div>
         </div>
 
-        <!-- Footer -->
         <footer>
             <p>Thank you for managing your inventory.</p>
             <p>Please retain this document for your records.</p>
         </footer>
     </div>
 </body>
-
 </html>

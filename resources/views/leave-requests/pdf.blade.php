@@ -1,116 +1,130 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Leave Request PDF</title>
+    <title>Leave Request — {{ $request->reference_number }}</title>
     <style>
+        @page { margin: 24px; }
+        * { box-sizing: border-box; }
         body {
-            font-family: Arial, sans-serif;
+            font-family: DejaVu Sans, Arial, sans-serif;
             margin: 0;
             padding: 20px;
             background-color: #ffffff;
+            color: #1e293b;
+            font-size: 12px;
         }
-
         .container {
             max-width: 800px;
             margin: auto;
-            padding: 20px;
-            border: 3px solid #000;
+            padding: 28px 32px;
+            border: 2px solid #1e293b;
             border-radius: 10px;
         }
-
         header {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #000;
-            padding-bottom: 10px;
+            margin-bottom: 18px;
+            border-bottom: 2px solid #1e293b;
+            padding-bottom: 14px;
         }
-
         header img {
             max-width: 100px;
+            max-height: 80px;
             margin-right: 20px;
         }
-
         .company-info {
             text-align: right;
-            /* Align text to the right */
-            font-size: 14px;
-            color: #555;
+            font-size: 11px;
+            color: #475569;
             flex: 1;
-
-            /* Allow it to take remaining space */
+            line-height: 1.5;
         }
-
+        .company-info p { margin: 2px 0; }
         .company-name {
             text-align: center;
-            font-size: 18px;
-            color: #007bff;
-            margin: 10px 0;
+            font-size: 17px;
+            color: #4f46e5;
+            margin: 10px 0 0;
             width: 100%;
+            font-weight: 700;
         }
-
         .leave-request-title {
             text-align: center;
-            font-size: 20px;
-            font-weight: bold;
-            margin: 10px 0;
+            font-size: 18px;
+            font-weight: 700;
+            margin: 18px 0;
+            letter-spacing: 0.04em;
+            color: #0f172a;
+            text-transform: uppercase;
         }
-
         .details-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 20px;
+            margin-bottom: 22px;
         }
-
-        .details-table td {
+        .details-table > tbody > tr > td {
             vertical-align: top;
-            padding: 10px;
+            padding: 6px 12px 6px 0;
         }
-
         .inner-table {
             width: 100%;
             border-collapse: collapse;
         }
-
         .inner-table td {
             padding: 5px 0;
+            font-size: 11.5px;
+            vertical-align: top;
         }
-
         .inner-table .label {
             font-weight: bold;
-            width: 40%;
+            width: 42%;
+            color: #334155;
         }
-
         .inner-table .value {
-            width: 60%;
+            width: 58%;
+            color: #0f172a;
         }
-
         .bottom-section {
             display: flex;
             justify-content: space-between;
-            margin-top: 20px;
+            margin-top: 24px;
+            padding-top: 16px;
+            border-top: 1px dashed #cbd5e1;
         }
-
         .bottom-left,
         .bottom-right {
             width: 48%;
         }
-
+        .bottom-left p,
+        .bottom-right p { margin: 4px 0; }
+        .signature {
+            margin-top: 6px;
+            padding: 6px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            display: inline-block;
+        }
         .signature img {
             max-width: 150px;
             display: block;
-            margin-top: 10px;
         }
-
+        .signature-empty {
+            color: #94a3b8;
+            font-style: italic;
+            font-size: 11px;
+        }
         footer {
             text-align: center;
             margin-top: 30px;
+            padding-top: 14px;
+            border-top: 1px solid #e2e8f0;
             font-style: italic;
+            color: #64748b;
+            font-size: 10.5px;
         }
+        footer p { margin: 3px 0; }
     </style>
 </head>
 
@@ -124,7 +138,6 @@
                 <p>Reference Number: {{ $request->reference_number }}</p>
             </div>
             <h1 class="company-name">{{ $company->company_name }}</h1>
-
         </header>
 
         <h2 class="leave-request-title">Leave Request</h2>
@@ -134,23 +147,23 @@
                 <td style="width:50%;">
                     <table class="inner-table">
                         <tr>
-                            <td class="label"><strong>Full Name:</strong></td>
+                            <td class="label">Full Name:</td>
                             <td class="value">{{ Auth::user()->full_name }}</td>
                         </tr>
                         <tr>
-                            <td class="label"><strong>Company Country:</strong></td>
+                            <td class="label">Company Country:</td>
                             <td class="value">{{ $company->country }}</td>
                         </tr>
                         <tr>
-                            <td class="label"><strong>Start Date:</strong></td>
+                            <td class="label">Start Date:</td>
                             <td class="value">{{ $request->start_date }}</td>
                         </tr>
                         <tr>
-                            <td class="label"><strong>End Date:</strong></td>
+                            <td class="label">End Date:</td>
                             <td class="value">{{ $request->end_date }}</td>
                         </tr>
                         <tr>
-                            <td class="label"><strong>Leave Type:</strong></td>
+                            <td class="label">Leave Type:</td>
                             <td class="value">{{ ucfirst(str_replace('_', ' ', $request->leave_type)) }}</td>
                         </tr>
                     </table>
@@ -159,28 +172,28 @@
                     <table class="inner-table">
                         @if ($request->leave_type === 'other')
                             <tr>
-                                <td class="label"><strong>Other Reason:</strong></td>
+                                <td class="label">Other Reason:</td>
                                 <td class="value">{{ $request->other_reason ?? 'N/A' }}</td>
                             </tr>
                         @endif
                         <tr>
-                            <td class="label"><strong>Uploaded File:</strong></td>
+                            <td class="label">Uploaded File:</td>
                             <td class="value">{{ $request->attachment ? 'Attached' : 'N/A' }}</td>
                         </tr>
                         <tr>
-                            <td class="label"><strong>Status:</strong></td>
+                            <td class="label">Status:</td>
                             <td class="value">{{ ucfirst($request->status) }}</td>
                         </tr>
                         <tr>
-                            <td class="label"><strong>Created At:</strong></td>
+                            <td class="label">Created At:</td>
                             <td class="value">{{ $request->created_at->format('Y-m-d H:i:s') }}</td>
                         </tr>
                         <tr>
-                            <td class="label"><strong>Updated At:</strong></td>
+                            <td class="label">Updated At:</td>
                             <td class="value">{{ $request->updated_at->format('Y-m-d H:i:s') }}</td>
                         </tr>
                         <tr>
-                            <td class="label"><strong>Remaining Annual Leave Days:</strong></td>
+                            <td class="label">Remaining Annual Leave Days:</td>
                             <td class="value">{{ $remainingLeaveDays }}</td>
                         </tr>
                     </table>
@@ -191,13 +204,13 @@
         <div class="bottom-section">
             <div class="bottom-left">
                 <p><strong>Employee Signature:</strong></p>
-                <div class="signature">
-                    @if ($request->employee_signature)
+                @if ($request->employee_signature)
+                    <div class="signature">
                         <img src="{{ public_path('storage/' . $request->employee_signature) }}" alt="Signature">
-                    @else
-                        <p>N/A</p>
-                    @endif
-                </div>
+                    </div>
+                @else
+                    <p class="signature-empty">N/A</p>
+                @endif
             </div>
             <div class="bottom-right">
                 <p><strong>Manager Comments:</strong> {{ $request->manager_comments ?? 'N/A' }}</p>

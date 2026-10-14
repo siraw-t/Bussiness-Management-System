@@ -1,43 +1,175 @@
-{{-- @extends('layouts.app')
+@extends('layouts.app')
 
 @section('content')
-<div class="container">
-    <h1>Companies</h1>
+<style>
+    .page-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 22px;
+    }
+    .page-head h1 {
+        font-size: 1.6rem;
+        font-weight: 800;
+        margin: 0;
+        color: var(--text-primary);
+    }
+    .page-head p { color: var(--text-secondary); margin: 4px 0 0; font-size: 0.88rem; }
 
-    @if (session('success'))
-        <div class="alert alert-success">{{ session('success') }}</div>
-    @endif
+    .btn-add {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 11px 18px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, var(--primary), var(--accent));
+        color: #fff;
+        font-weight: 600;
+        font-size: 0.88rem;
+        border: none;
+        box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
+        transition: var(--transition);
+    }
+    .btn-add:hover { color: #fff; transform: translateY(-2px); box-shadow: 0 12px 26px rgba(99, 102, 241, 0.45); }
 
-    <a href="{{ route('companies.create') }}" class="btn btn-primary mb-3">Add New Company</a>
+    .table-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+    }
+    .table-modern { width: 100%; margin: 0; border-collapse: separate; border-spacing: 0; }
+    .table-modern thead th {
+        background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+        color: var(--text-secondary);
+        font-weight: 700;
+        font-size: 0.73rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        padding: 14px 18px;
+        text-align: left;
+        border-bottom: 1px solid var(--border-color);
+        white-space: nowrap;
+    }
+    [data-bs-theme="dark"] .table-modern thead th { background: #0b1120; }
+    .table-modern tbody td {
+        padding: 16px 18px;
+        border-bottom: 1px solid var(--border-color);
+        font-size: 0.88rem;
+        color: var(--text-primary);
+        vertical-align: middle;
+    }
+    .table-modern tbody tr { transition: background-color 0.15s ease; }
+    .table-modern tbody tr:hover { background: var(--primary-soft); }
+    .table-modern tbody tr:last-child td { border-bottom: none; }
 
-    <table class="table table-striped">
+    .company-cell { display: flex; align-items: center; gap: 12px; }
+    .company-logo {
+        width: 42px; height: 42px; border-radius: 12px;
+        object-fit: cover;
+        border: 2px solid var(--border-color);
+        background: var(--bg-body);
+        flex-shrink: 0;
+    }
+    .company-logo-placeholder {
+        width: 42px; height: 42px; border-radius: 12px;
+        background: linear-gradient(135deg, var(--primary-soft), #e0e7ff);
+        color: var(--primary-dark);
+        display: flex; align-items: center; justify-content: center;
+        font-weight: 700; font-size: 1rem; flex-shrink: 0;
+        border: 2px solid var(--border-color);
+    }
+    .company-cell .c-name { font-weight: 600; color: var(--text-primary); }
+
+    .action-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 8px 12px;
+        border-radius: 10px;
+        font-size: 0.82rem;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        transition: var(--transition);
+    }
+    .action-btn.edit { background: #fef3c7; color: #92400e; }
+    .action-btn.edit:hover { background: #fde68a; transform: translateY(-1px); }
+    .action-btn.delete { background: #fee2e2; color: #991b1b; }
+    .action-btn.delete:hover { background: #fecaca; transform: translateY(-1px); }
+
+    .empty-state {
+        padding: 60px 20px;
+        text-align: center;
+        color: var(--text-secondary);
+    }
+    .empty-state i { font-size: 3rem; opacity: 0.35; margin-bottom: 14px; display: block; }
+
+    @media (max-width: 900px) {
+        .table-card { overflow-x: auto; }
+        .table-modern { min-width: 900px; }
+    }
+</style>
+
+<div class="page-head">
+    <div>
+        <h1>Companies</h1>
+        <p>Manage all registered companies and their administrators</p>
+    </div>
+    <a href="{{ route('companies.create') }}" class="btn-add">
+        <i class="fas fa-plus"></i> Add New Company
+    </a>
+</div>
+
+<div class="table-card">
+    <table class="table-modern">
         <thead>
             <tr>
-                <th>Company Name</th>
+                <th>Company</th>
                 <th>Country</th>
                 <th>City</th>
-                <th>Contact Email</th>
-                <th>Contact Phone</th>
-                <th>Company Admin</th>
-                <th>Actions</th>
+                <th>Contact</th>
+                <th>Admin</th>
+                <th style="text-align:right;">Actions</th>
             </tr>
         </thead>
         <tbody>
             @foreach ($companies as $company)
                 <tr>
-                    <td>{{ $company->company_name }}</td>
+                    <td>
+                        <div class="company-cell">
+                            @if ($company->logo)
+                                <img src="{{ asset('storage/' . $company->logo) }}" alt="Logo" class="company-logo">
+                            @else
+                                <div class="company-logo-placeholder">{{ strtoupper(substr($company->company_name, 0, 1)) }}</div>
+                            @endif
+                            <div>
+                                <div class="c-name">{{ $company->company_name }}</div>
+                                <div class="text-muted small">ID: #{{ $company->company_id }}</div>
+                            </div>
+                        </div>
+                    </td>
                     <td>{{ $company->country }}</td>
                     <td>{{ $company->city }}</td>
-                    <td>{{ $company->contact_email }}</td>
-                    <td>{{ $company->contact_phone }}</td>
-                    <td>{{ optional($company->admin)->full_name }}</td>
                     <td>
-                        <a href="{{ route('companies.edit', ['company' => $company->company_id]) }}" class="btn btn-warning btn-sm">Edit</a>
-
-            <form action="{{ route('companies.destroy', ['company' => $company->company_id]) }}" method="POST" style="display:inline;">
-                @csrf
-                @method('DELETE')
-                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this company?');">Delete</button>
+                        <div>{{ $company->contact_email }}</div>
+                        <div class="text-muted small">{{ $company->contact_phone }}</div>
+                    </td>
+                    <td>{{ optional($company->admin)->full_name ?? '—' }}</td>
+                    <td style="text-align:right; white-space:nowrap;">
+                        <a href="{{ route('companies.edit', ['company' => $company->company_id]) }}" class="action-btn edit">
+                            <i class="fas fa-edit"></i> Edit
+                        </a>
+                        <form action="{{ route('companies.destroy', ['company' => $company->company_id]) }}" method="POST" style="display:inline;">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="action-btn delete" onclick="return confirm('Are you sure you want to delete this company?');">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
                         </form>
                     </td>
                 </tr>
@@ -45,136 +177,4 @@
         </tbody>
     </table>
 </div>
-@endsection 
- --}}
-
-
-@extends('layouts.app')
-
-@section('content')
-    <div class="container mt-5">
-        <h1 class="text-center mb-4">Companies</h1>
-
-        @if (session('success'))
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                {{ session('success') }}
-                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-        @endif
-
-        <div class="text-right mb-3">
-            <a href="{{ route('companies.create') }}" class="btn btn-success">
-                <i class="fas fa-plus"></i> Add New Company
-            </a>
-        </div>
-
-        <div class="table-responsive">
-            <table class="table table-bordered table-hover">
-                <thead class="bg-primary text-white">
-                    <tr>
-                        <th>Company Name</th>
-                        <th>Country</th>
-                        <th>City</th>
-                        <th>Contact Email</th>
-                        <th>Contact Phone</th>
-                        <th>Company Admin</th>
-                        <th>Logo</th> <!-- New Logo Column -->
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach ($companies as $company)
-                        <tr class="table-light">
-                            <td>{{ $company->company_name }}</td>
-                            <td>{{ $company->country }}</td>
-                            <td>{{ $company->city }}</td>
-                            <td>{{ $company->contact_email }}</td>
-                            <td>{{ $company->contact_phone }}</td>
-                            <td>{{ optional($company->admin)->full_name }}</td>
-                            <td>
-                                @if ($company->logo)
-                                    <img src="{{ asset('storage/' . $company->logo) }}" alt="Logo"
-                                        style="width: 50px; height: auto;">
-                                @else
-                                    No Logo
-                                @endif
-                            </td>
-                            <td>
-                                <a href="{{ route('companies.edit', ['company' => $company->company_id]) }}"
-                                    class="btn btn-warning btn-sm">
-                                    <i class="fas fa-edit"></i> Edit
-                                </a>
-                                <form action="{{ route('companies.destroy', ['company' => $company->company_id]) }}"
-                                    method="POST" style="display:inline;">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-danger btn-sm"
-                                        onclick="return confirm('Are you sure you want to delete this company?');">
-                                        <i class="fas fa-trash"></i> Delete
-                                    </button>
-                                </form>
-                            </td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <style>
-        .table-hover tbody tr:hover {
-            background-color: #f8f9fa;
-            /* Light gray on row hover */
-            transition: background-color 0.3s ease;
-            /* Smooth transition */
-        }
-
-        /* Additional styles for a more attractive UI */
-        h1 {
-            font-size: 2.5rem;
-            color: #343a40;
-            /* Dark gray */
-        }
-
-        .alert {
-            font-weight: bold;
-        }
-
-        .table {
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            border-radius: 10px;
-        }
-
-        .table th {
-            background-color: #007bff;
-            /* Blue */
-            color: white;
-        }
-
-        .table td {
-            vertical-align: middle;
-            /* Center align table cell content */
-        }
-
-        .table-light {
-            background-color: #ffffff;
-            /* White for rows */
-        }
-
-        .table-bordered {
-            border: 2px solid #007bff;
-            /* Blue border */
-        }
-
-        .table-bordered td,
-        .table-bordered th {
-            border: 1px solid #007bff;
-            /* Blue border for cells */
-        }
-    </style>
-
-    <!-- Include Font Awesome for icons -->
-    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
 @endsection

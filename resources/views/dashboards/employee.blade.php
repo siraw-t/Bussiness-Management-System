@@ -1,550 +1,333 @@
-{{-- @extends('layouts.app')
-
-@section('content')
-<div class="container-fluid">
-    <div class="row">
-        <!-- Sidebar -->
-        <nav class="col-md-3 col-lg-2 d-md-block bg-info text-danger sidebar">
-            <div class="position-sticky">
-                <h5 class="sidebar-title text-center mt-3">Employee Menu</h5>
-                <ul class="nav flex-column">
-                    <li class="nav-item">
-                        <a class="nav-link text-danger" href="{{ route('leave-requests.index') }}">
-                            <i class="bi bi-card-list"></i> Leave Requests
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-danger" href="{{ route('payment-requests.index') }}">
-                            <i class="bi bi-cash"></i> Payment Requests
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-danger" href="{{ route('purchase-requests.index') }}">
-                            <i class="bi bi-cart"></i> Purchase Requests
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-danger" href="{{ route('weekly-plan.index') }}">
-                            <i class="bi bi-calendar-week"></i> Weekly Plans
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-danger" href="{{ route('weekly-reports.index') }}">
-                            <i class="bi bi-file-earmark-text"></i> Weekly Reports
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </nav>
-
-        <!-- Main Content -->
-        <main class="col-md-9 ms-sm-auto col-lg-10 px-4">
-            <h1 class="mb-4 text-center"><span>Employee</span> <span>Dashboard</span></h1>
-            <div class="text-center mb-4" style="width: 100%; max-width: 600px; margin: 0 auto;">
-                <div class="card text-bg-primary shadow-sm" style="animation: slideIn 0.5s ease forwards;">
-                    <div class="card-body">
-                        <h5 class="card-title" style="display: inline-block;">Welcome to {{ Auth::user()->company->company_name }}</h5>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Analytics Section -->
-            <div class="row mb-4">
-                <div class="col-md-6">
-                    <h5>Leave Requests Overview</h5>
-                    <canvas id="leaveRequestsChart"></canvas>
-                </div>
-                <div class="col-md-6">
-                    <h5>Payment Requests Overview</h5>
-                    <canvas id="paymentRequestsChart"></canvas>
-                </div>
-                <div class="col-md-6">
-                    <h5>Purchase Requests Overview</h5>
-                    <canvas id="purchaseRequestsChart"></canvas>
-                </div>
-                <div class="col-md-6">
-                    <h5>Weekly Plans Overview</h5>
-                    <canvas id="weeklyPlansChart"></canvas>
-                </div>
-                <div class="col-md-6">
-                    <h5>Weekly Reports Overview</h5>
-                    <canvas id="weeklyReportsChart"></canvas>
-                </div>
-            </div>
-            
-            <!-- Include Chart.js from CDN -->
-            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-            <script>
-                // Sample data for the charts
-                const leaveRequestsData = {
-                    labels: ['Approved', 'Pending', 'Rejected'],
-                    datasets: [{
-                        label: 'Leave Requests',
-                        data: [0, 1, 0], // Replace with dynamic data
-                        backgroundColor: [
-                            'rgba(75, 192, 192, 0.6)',
-                            'rgba(255, 206, 86, 0.6)',
-                            'rgba(255, 99, 132, 0.6)'
-                        ],
-                    }]
-                };
-
-                const paymentRequestsData = {
-                    labels: ['Approved', 'Pending', 'Rejected'],
-                    datasets: [{
-                        label: 'Payment Requests',
-                        data: [0, 1, 0], // Replace with dynamic data
-                        backgroundColor: [
-                            'rgba(153, 102, 255, 0.6)',
-                            'rgba(255, 159, 64, 0.6)',
-                            'rgba(255, 99, 132, 0.6)'
-                        ],
-                    }]
-                };
-
-                const purchaseRequestsData = {
-                    labels: ['Approved', 'Pending', 'Rejected'],
-                    datasets: [{
-                        label: 'Purchase Requests',
-                        data: [0, 1, 0], // Replace with dynamic data
-                        backgroundColor: [
-                            'rgba(54, 162, 235, 0.6)',
-                            'rgba(255, 206, 86, 0.6)',
-                            'rgba(255, 99, 132, 0.6)'
-                        ],
-                    }]
-                };
-
-                const weeklyPlansData = {
-                    labels: ['Submitted', 'Not Submitted'],
-                    datasets: [{
-                        label: 'Weekly Plans',
-                        data: [1, 0], // Replace with dynamic data
-                        backgroundColor: [
-                            'rgba(75, 192, 192, 0.6)',
-                            'rgba(255, 99, 132, 0.6)'
-                        ],
-                    }]
-                };
-
-                const weeklyReportsData = {
-                    labels: ['Submitted', 'Not Submitted'],
-                    datasets: [{
-                        label: 'Weekly Reports',
-                        data: [1,0], // Replace with dynamic data
-                        backgroundColor: [
-                            'rgba(54, 162, 235, 0.6)',
-                            'rgba(255, 99, 132, 0.6)'
-                        ],
-                    }]
-                };
-
-                // Create Leave Requests Chart
-                const ctxLeave = document.getElementById('leaveRequestsChart').getContext('2d');
-                new Chart(ctxLeave, {
-                    type: 'pie',
-                    data: leaveRequestsData,
-                });
-
-                // Create Payment Requests Chart
-                const ctxPayment = document.getElementById('paymentRequestsChart').getContext('2d');
-                new Chart(ctxPayment, {
-                    type: 'bar',
-                    data: paymentRequestsData,
-                });
-
-                // Create Purchase Requests Chart
-                const ctxPurchase = document.getElementById('purchaseRequestsChart').getContext('2d');
-                new Chart(ctxPurchase, {
-                    type: 'bar',
-                    data: purchaseRequestsData,
-                });
-
-                // Create Weekly Plans Chart
-                const ctxPlans = document.getElementById('weeklyPlansChart').getContext('2d');
-                new Chart(ctxPlans, {
-                    type: 'bar',
-                    data: weeklyPlansData,
-                });
-
-                // Create Weekly Reports Chart
-                const ctxReports = document.getElementById('weeklyReportsChart').getContext('2d');
-                new Chart(ctxReports, {
-                    type: 'bar',
-                    data: weeklyReportsData,
-                });
-            </script>
-        </main>
-    </div>
-</div>
-@endsection --}}
-
 @extends('layouts.app')
 
 @section('content')
-    <div class="container-fluid">
-        <div class="row">
-            <!-- Sidebar -->
-            <nav class="col-md-2 col-lg-2 bg-dark text-white sidebar position-fixed p-0 m-0"
-                style="height: 100vh; z-index: 1000;">
-                <div class="position-sticky">
-                    <h5 class="sidebar-title text-center mt-5">Employee Menu</h5>
-                    <ul class="nav flex-column">
-                        <li class="nav-item">
-                            <a class="nav-link text-white" href="{{ route('leave-requests.index') }}">
-                                <i class="bi bi-card-list"></i> Leave Requests
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-white" href="{{ route('payment-requests.index') }}">
-                                <i class="bi bi-cash"></i> Payment Requests
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-white" href="{{ route('purchase-requests.index') }}">
-                                <i class="bi bi-cart"></i> Purchase Requests
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-white" href="{{ route('weekly-plan.index') }}">
-                                <i class="bi bi-calendar-week"></i> Weekly Plans
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-white" href="{{ route('weekly-reports.index') }}">
-                                <i class="bi bi-file-earmark-text"></i> Weekly Reports
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-white" href="{{ route('stock_requisitions.index') }}">
-                                <i class="bi bi-file-earmark-text"></i> Request Stock
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-white" href="{{ route('petty_cash_requests.index') }}">
-                                <i class="bi bi-file-earmark-text"></i> Request Petty Cash
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            </nav>
+<style>
+    .dash-layout { display: flex; gap: 24px; min-height: calc(100vh - var(--navbar-height) - 48px); }
+    .dash-sidebar {
+        width: 260px; flex-shrink: 0;
+        background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+        border-radius: var(--radius-lg);
+        padding: 24px 16px;
+        color: #cbd5e1;
+        position: sticky;
+        top: calc(var(--navbar-height) + 24px);
+        height: fit-content;
+        max-height: calc(100vh - var(--navbar-height) - 48px);
+        overflow-y: auto;
+        box-shadow: var(--shadow-lg);
+    }
+    .dash-sidebar .side-title {
+        font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.12em;
+        color: #64748b; padding: 0 12px 12px; font-weight: 700;
+    }
+    .dash-sidebar .side-nav { list-style: none; padding: 0; margin: 0; }
+    .dash-sidebar .side-nav a {
+        display: flex; align-items: center; gap: 12px;
+        padding: 11px 14px; border-radius: 12px;
+        color: #cbd5e1; font-weight: 500; font-size: 0.88rem;
+        margin-bottom: 4px; transition: var(--transition);
+    }
+    .dash-sidebar .side-nav a:hover {
+        background: rgba(99, 102, 241, 0.15); color: #fff; transform: translateX(2px);
+    }
+    .dash-sidebar .side-nav a.active {
+        background: linear-gradient(135deg, var(--primary), var(--accent));
+        color: #fff; box-shadow: 0 8px 20px rgba(99, 102, 241, 0.35);
+    }
+    .dash-sidebar .side-nav i { font-size: 1.05rem; flex-shrink: 0; }
+    .dash-main { flex: 1; min-width: 0; }
 
-            <!-- Main Content -->
-            <main class="col-md-10 offset-md-2 px-4">
-                <h1 class="mb-4 text-center mt-5 animate__animated animate__fadeInDown"
-                    style="color: #4A90E2; font-size: 2.5rem;">
-                    <span>Employee</span> <span>Dashboard</span>
-                </h1>
-                <div class="text-center mb-4" style="width: 100%; max-width: 600px; margin: 0 auto;">
-                    <div class="card text-bg-success shadow-lg animated-card"
-                        style="animation: slideIn 0.5s ease forwards; background: #28a745; border: none;">
-                        <div class="card-body">
-                            <h5 class="card-title" style="color: white; font-weight: bold; display: inline-block;">
-                                Welcome to {{ Auth::user()->company->company_name }}
+    .dash-header {
+        display: flex; align-items: center; justify-content: space-between;
+        margin-bottom: 20px; flex-wrap: wrap; gap: 12px;
+    }
+    .dash-header h1 {
+        font-size: 1.75rem; font-weight: 800; margin: 0;
+        background: linear-gradient(135deg, var(--primary), var(--accent));
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .dash-sidebar-toggle {
+        display: none; background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        color: #fff; border: none; width: 42px; height: 42px; border-radius: 12px;
+        font-size: 1.15rem; box-shadow: 0 8px 20px rgba(99, 102, 241, 0.35); cursor: pointer;
+    }
 
-                            </h5>
-                            <button class="btn btn-light float-end" onclick="alert('Explore more!')"
-                                style="transition: background-color 0.3s;">
-                                <i class="fas fa-info-circle"></i> Info
-                            </button>
-                        </div>
-                    </div>
-                </div>
+    .welcome-banner {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+        border-radius: var(--radius-lg);
+        padding: 26px 30px;
+        color: #fff;
+        margin-bottom: 24px;
+        display: flex; align-items: center; justify-content: space-between;
+        flex-wrap: wrap; gap: 14px;
+        box-shadow: 0 18px 40px rgba(99, 102, 241, 0.28);
+        position: relative; overflow: hidden;
+        animation: bannerEnter 0.5s ease;
+    }
+    @keyframes bannerEnter { from { opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
+    .welcome-banner::after {
+        content: ''; position: absolute; top: -40px; right: -40px;
+        width: 180px; height: 180px; border-radius: 50%;
+        background: rgba(255,255,255,0.12);
+    }
+    .welcome-banner h2 {
+        font-size: 1.2rem; font-weight: 700; margin: 0 0 4px; position: relative; z-index: 1;
+    }
+    .welcome-banner p { margin: 0; font-size: 0.86rem; opacity: 0.9; position: relative; z-index: 1; }
+    .welcome-banner .info-btn {
+        background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3);
+        color: #fff; padding: 9px 16px; border-radius: 10px; font-size: 0.84rem;
+        font-weight: 600; cursor: pointer; position: relative; z-index: 1;
+        transition: var(--transition); backdrop-filter: blur(10px);
+    }
+    .welcome-banner .info-btn:hover { background: rgba(255,255,255,0.3); transform: translateY(-1px); }
 
-                <style>
-                    /* Card Animation */
-                    .animated-card {
-                        animation-name: bounceIn;
-                        animation-duration: 0.5s;
-                    }
+    .chart-card {
+        background: var(--bg-card);
+        border-radius: var(--radius-lg);
+        padding: 20px 22px;
+        border: 1px solid var(--border-color);
+        box-shadow: var(--shadow-sm);
+        height: 100%;
+        transition: var(--transition);
+    }
+    .chart-card:hover { box-shadow: var(--shadow); transform: translateY(-2px); }
+    .chart-card h5 {
+        font-size: 0.92rem; font-weight: 700; color: var(--text-primary);
+        margin-bottom: 16px; display: flex; align-items: center; gap: 8px;
+    }
+    .chart-card h5 .chart-icon {
+        width: 30px; height: 30px; border-radius: 8px;
+        display: inline-flex; align-items: center; justify-content: center;
+        font-size: 0.85rem; color: #fff;
+    }
+    .chart-icon.blue   { background: linear-gradient(135deg, #3b82f6, #6366f1); }
+    .chart-icon.green  { background: linear-gradient(135deg, #10b981, #34d399); }
+    .chart-icon.amber  { background: linear-gradient(135deg, #f59e0b, #fbbf24); }
+    .chart-icon.purple { background: linear-gradient(135deg, #8b5cf6, #a78bfa); }
+    .chart-icon.rose   { background: linear-gradient(135deg, #ef4444, #f87171); }
+    .chart-icon.cyan   { background: linear-gradient(135deg, #06b6d4, #22d3ee); }
+    .chart-card canvas { max-height: 260px; cursor: pointer; }
 
-                    @keyframes bounceIn {
-                        0% {
-                            transform: scale(0);
-                            opacity: 0;
-                        }
+    .dash-sidebar-backdrop {
+        display: none; position: fixed; inset: 0;
+        background: rgba(0,0,0,0.5); z-index: 1040; backdrop-filter: blur(2px);
+    }
+    .dash-sidebar-backdrop.show { display: block; }
 
-                        50% {
-                            transform: scale(1.05);
-                        }
+    @media (max-width: 991px) {
+        .dash-layout { display: block; }
+        .dash-sidebar {
+            position: fixed; left: 0; top: 0; height: 100vh; max-height: 100vh;
+            width: 280px; border-radius: 0; transform: translateX(-100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1050; padding-top: 80px;
+        }
+        .dash-sidebar.show { transform: translateX(0); }
+        .dash-sidebar-toggle { display: inline-flex; align-items: center; justify-content: center; }
+        .welcome-banner { padding: 22px; }
+        .welcome-banner h2 { font-size: 1.05rem; }
+    }
+    @media (max-width: 576px) {
+        .dash-header h1 { font-size: 1.4rem; }
+        .welcome-banner { padding: 18px; }
+        .welcome-banner h2 { font-size: 0.95rem; }
+    }
+</style>
 
-                        100% {
-                            transform: scale(1);
-                            opacity: 1;
-                        }
-                    }
+<div class="dash-sidebar-backdrop" id="sidebarBackdrop" onclick="toggleSidebar()"></div>
 
-                    .nav-link {
-                        display: flex;
-                        align-items: center;
-                        padding: 10px 15px;
-                        transition: background-color 0.3s ease, transform 0.3s ease;
-                    }
+<div class="dash-layout">
+    <nav class="dash-sidebar" id="dashSidebar">
+        <div class="side-title">Employee Menu</div>
+        <ul class="side-nav">
+            <li><a href="{{ route('leave-requests.index') }}" class="{{ request()->routeIs('leave-requests.*') ? 'active' : '' }}"><i class="bi bi-card-list"></i> Leave Requests</a></li>
+            <li><a href="{{ route('payment-requests.index') }}" class="{{ request()->routeIs('payment-requests.*') ? 'active' : '' }}"><i class="bi bi-cash"></i> Payment Requests</a></li>
+            <li><a href="{{ route('purchase-requests.index') }}" class="{{ request()->routeIs('purchase-requests.*') ? 'active' : '' }}"><i class="bi bi-cart"></i> Purchase Requests</a></li>
+            <li><a href="{{ route('weekly-plan.index') }}" class="{{ request()->routeIs('weekly-plan.*') ? 'active' : '' }}"><i class="bi bi-calendar-week"></i> Weekly Plans</a></li>
+            <li><a href="{{ route('weekly-reports.index') }}" class="{{ request()->routeIs('weekly-reports.*') ? 'active' : '' }}"><i class="bi bi-file-earmark-text"></i> Weekly Reports</a></li>
+            <li><a href="{{ route('stock_requisitions.index') }}" class="{{ request()->routeIs('stock_requisitions.*') ? 'active' : '' }}"><i class="bi bi-box-seam"></i> Request Stock</a></li>
+            <li><a href="{{ route('petty_cash_requests.index') }}" class="{{ request()->routeIs('petty_cash_requests.*') ? 'active' : '' }}"><i class="bi bi-wallet2"></i> Request Petty Cash</a></li>
+        </ul>
+    </nav>
 
-                    .nav-link i {
-                        margin-right: 10px;
-                        transition: transform 0.3s ease;
-                    }
-
-                    .nav-link:hover {
-                        background-color: rgba(255, 255, 255, 0.1);
-                        transform: scale(1.02);
-                    }
-
-                    .nav-link:hover i {
-                        transform: rotate(360deg);
-                    }
-
-                    /* Sidebar Toggle Button */
-                    .sidebar-toggle {
-                        display: none;
-                        position: fixed;
-                        top: 60px;
-                        left: 15px;
-                        z-index: 1100;
-                    }
-
-                    .sidebar {
-                        background-image: url('https://img.freepik.com/free-vector/abstract-technology-particle-background_23-2148426649.jpg');
-                        background-size: cover;
-                        /* Ensure the image covers the entire sidebar */
-                    }
-
-                    @media (min-width: 768px) {
-                        .sidebar {
-                            left: 0 !important;
-                        }
-                    }
-
-                    /* Mobile Styles */
-                    @media (max-width: 768px) {
-                        .sidebar-toggle {
-                            display: block;
-                        }
-
-
-
-
-                        .sidebar {
-                            position: absolute;
-                            width: 250px;
-                            height: 100vh;
-                            left: -250px;
-                            top: 30px;
-                            transition: left 0.3s ease;
-                            z-index: 1000;
-                        }
-
-                        .sidebar.show {
-                            left: 0;
-                        }
-
-                        .sidebar-toggle {
-                            display: block;
-                        }
-
-                        main {
-                            margin-left: 0;
-
-                        }
-                    }
-                </style>
-
-                <!-- Sidebar Toggle Button for Mobile -->
-                <button class="btn btn-primary sidebar-toggle" onclick="toggleSidebar()">
+    <main class="dash-main">
+        <div class="dash-header">
+            <div class="d-flex align-items-center gap-3">
+                <button class="dash-sidebar-toggle" onclick="toggleSidebar()" aria-label="Toggle sidebar">
                     <i class="bi bi-list"></i>
                 </button>
-
-                <!-- Analytics Section -->
-                <div class="row mb-4">
-                    <div class="col-md-6">
-                        <h5>All Pending Requests Overview</h5>
-                        <canvas id="pendingRequestsChart" class="chart bg-success bg-opacity-50"></canvas>
-                    </div>
-                    <div class="col-md-6">
-                        <h5>Leave Requests Overview</h5>
-                        <canvas id="leaveRequestsChart" class="chart bg-primary bg-opacity-50"></canvas>
-                    </div>
-                    <div class="col-md-6">
-                        <h5>Payment Requests Overview</h5>
-                        <canvas id="paymentRequestsChart" class="chart bg-secondary bg-opacity-50"></canvas>
-                    </div>
-                    <div class="col-md-6">
-                        <h5>Purchase Requests Overview</h5>
-                        <canvas id="purchaseRequestsChart" class="chart bg-warning bg-opacity-50"></canvas>
-                    </div>
-                    <div class="col-md-6">
-                        <h5>Weekly Plans Overview</h5>
-                        <canvas id="weeklyPlansChart" class="chart bg-info bg-opacity-50"></canvas>
-                    </div>
-                    <div class="col-md-6">
-                        <h5>Weekly Reports Overview</h5>
-                        <canvas id="weeklyReportsChart" class="chart bg-danger bg-opacity-50"></canvas>
-                    </div>
-
-                </div>
-
-                <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-                <script>
-                    // Pending Requests Chart
-                    const pendingRequestsData = {
-                        labels: ['Leave Requests', 'Payment Requests', 'Purchase Requests', 'Weekly Plans', 'Weekly Reports'],
-                        datasets: [{
-                            label: 'Pending Requests',
-                            data: [
-                                {{ $pendingCounts['leave_requests'] }},
-                                {{ $pendingCounts['payment_requests'] }},
-                                {{ $pendingCounts['purchase_requests'] }},
-                                {{ $pendingCounts['weekly_plans'] }},
-                                {{ $pendingCounts['weekly_reports'] }}
-                            ],
-                            backgroundColor: [
-                                'rgba(75, 192, 192, 0.8)',
-                                'rgba(255, 99, 132, 0.8)',
-                                'rgba(255, 206, 86, 0.8)',
-                                'rgba(54, 162, 235, 0.8)',
-                                'rgba(153, 102, 255, 0.8)'
-                            ],
-                            borderColor: 'rgba(0, 0, 0, 0.2)',
-                            borderWidth: 1,
-                        }]
-                    };
-
-                    // Prepare data for the charts
-                    const leaveRequestsData = {
-                        labels: ['Approved', 'Pending', 'Rejected'],
-                        datasets: [{
-                            label: 'Leave Requests',
-                            data: [
-                                {{ $leaveCounts['approved'] ?? 0 }},
-                                {{ $leaveCounts['pending'] ?? 0 }},
-                                {{ $leaveCounts['rejected'] ?? 0 }}
-                            ],
-                            backgroundColor: [
-                                'rgba(75, 192, 192, 0.8)',
-                                'rgba(255, 206, 86, 0.8)',
-                                'rgba(255, 99, 132, 0.8)'
-                            ],
-                            borderColor: 'rgba(0, 0, 0, 0.2)',
-                            borderWidth: 1,
-                        }]
-                    };
-
-                    const paymentRequestsData = {
-                        labels: ['Approved', 'Pending', 'Rejected'],
-                        datasets: [{
-                            label: 'Payment Requests',
-                            data: [
-                                {{ $paymentCounts['approved'] ?? 0 }},
-                                {{ $paymentCounts['pending'] ?? 0 }},
-                                {{ $paymentCounts['rejected'] ?? 0 }}
-                            ],
-                            backgroundColor: [
-                                'rgba(153, 102, 255, 0.8)',
-                                'rgba(255, 159, 64, 0.8)',
-                                'rgba(255, 99, 132, 0.8)'
-                            ],
-                            borderColor: 'rgba(0, 0, 0, 0.2)',
-                            borderWidth: 1,
-                        }]
-                    };
-
-                    const purchaseRequestsData = {
-                        labels: ['Approved', 'Pending', 'Rejected'],
-                        datasets: [{
-                            label: 'Purchase Requests',
-                            data: [
-                                {{ $purchaseCounts['approved'] ?? 0 }},
-                                {{ $purchaseCounts['pending'] ?? 0 }},
-                                {{ $purchaseCounts['rejected'] ?? 0 }}
-                            ],
-                            backgroundColor: [
-                                'rgba(54, 162, 235, 0.8)',
-                                'rgba(255, 206, 86, 0.8)',
-                                'rgba(255, 99, 132, 0.8)'
-                            ],
-                            borderColor: 'rgba(0, 0, 0, 0.2)',
-                            borderWidth: 1,
-                        }]
-                    };
-
-                    const weeklyPlansData = {
-                        labels: Object.keys({!! json_encode($planCounts) !!}),
-                        datasets: [{
-                            label: 'Weekly Plans',
-                            data: Object.values({!! json_encode($planCounts) !!}),
-                            backgroundColor: [
-                                'rgba(75, 192, 192, 0.8)',
-                            ],
-                            borderColor: 'rgba(0, 0, 0, 0.2)',
-                            borderWidth: 1,
-                        }]
-                    };
-
-                    const weeklyReportsData = {
-                        labels: Object.keys({!! json_encode($reportCounts) !!}),
-                        datasets: [{
-                            label: 'Weekly Reports',
-                            data: Object.values({!! json_encode($reportCounts) !!}),
-                            backgroundColor: [
-                                'rgba(54, 162, 235, 0.8)',
-                            ],
-                            borderColor: 'rgba(0, 0, 0, 0.2)',
-                            borderWidth: 1,
-                        }]
-                    };
-
-                    // Create Charts
-                    new Chart(document.getElementById('pendingRequestsChart').getContext('2d'), {
-                        type: 'bar',
-                        data: pendingRequestsData,
-                    });
-
-                    new Chart(document.getElementById('leaveRequestsChart').getContext('2d'), {
-                        type: 'pie',
-                        data: leaveRequestsData,
-                    });
-
-                    new Chart(document.getElementById('paymentRequestsChart').getContext('2d'), {
-                        type: 'bar',
-                        data: paymentRequestsData,
-                    });
-
-                    new Chart(document.getElementById('purchaseRequestsChart').getContext('2d'), {
-                        type: 'bar',
-                        data: purchaseRequestsData,
-                    });
-
-                    new Chart(document.getElementById('weeklyPlansChart').getContext('2d'), {
-                        type: 'bar',
-                        data: weeklyPlansData,
-                    });
-
-                    new Chart(document.getElementById('weeklyReportsChart').getContext('2d'), {
-                        type: 'bar',
-                        data: weeklyReportsData,
-                    });
-
-                    // Toggle sidebar function for mobile devices
-                    function toggleSidebar() {
-                        const sidebar = document.querySelector('.sidebar');
-                        sidebar.classList.toggle('show');
-                    }
-                </script>
-
-                <style>
-                    .chart {
-                        max-width: 100%;
-                        height: auto;
-                        cursor: pointer;
-                        transition: transform 0.2s;
-                    }
-
-                    .chart:hover {
-                        transform: scale(1.02);
-                    }
-                </style>
-            </main>
+                <h1>Employee Dashboard</h1>
+            </div>
         </div>
-    </div>
+
+        <div class="welcome-banner">
+            <div>
+                <h2>Welcome to {{ Auth::user()->company->company_name }}</h2>
+                <p>Here's a snapshot of your activity</p>
+            </div>
+            <button class="info-btn" onclick="alert('Explore more!')">
+                <i class="fas fa-info-circle me-1"></i> Info
+            </button>
+        </div>
+
+        <div class="row g-3">
+            <div class="col-12 col-lg-6">
+                <div class="chart-card">
+                    <h5><span class="chart-icon green"><i class="bi bi-clipboard-check"></i></span> All Pending Requests</h5>
+                    <canvas id="pendingRequestsChart"></canvas>
+                </div>
+            </div>
+            <div class="col-12 col-lg-6">
+                <div class="chart-card">
+                    <h5><span class="chart-icon blue"><i class="bi bi-pie-chart-fill"></i></span> Leave Requests</h5>
+                    <canvas id="leaveRequestsChart"></canvas>
+                </div>
+            </div>
+            <div class="col-12 col-lg-6">
+                <div class="chart-card">
+                    <h5><span class="chart-icon purple"><i class="bi bi-cash-stack"></i></span> Payment Requests</h5>
+                    <canvas id="paymentRequestsChart"></canvas>
+                </div>
+            </div>
+            <div class="col-12 col-lg-6">
+                <div class="chart-card">
+                    <h5><span class="chart-icon amber"><i class="bi bi-cart-check"></i></span> Purchase Requests</h5>
+                    <canvas id="purchaseRequestsChart"></canvas>
+                </div>
+            </div>
+            <div class="col-12 col-lg-6">
+                <div class="chart-card">
+                    <h5><span class="chart-icon cyan"><i class="bi bi-calendar-week"></i></span> Weekly Plans</h5>
+                    <canvas id="weeklyPlansChart"></canvas>
+                </div>
+            </div>
+            <div class="col-12 col-lg-6">
+                <div class="chart-card">
+                    <h5><span class="chart-icon rose"><i class="bi bi-file-earmark-text"></i></span> Weekly Reports</h5>
+                    <canvas id="weeklyReportsChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
+    Chart.defaults.font.size = 12;
+    Chart.defaults.color = '#64748b';
+
+    const noLegend = { plugins: { legend: { display: false } } };
+
+    new Chart(document.getElementById('pendingRequestsChart').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: ['Leave', 'Payment', 'Purchase', 'Plans', 'Reports'],
+            datasets: [{
+                label: 'Pending',
+                data: [
+                    {{ $pendingCounts['leave_requests'] }},
+                    {{ $pendingCounts['payment_requests'] }},
+                    {{ $pendingCounts['purchase_requests'] }},
+                    {{ $pendingCounts['weekly_plans'] }},
+                    {{ $pendingCounts['weekly_reports'] }}
+                ],
+                backgroundColor: ['rgba(99,102,241,0.75)','rgba(16,185,129,0.75)','rgba(245,158,11,0.75)','rgba(6,182,212,0.75)','rgba(139,92,246,0.75)'],
+                borderWidth: 0, borderRadius: 8, maxBarThickness: 44,
+            }]
+        },
+        options: { responsive: true, maintainAspectRatio: true, ...noLegend,
+            scales: { y: { beginAtZero: true, grid: { color: 'rgba(148,163,184,0.15)' } }, x: { grid: { display: false } } } }
+    });
+
+    new Chart(document.getElementById('leaveRequestsChart').getContext('2d'), {
+        type: 'pie',
+        data: {
+            labels: ['Approved', 'Pending', 'Rejected'],
+            datasets: [{
+                data: [
+                    {{ $leaveCounts['approved'] ?? 0 }},
+                    {{ $leaveCounts['pending'] ?? 0 }},
+                    {{ $leaveCounts['rejected'] ?? 0 }}
+                ],
+                backgroundColor: ['#10b981', '#f59e0b', '#ef4444'],
+                borderWidth: 0,
+            }]
+        },
+        options: { responsive: true, maintainAspectRatio: true,
+            plugins: { legend: { position: 'bottom', labels: { padding: 14, usePointStyle: true } } } }
+    });
+
+    new Chart(document.getElementById('paymentRequestsChart').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: ['Approved', 'Pending', 'Rejected'],
+            datasets: [{
+                data: [
+                    {{ $paymentCounts['approved'] ?? 0 }},
+                    {{ $paymentCounts['pending'] ?? 0 }},
+                    {{ $paymentCounts['rejected'] ?? 0 }}
+                ],
+                backgroundColor: ['#8b5cf6', '#f59e0b', '#ef4444'],
+                borderWidth: 0, borderRadius: 8, maxBarThickness: 44,
+            }]
+        },
+        options: { responsive: true, maintainAspectRatio: true, ...noLegend,
+            scales: { y: { beginAtZero: true, grid: { color: 'rgba(148,163,184,0.15)' } }, x: { grid: { display: false } } } }
+    });
+
+    new Chart(document.getElementById('purchaseRequestsChart').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: ['Approved', 'Pending', 'Rejected'],
+            datasets: [{
+                data: [
+                    {{ $purchaseCounts['approved'] ?? 0 }},
+                    {{ $purchaseCounts['pending'] ?? 0 }},
+                    {{ $purchaseCounts['rejected'] ?? 0 }}
+                ],
+                backgroundColor: ['#3b82f6', '#f59e0b', '#ef4444'],
+                borderWidth: 0, borderRadius: 8, maxBarThickness: 44,
+            }]
+        },
+        options: { responsive: true, maintainAspectRatio: true, ...noLegend,
+            scales: { y: { beginAtZero: true, grid: { color: 'rgba(148,163,184,0.15)' } }, x: { grid: { display: false } } } }
+    });
+
+    new Chart(document.getElementById('weeklyPlansChart').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: Object.keys({!! json_encode($planCounts) !!}),
+            datasets: [{
+                label: 'Weekly Plans',
+                data: Object.values({!! json_encode($planCounts) !!}),
+                backgroundColor: 'rgba(6,182,212,0.75)',
+                borderWidth: 0, borderRadius: 8, maxBarThickness: 44,
+            }]
+        },
+        options: { responsive: true, maintainAspectRatio: true, ...noLegend,
+            scales: { y: { beginAtZero: true, grid: { color: 'rgba(148,163,184,0.15)' } }, x: { grid: { display: false } } } }
+    });
+
+    new Chart(document.getElementById('weeklyReportsChart').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: Object.keys({!! json_encode($reportCounts) !!}),
+            datasets: [{
+                label: 'Weekly Reports',
+                data: Object.values({!! json_encode($reportCounts) !!}),
+                backgroundColor: 'rgba(139,92,246,0.75)',
+                borderWidth: 0, borderRadius: 8, maxBarThickness: 44,
+            }]
+        },
+        options: { responsive: true, maintainAspectRatio: true, ...noLegend,
+            scales: { y: { beginAtZero: true, grid: { color: 'rgba(148,163,184,0.15)' } }, x: { grid: { display: false } } } }
+    });
+
+    function toggleSidebar() {
+        document.getElementById('dashSidebar').classList.toggle('show');
+        document.getElementById('sidebarBackdrop').classList.toggle('show');
+    }
+</script>
 @endsection

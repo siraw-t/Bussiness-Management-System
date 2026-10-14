@@ -1,112 +1,142 @@
-{{-- @extends('layouts.app')
-
-@section('content')
-<div class="container-fluid">
-    <h1 class="h2">Admin Users</h1>
-
-    <div class="table-responsive">
-        <table class="table table-striped table-bordered">
-            <thead class="table-dark">
-                <tr>
-                    <th>ID</th>
-                    <th>Full Name</th>
-                    <th>Email</th>
-                    <th>Role</th>
-                    <th>Created At</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($admins as $admin)
-                    <tr>
-                        <td>{{ $admin->id }}</td>
-                        <td>{{ $admin->full_name }}</td>
-                        <td>{{ $admin->email }}</td>
-                        <td>{{ $admin->role }}</td>
-                        <td>{{ $admin->created_at->format('d M Y') }}</td>
-                    </tr>
-                @endforeach
-            </tbody>
-        </table>
-    </div>
-</div>
-@endsection --}}
-
-
 @extends('layouts.app')
 
 @section('content')
-<div class="container-fluid">
-    <h1 class="h2 text-center mb-4 mt-4">Admin Users</h1>  <!-- Margin Bottom and Top -->
+<style>
+    .page-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 22px;
+    }
+    .page-head h1 {
+        font-size: 1.6rem;
+        font-weight: 800;
+        margin: 0;
+        color: var(--text-primary);
+    }
+    .page-head p { color: var(--text-secondary); margin: 4px 0 0; font-size: 0.88rem; }
 
-    <div class="table-responsive">
-        <table class="table table-striped table-bordered">
-            <thead class="table-dark">
-                <tr>
-                    <th class="p-3">ID</th> <!-- Padding -->
-                    <th class="p-3">Full Name</th>
-                    <th class="p-3">Email</th>
-                    <th class="p-3">Role</th>
-                    <th class="p-3">Created At</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse($admins as $admin)
-                    <tr class="table-row">
-                        <td class="p-3">{{ $admin->user_id }}</td> <!-- Padding -->
-                        <td class="p-3">{{ $admin->full_name }}</td>
-                        <td class="p-3">{{ $admin->email }}</td>
-                        <td class="p-3">{{ $admin->role }}</td>
-                        <td class="p-3">{{ $admin->created_at->format('d M Y') }}</td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="5" class="text-center p-3">No admin users found.</td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
+    .table-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+    }
+    .table-modern { width: 100%; margin: 0; border-collapse: separate; border-spacing: 0; }
+    .table-modern thead th {
+        background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+        color: var(--text-secondary);
+        font-weight: 700;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        padding: 14px 20px;
+        text-align: left;
+        border-bottom: 1px solid var(--border-color);
+        white-space: nowrap;
+    }
+    [data-bs-theme="dark"] .table-modern thead th { background: #0b1120; }
+    .table-modern tbody td {
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--border-color);
+        font-size: 0.9rem;
+        color: var(--text-primary);
+        vertical-align: middle;
+    }
+    .table-modern tbody tr { transition: background-color 0.15s ease; }
+    .table-modern tbody tr:hover { background: var(--primary-soft); }
+    .table-modern tbody tr:last-child td { border-bottom: none; }
+
+    .user-cell { display: flex; align-items: center; gap: 12px; }
+    .user-cell .u-avatar {
+        width: 38px; height: 38px; border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary), var(--accent));
+        color: #fff; display: flex; align-items: center; justify-content: center;
+        font-weight: 700; font-size: 0.85rem; flex-shrink: 0;
+    }
+    .user-cell .u-name { font-weight: 600; color: var(--text-primary); }
+    .user-cell .u-email { font-size: 0.78rem; color: var(--text-secondary); }
+
+    .role-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 5px 12px;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: capitalize;
+    }
+    .role-superadmin { background: #fef3c7; color: #92400e; }
+    .role-admin      { background: #dbeafe; color: #1e40af; }
+    .role-manager    { background: #e0e7ff; color: #4338ca; }
+    .role-finance    { background: #d1fae5; color: #065f46; }
+    .role-employee   { background: #f1f5f9; color: #475569; }
+    .role-storekeeper{ background: #fce7f3; color: #9d174d; }
+    [data-bs-theme="dark"] .role-badge { filter: brightness(0.85); }
+
+    .empty-state {
+        padding: 60px 20px;
+        text-align: center;
+        color: var(--text-secondary);
+    }
+    .empty-state i { font-size: 3rem; opacity: 0.35; margin-bottom: 14px; display: block; }
+
+    @media (max-width: 768px) {
+        .table-card { overflow-x: auto; }
+        .table-modern { min-width: 640px; }
+    }
+</style>
+
+<div class="page-head">
+    <div>
+        <h1>Admin Users</h1>
+        <p>Manage all admin accounts across the system</p>
     </div>
 </div>
 
-<style>
-    .table-responsive {
-        margin: 20px auto; /* Margin around the table */
-        padding: 20px; /* Padding inside the table container */
-        border: 1px solid #ddd; /* Border around the container */
-        border-radius: 8px; /* Rounded corners */
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
-        background-color: #f9f9f9; /* Light background color */
-    }
-
-    .table {
-        margin-bottom: 0; /* Remove default margin */
-    }
-
-    .table-row {
-        transition: background-color 0.3s ease; /* Animation for row hover */
-    }
-
-    .table-row:hover {
-        background-color: #f1f1f1; /* Change background on hover */
-        cursor: pointer; /* Pointer cursor on hover */
-    }
-
-    th, td {
-        padding: 15px; /* Padding inside table cells */
-        text-align: left; /* Align text to the left */
-    }
-
-    th {
-        background-color: #343a40; /* Dark background for headers */
-        color: #fff; /* White text for headers */
-    }
-
-    .mb-4 {
-        margin-bottom: 1.5rem; /* Margin bottom for the heading */
-    }
-
-    .mt-4 {
-        margin-top: 1.5rem; /* Additional margin top for the heading */
-    }
-</style>
+<div class="table-card">
+    <table class="table-modern">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>User</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Created At</th>
+            </tr>
+        </thead>
+        <tbody>
+            @forelse($admins as $admin)
+                <tr>
+                    <td><span class="text-muted">#{{ $admin->user_id }}</span></td>
+                    <td>
+                        <div class="user-cell">
+                            <div class="u-avatar">{{ strtoupper(substr($admin->full_name ?? 'U', 0, 1)) }}</div>
+                            <div>
+                                <div class="u-name">{{ $admin->full_name }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>{{ $admin->email }}</td>
+                    <td>
+                        <span class="role-badge role-{{ $admin->role }}">{{ $admin->role }}</span>
+                    </td>
+                    <td>{{ $admin->created_at->format('d M Y') }}</td>
+                </tr>
+            @empty
+                <tr>
+                    <td colspan="5">
+                        <div class="empty-state">
+                            <i class="bi bi-people"></i>
+                            <p class="mb-0">No admin users found.</p>
+                        </div>
+                    </td>
+                </tr>
+            @endforelse
+        </tbody>
+    </table>
+</div>
 @endsection

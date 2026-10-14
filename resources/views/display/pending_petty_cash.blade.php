@@ -1,132 +1,143 @@
-<!DOCTYPE html>
-<html lang="en">
+@extends('layouts.app')
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pending Petty Cash Requests</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <style>
-        .header {
-            font-weight: bold;
-            margin-bottom: 20px;
-            font-size: 2em;
-        }
+@section('content')
+<style>
+    .page-head {
+        display: flex; align-items: center; justify-content: space-between;
+        flex-wrap: wrap; gap: 12px; margin-bottom: 22px;
+    }
+    .page-head h1 {
+        font-size: 1.6rem; font-weight: 800; margin: 0;
+        background: linear-gradient(135deg, var(--primary), var(--accent));
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .page-head p { color: var(--text-secondary); margin: 4px 0 0; font-size: 0.88rem; }
 
-        .table {
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            border-radius: 8px;
-        }
+    .btn-back {
+        display: inline-flex; align-items: center; gap: 8px;
+        padding: 10px 16px; border-radius: 12px;
+        background: var(--bg-card); color: var(--text-primary);
+        border: 1px solid var(--border-color);
+        font-weight: 600; font-size: 0.85rem;
+        text-decoration: none; transition: var(--transition);
+    }
+    .btn-back:hover { border-color: var(--primary); color: var(--primary); transform: translateY(-1px); }
 
-        .thead-light th {
-            background-color: #007bff;
-            color: white;
-            text-align: center;
-        }
+    .table-card {
+        background: var(--bg-card); border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-sm);
+    }
+    .table-modern { width: 100%; margin: 0; border-collapse: separate; border-spacing: 0; }
+    .table-modern thead th {
+        background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+        color: var(--text-secondary);
+        font-weight: 700; font-size: 0.72rem;
+        text-transform: uppercase; letter-spacing: 0.08em;
+        padding: 14px 16px; text-align: left;
+        border-bottom: 1px solid var(--border-color); white-space: nowrap;
+    }
+    [data-bs-theme="dark"] .table-modern thead th { background: #0b1120; }
+    .table-modern tbody td {
+        padding: 14px 16px;
+        border-bottom: 1px solid var(--border-color);
+        font-size: 0.85rem; color: var(--text-primary); vertical-align: top;
+    }
+    .table-modern tbody tr { transition: background-color 0.15s ease; }
+    .table-modern tbody tr:hover { background: var(--primary-soft); }
+    .table-modern tbody tr:last-child td { border-bottom: none; }
 
-        .table-hover tbody tr:hover {
-            background-color: #f1f1f1;
-            transform: scale(1.02);
-            transition: all 0.2s ease;
-        }
+    .status-badge {
+        display: inline-flex; align-items: center;
+        padding: 5px 12px; border-radius: 999px;
+        font-size: 0.75rem; font-weight: 600; text-transform: capitalize;
+    }
+    .status-approved { background: #d1fae5; color: #065f46; }
+    .status-pending  { background: #fef3c7; color: #92400e; }
+    .status-rejected { background: #fee2e2; color: #991b1b; }
 
-        .action-buttons {
-            min-width: 120px;
-        }
+    .btn-submit-inline {
+        display: inline-flex; align-items: center; gap: 6px;
+        padding: 8px 14px; border-radius: 10px;
+        background: linear-gradient(135deg, #10b981, #34d399);
+        color: #fff; border: none; font-weight: 600; font-size: 0.8rem;
+        cursor: pointer; transition: var(--transition); width: 100%;
+    }
+    .btn-submit-inline:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(16,185,129,0.3); }
 
-        .action-buttons .btn {
-            margin-left: 5px;
-        }
+    textarea.form-control { font-size: 0.85rem; min-height: 70px; resize: vertical; }
 
-        .form-group {
-            margin-bottom: 0;
-        }
+    .empty-state {
+        padding: 60px 20px; text-align: center; color: var(--text-secondary);
+        background: var(--bg-card); border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg);
+    }
+    .empty-state i { font-size: 3rem; opacity: 0.35; margin-bottom: 14px; display: block; }
 
-        .btn-success {
-            background-color: #28a745;
-            border-color: #28a745;
-        }
+    @media (max-width: 1100px) {
+        .table-card { overflow-x: auto; }
+        .table-modern { min-width: 1100px; }
+    }
+</style>
 
-        .btn-success:hover {
-            background-color: #218838;
-            border-color: #1e7e34;
-        }
-    </style>
-</head>
-
-<body>
-    <div class="container mt-4 mb-5">
-        <h2 class="header text-center text-primary mb-4">Pending Petty Cash Requests</h2>
-        <div class="text-center mb-4">
-            <a class="btn btn-outline-primary btn-lg" href="{{ route('finance.dashboard') }}">
-                <i class="fas fa-arrow-left"></i> Back to Dashboard
-            </a>
-        </div>
-
-        @if ($pendingPettyCashRequests->isEmpty())
-            <div class="alert alert-info text-center" role="alert">
-                No pending petty cash requests at this time.
-            </div>
-        @else
-            <div class="table-responsive">
-                <table class="table table-bordered table-hover table-striped">
-                    <thead class="thead-light">
-                        <tr>
-                            <th>Reference Number</th>
-                            <th>Title</th>
-                            <th>Description</th>
-                            <th>Amount Requested</th>
-                            <th>Amount Requested in Words</th>
-                            <th>Currency</th>
-                            <th>Status</th>
-                            <th>Manager Comment</th>
-                            <th>Finance Comment</th>
-                            <th>Approved By</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($pendingPettyCashRequests as $request)
-                            <tr>
-                                <td>{{ $request->reference_number }}</td>
-                                <td>{{ $request->title }}</td>
-                                <td>{{ $request->description ?? 'N/A' }}</td>
-                                <td>{{ number_format($request->amount_requested, 2) }} {{ $request->currency }}</td>
-                                <td>{{ $request->amount_requested_in_words ?? 'N/A' }}</td>
-                                <td>{{ $request->currency }}</td>
-                                <td>
-                                    <span class="badge bg-warning">{{ ucfirst($request->status) }}</span>
-                                </td>
-                                <td>{{ $request->manager_comment ?? 'N/A' }}</td>
-                                <td>{{ $request->finance_comment ?? 'N/A' }}</td>
-                                <td>{{ optional(\App\Models\User::find($request->approved_by))->full_name ?? 'N/A' }}
-                                </td>
-
-                                <td class="action-buttons">
-                                    <form
-                                        action="{{ route('finance.petty_cash.comment', ['petty_cash_request_id' => $request->petty_cash_request_id]) }}"
-                                        method="POST" enctype="multipart/form-data">
-                                        @csrf
-                                        <!-- Comment Textarea -->
-                                        <textarea name="finance_comment" rows="3" placeholder="Add a comment..." required></textarea>
-                                        {{-- <!-- File Input -->
-                                        <input type="file" name="attachments[]" multiple> --}}
-                                        <!-- Submit Button -->
-                                        <button type="submit">Submit</button>
-                                    </form>
-
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-        @endif
+<div class="page-head">
+    <div>
+        <h1>Pending Petty Cash Requests</h1>
+        <p>Review and add finance comments to petty cash requests</p>
     </div>
+    <a href="{{ route('finance.dashboard') }}" class="btn-back">
+        <i class="fas fa-arrow-left"></i> Back to Dashboard
+    </a>
+</div>
 
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-</body>
-
-</html>
+@if ($pendingPettyCashRequests->isEmpty())
+    <div class="empty-state">
+        <i class="bi bi-wallet2"></i>
+        <p class="mb-0">No pending petty cash requests at this time.</p>
+    </div>
+@else
+    <div class="table-card">
+        <table class="table-modern">
+            <thead>
+                <tr>
+                    <th>Reference No</th>
+                    <th>Title</th>
+                    <th>Description</th>
+                    <th>Amount Requested</th>
+                    <th>In Words</th>
+                    <th>Currency</th>
+                    <th>Status</th>
+                    <th>Manager Comment</th>
+                    <th>Finance Comment</th>
+                    <th>Approved By</th>
+                    <th style="min-width:240px;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach ($pendingPettyCashRequests as $request)
+                    <tr>
+                        <td>{{ $request->reference_number }}</td>
+                        <td>{{ $request->title }}</td>
+                        <td>{{ $request->description ?? 'N/A' }}</td>
+                        <td><strong>{{ number_format($request->amount_requested, 2) }} {{ $request->currency }}</strong></td>
+                        <td>{{ $request->amount_requested_in_words ?? 'N/A' }}</td>
+                        <td>{{ $request->currency }}</td>
+                        <td><span class="status-badge status-{{ $request->status }}">{{ ucfirst($request->status) }}</span></td>
+                        <td>{{ $request->manager_comment ?? 'N/A' }}</td>
+                        <td>{{ $request->finance_comment ?? 'N/A' }}</td>
+                        <td>{{ optional(\App\Models\User::find($request->approved_by))->full_name ?? 'N/A' }}</td>
+                        <td>
+                            <form action="{{ route('finance.petty_cash.comment', ['petty_cash_request_id' => $request->petty_cash_request_id]) }}" method="POST" enctype="multipart/form-data">
+                                @csrf
+                                <textarea class="form-control mb-2" name="finance_comment" rows="3" placeholder="Add a comment..." required></textarea>
+                                <button type="submit" class="btn-submit-inline">
+                                    <i class="bi bi-send"></i> Submit Comment
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+@endif
+@endsection
